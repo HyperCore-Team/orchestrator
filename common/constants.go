@@ -30,7 +30,7 @@ const (
 	WrapRequestsProcessSize  = 30 // sign 30 events at most
 
 	// EVM
-	// todo implemenet to set state as halted when we see event if we are live
+	haltedSignatureString = "Halted()"
 	// This event occurs when an users tries to unwrap tokens back to zenon network
 	unwrappedSignatureString = "Unwrapped(address,address,string,uint256)"
 	// We need this event in case we need to revoke it
@@ -48,5 +48,6 @@ var (
 	RegisteredRedeemSigHash = crypto.Keccak256Hash([]byte(registeredRedeemSignatureString))
 	RedeemedSigHash         = crypto.Keccak256Hash([]byte(redeemedSignatureString))
 	RevokedRedeemSigHash    = crypto.Keccak256Hash([]byte(revokedRedeemSignatureString))
+	HaltedSigHash           = crypto.Keccak256Hash([]byte(haltedSignatureString))
 	Topics                  = [][]common.Hash{{UnwrapSigHash, RegisteredRedeemSigHash, RedeemedSigHash, RevokedRedeemSigHash}}
 )

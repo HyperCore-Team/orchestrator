@@ -167,8 +167,9 @@ func (eN *evmNetwork) Sync() error {
 
 func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 	eN.logger.Infof("InterpretLog - tx: %s and log topic: %s - live: %v", log.TxHash.String(), log.Topics[0].Hex(), live)
-	// todo use switch case
-	if log.Topics[0].Hex() == common.UnwrapSigHash.Hex() {
+
+	switch log.Topics[0].Hex() {
+	case common.UnwrapSigHash.Hex():
 		unwrapped, errParse := eN.EvmRpc().Bridge().ParseUnwrapped(log)
 		if errParse != nil {
 			eN.logger.Debug(errParse)
@@ -226,7 +227,7 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 				}
 			}
 		}
-	} else if log.Topics[0].Hex() == common.RegisteredRedeemSigHash.Hex() {
+	case common.RegisteredRedeemSigHash.Hex():
 		id := types.Hash(log.Topics[1])
 		eN.logger.Infof("found RegisteredRedeemSigHash: %s", id.String())
 
@@ -282,7 +283,7 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 				}
 			}
 		}
-	} else if log.Topics[0].Hex() == common.RedeemedSigHash.Hex() {
+	case common.RedeemedSigHash.Hex():
 		redeem, errParse := eN.EvmRpc().Bridge().ParseRedeemed(log)
 		if errParse != nil {
 			return errParse
@@ -300,7 +301,7 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 				return err
 			}
 		}
-	} else if log.Topics[0].Hex() == common.RevokedRedeemSigHash.Hex() {
+	case common.RevokedRedeemSigHash.Hex():
 		redeem, errParse := eN.EvmRpc().Bridge().ParseRedeemed(log)
 		if errParse != nil {
 			return errParse
@@ -315,6 +316,14 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			// todo check if event exists on znn otherwise in this case there is not much we can do
 		} else {
 			if err = eN.dbManager.ZnnStorage().SetWrapRequestStatus(id, common.RevokedStatus); err != nil {
+				return err
+			}
+		}
+	case common.HaltedSigHash.Hex():
+		if live {
+			if err := eN.state.SetState(common.HaltedState); err != nil {
+				eN.logger.Debug(err)
+				eN.stopChan <- syscall.SIGKILL
 				return err
 			}
 		}
