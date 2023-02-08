@@ -43,7 +43,7 @@ func NewEvmNetwork(network *definition.NetworkInfo, dbManager *manager.Manager, 
 		return nil, err
 	}
 
-	newQueue, err := storage.CreateOrOpenQueue(network.Type, network.Name)
+	newQueue, err := storage.CreateOrOpenQueue(network.Class, network.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -182,9 +182,9 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			return nil
 		}
 
-		// todo refactor networkType to networkClass
+		// todo refactor networkClass to networkClass
 		event := events.UnwrapRequestEvm{
-			NetworkType:     eN.NetworkType(),
+			NetworkClass:    eN.NetworkClass(),
 			ChainId:         eN.ChainId(),
 			BlockNumber:     log.BlockNumber,
 			BlockHash:       log.BlockHash,
@@ -591,7 +591,7 @@ func (eN *evmNetwork) GetCurrentTssAddress() (ecommon.Address, error) {
 }
 
 func (eN *evmNetwork) GetChangeTssEcdsaPubKeyEvmMessage(newAddress ecommon.Address) ([]byte, error) {
-	return eN.EvmRpc().GetChangeTssEcdsaPubKeyEvmMessage(newAddress, eN.NetworkType(), eN.ChainId(), eN.ContractAddress())
+	return eN.EvmRpc().GetChangeTssEcdsaPubKeyEvmMessage(newAddress, eN.NetworkClass(), eN.ChainId(), eN.ContractAddress())
 }
 
 func (eN *evmNetwork) GetChangeTssEcdsaPubKeyEvmTx(newTssAddress, sender ecommon.Address, oldFullSignature, newFullSignature []byte) (*etypes.Transaction, error) {

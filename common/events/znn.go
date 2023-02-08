@@ -10,9 +10,9 @@ import (
 	"math/big"
 )
 
-// WrapRequestZnn znn -> wZnn networkType and ChainId belong to the destination network
+// WrapRequestZnn znn -> wZnn networkClass and ChainId belong to the destination network
 type WrapRequestZnn struct {
-	NetworkType   uint32
+	NetworkClass  uint32
 	ChainId       uint32
 	Id            types.Hash // hash of the send block
 	ToAddress     string
@@ -26,7 +26,7 @@ type WrapRequestZnn struct {
 
 func (e *WrapRequestZnn) GetMessage(address *ecommon.Address) ([]byte, error) {
 	request := &definition.WrapTokenRequest{
-		NetworkType:  e.NetworkType,
+		NetworkClass: e.NetworkClass,
 		ChainId:      e.ChainId,
 		Id:           e.Id,
 		ToAddress:    e.ToAddress,
@@ -39,7 +39,7 @@ func (e *WrapRequestZnn) GetMessage(address *ecommon.Address) ([]byte, error) {
 
 func (e *WrapRequestZnn) Proto() *WrapRequestZnnProto {
 	return &WrapRequestZnnProto{
-		NetworkType:   e.NetworkType,
+		NetworkClass:  e.NetworkClass,
 		ChainId:       e.ChainId,
 		Id:            e.Id.Bytes(),
 		ToAddress:     e.ToAddress,
@@ -54,7 +54,7 @@ func (e *WrapRequestZnn) Proto() *WrapRequestZnnProto {
 
 func DeProtoWrapEventZnn(e *WrapRequestZnnProto) *WrapRequestZnn {
 	ev := &WrapRequestZnn{
-		NetworkType:   e.NetworkType,
+		NetworkClass:  e.NetworkClass,
 		ChainId:       e.ChainId,
 		Id:            types.BytesToHashPanic(e.Id),
 		ToAddress:     e.ToAddress,

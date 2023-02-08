@@ -21,7 +21,7 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type WrapRequestZnnProto struct {
-	NetworkType          uint32   `protobuf:"varint,1,opt,name=networkType,proto3" json:"networkType,omitempty"`
+	NetworkClass         uint32   `protobuf:"varint,1,opt,name=networkClass,proto3" json:"networkClass,omitempty"`
 	ChainId              uint32   `protobuf:"varint,2,opt,name=chainId,proto3" json:"chainId,omitempty"`
 	Id                   []byte   `protobuf:"bytes,3,opt,name=id,proto3" json:"id,omitempty"`
 	ToAddress            string   `protobuf:"bytes,4,opt,name=toAddress,proto3" json:"toAddress,omitempty"`
@@ -61,9 +61,9 @@ func (m *WrapRequestZnnProto) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_WrapRequestZnnProto proto.InternalMessageInfo
 
-func (m *WrapRequestZnnProto) GetNetworkType() uint32 {
+func (m *WrapRequestZnnProto) GetNetworkClass() uint32 {
 	if m != nil {
-		return m.NetworkType
+		return m.NetworkClass
 	}
 	return 0
 }

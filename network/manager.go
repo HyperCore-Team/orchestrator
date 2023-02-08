@@ -61,7 +61,7 @@ func NewNetworksManager(networksInfo map[string]config.BaseNetworkConfig, dbMana
 
 	newEvmNetworks := make([]*evmNetwork, 0)
 	for _, network := range networks {
-		switch network.Type {
+		switch network.Class {
 		// we only support evm network types
 		case definition.EvmClass:
 			configData, ok := networksInfo[network.Name]
@@ -215,7 +215,7 @@ func (m *NetworksManager) GetWrapRequests() ([]events.WrapRequestZnn, error) {
 	list := make([]events.WrapRequestZnn, 0)
 	for _, entry := range ans.List {
 		list = append(list, events.WrapRequestZnn{
-			NetworkType:  entry.NetworkType,
+			NetworkClass: entry.NetworkClass,
 			ChainId:      entry.ChainId,
 			Id:           entry.Id,
 			ToAddress:    entry.ToAddress,

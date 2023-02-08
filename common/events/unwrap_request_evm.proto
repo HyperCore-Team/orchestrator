@@ -4,7 +4,7 @@ package events;
 option go_package = "./events";
 
 message UnwrapRequestEvmProto {
-    uint32 networkType = 1;
+    uint32 networkClass = 1;
     uint32 chainId = 2;
     uint64 blockNumber = 3;
     bytes blockHash = 4;

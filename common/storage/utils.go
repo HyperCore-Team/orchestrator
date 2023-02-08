@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 )
 
-func CreateOrOpenQueue(networkType uint32, networkName string) (*dque.DQue, error) {
+func CreateOrOpenQueue(networkClass uint32, networkName string) (*dque.DQue, error) {
 	qDir := filepath.Join(common.DefaultDataDir(), "queues")
 	if _, err := os.Stat(qDir); os.IsNotExist(err) {
 		err := os.MkdirAll(qDir, 0700)
@@ -27,7 +27,7 @@ func CreateOrOpenQueue(networkType uint32, networkName string) (*dque.DQue, erro
 
 	var queue *dque.DQue
 	var err error
-	switch networkType {
+	switch networkClass {
 	case definition.EvmClass:
 		queue, err = dque.NewOrOpen(networkName, qDir, segmentSize, events.UnwrapRequestEvmBuilder)
 		if err != nil {

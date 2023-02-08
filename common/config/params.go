@@ -8,9 +8,9 @@ import (
 )
 
 type EvmParams struct {
-	networkName          string
-	networkType, chainId uint32
-	contractAddress      ecommon.Address
+	networkName           string
+	networkClass, chainId uint32
+	contractAddress       ecommon.Address
 	// This tells us when should we start looking for events
 	contractDeploymentHeight uint64
 	estimatedBlockTime       time.Duration
@@ -20,7 +20,7 @@ type EvmParams struct {
 func NewEvmParams(network *definition.NetworkInfo) (EvmParams, error) {
 	return EvmParams{
 		networkName:              network.Name,
-		networkType:              network.Type,
+		networkClass:             network.Class,
 		chainId:                  network.Id,
 		contractAddress:          ecommon.HexToAddress(network.ContractAddress),
 		contractDeploymentHeight: 0,
@@ -31,7 +31,7 @@ func NewEvmParams(network *definition.NetworkInfo) (EvmParams, error) {
 
 func (ec *EvmParams) Log() {
 	common.GlobalLogger.Infof("ec.networkName: %s", ec.networkName)
-	common.GlobalLogger.Infof("ec.networkType: %d", ec.networkType)
+	common.GlobalLogger.Infof("ec.networkClass: %d", ec.networkClass)
 	common.GlobalLogger.Infof("ec.chainId: %d", ec.chainId)
 	common.GlobalLogger.Infof("ec.contractAddress: %s", ec.contractAddress.String())
 	common.GlobalLogger.Infof("ec.contractDeploymentHeight: %d", ec.contractDeploymentHeight)
@@ -43,8 +43,8 @@ func (ec *EvmParams) NetworkName() string {
 	return ec.networkName
 }
 
-func (ec *EvmParams) NetworkType() uint32 {
-	return ec.networkType
+func (ec *EvmParams) NetworkClass() uint32 {
+	return ec.networkClass
 }
 
 func (ec *EvmParams) ChainId() uint32 {

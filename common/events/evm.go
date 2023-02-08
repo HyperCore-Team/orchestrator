@@ -20,7 +20,7 @@ import (
 // token - evm token address
 // Amount - Amount to be unwrapped
 type UnwrapRequestEvm struct {
-	NetworkType     uint32          `json:"networkType"`
+	NetworkClass    uint32          `json:"networkClass"`
 	ChainId         uint32          `json:"networkId"`
 	BlockNumber     uint64          `json:"blockNumber"`
 	BlockHash       ecommon.Hash    `json:"blockHash"`
@@ -65,7 +65,7 @@ func (e *UnwrapRequestEvm) GetMessage() ([]byte, error) {
 		return nil, err
 	}
 	param := &definition.UnwrapTokenParam{
-		NetworkType:     e.NetworkType,
+		NetworkClass:    e.NetworkClass,
 		ChainId:         e.ChainId,
 		TransactionHash: types.Hash(e.TransactionHash),
 		LogIndex:        e.LogIndex,
@@ -78,7 +78,7 @@ func (e *UnwrapRequestEvm) GetMessage() ([]byte, error) {
 
 func (e *UnwrapRequestEvm) Proto() *UnwrapRequestEvmProto {
 	return &UnwrapRequestEvmProto{
-		NetworkType:     e.NetworkType,
+		NetworkClass:    e.NetworkClass,
 		ChainId:         e.ChainId,
 		BlockNumber:     e.BlockNumber,
 		BlockHash:       e.BlockHash.Bytes(),
@@ -95,7 +95,7 @@ func (e *UnwrapRequestEvm) Proto() *UnwrapRequestEvmProto {
 
 func DeProtoEvmUnwrapRequest(e *UnwrapRequestEvmProto) *UnwrapRequestEvm {
 	ev := &UnwrapRequestEvm{
-		NetworkType:     e.NetworkType,
+		NetworkClass:    e.NetworkClass,
 		ChainId:         e.ChainId,
 		BlockNumber:     e.BlockNumber,
 		BlockHash:       ecommon.BytesToHash(e.BlockHash),

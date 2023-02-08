@@ -18,8 +18,8 @@ import (
 	"runtime"
 )
 
-func ParseAddressString(address string, networkType uint32) (interface{}, error) {
-	switch networkType {
+func ParseAddressString(address string, networkClass uint32) (interface{}, error) {
+	switch networkClass {
 	case definition.EvmClass:
 		if common.IsHexAddress(address) {
 			return common.HexToAddress(address), nil
@@ -62,7 +62,7 @@ func DefaultDataDir() string {
 
 func ZnnWrapToOrchestratorWrap(rpcEvent *definition.WrapTokenRequest) events.WrapRequestZnn {
 	return events.WrapRequestZnn{
-		NetworkType:   rpcEvent.NetworkType,
+		NetworkClass:  rpcEvent.NetworkClass,
 		ChainId:       rpcEvent.ChainId,
 		Id:            rpcEvent.Id,
 		ToAddress:     rpcEvent.ToAddress,
@@ -89,7 +89,7 @@ func ZnnUnwrapToOrchestatorUnwrap(event *definition.UnwrapTokenRequest) events.U
 		}
 	}
 	return events.UnwrapRequestEvm{
-		NetworkType:     event.NetworkType,
+		NetworkClass:    event.NetworkClass,
 		ChainId:         event.ChainId,
 		BlockNumber:     0,
 		TransactionHash: common.Hash(event.TransactionHash),

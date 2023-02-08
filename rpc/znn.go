@@ -122,7 +122,7 @@ func (r *ZnnRpc) UpdateWrapRequest(id types.Hash, signature string, keyPair *wal
 func (r *ZnnRpc) SendUnwrapRequest(event *events.UnwrapRequestEvm, keyPair *wallet.KeyPair) error {
 	hash := types.BytesToHashPanic(event.TransactionHash.Bytes())
 	toAddress := types.ParseAddressPanic(event.To)
-	tx := r.rpcClient.BridgeApi.UnwrapToken(event.NetworkType, event.ChainId, event.Token.String(), hash, event.LogIndex, event.Amount, toAddress, event.Signature)
+	tx := r.rpcClient.BridgeApi.UnwrapToken(event.NetworkClass, event.ChainId, event.Token.String(), hash, event.LogIndex, event.Amount, toAddress, event.Signature)
 	return r.BroadcastTransaction(tx, keyPair)
 }
 
@@ -213,11 +213,11 @@ func (r *ZnnRpc) GetAllNetworks() ([]*definition.NetworkInfo, error) {
 	return ans, nil
 }
 
-func (r *ZnnRpc) GetNetworkByTypeAndId(networkType, id uint32) (*definition.NetworkInfo, error) {
-	network, err := r.rpcClient.BridgeApi.GetNetworkInfo(networkType, id)
+func (r *ZnnRpc) GetNetworkByClassAndId(networkClass, id uint32) (*definition.NetworkInfo, error) {
+	network, err := r.rpcClient.BridgeApi.GetNetworkInfo(networkClass, id)
 	if err != nil {
 		return nil, err
-	} else if network.Type == 0 {
+	} else if network.Class == 0 {
 		return nil, nil
 	}
 

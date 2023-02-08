@@ -236,7 +236,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		}
 		// todo one line log
 		rC.logger.Info("unpacked param")
-		rC.logger.Info("param.NetworkType: ", param.NetworkType)
+		rC.logger.Info("param.NetworkClass: ", param.NetworkClass)
 		rC.logger.Info("param.ChainId: ", param.ChainId)
 		rC.logger.Info("param.TransactionHash: ", param.TransactionHash)
 		rC.logger.Info("param.LogIndex: ", param.LogIndex)
@@ -386,7 +386,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			if err := definition.ABIBridge.UnpackMethod(param, definition.AddNetworkMethodName, sendBlock.Data); err != nil {
 				return constants.ErrUnpackError
 			}
-			network, err := rC.ZnnRpc().GetNetworkByTypeAndId(param.Type, param.ChainId)
+			network, err := rC.ZnnRpc().GetNetworkByClassAndId(param.Class, param.ChainId)
 			if err != nil {
 				return err
 			} else if network == nil {
@@ -395,7 +395,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 				return nil
 			}
 			// check locally that the network is added
-			switch param.Type {
+			switch param.Class {
 			case definition.EvmClass:
 				existent := rC.rpcManager.HasEvmNetwork(param.ChainId)
 				if existent {
@@ -435,11 +435,11 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			if err := definition.ABIBridge.UnpackMethod(param, definition.RemoveNetworkMethodName, sendBlock.Data); err != nil {
 				return constants.ErrUnpackError
 			}
-			network, err := rC.ZnnRpc().GetNetworkByTypeAndId(param.Type, param.ChainId)
+			network, err := rC.ZnnRpc().GetNetworkByClassAndId(param.Class, param.ChainId)
 			if err != nil {
 				return err
 			} else if network == nil {
-				switch param.Type {
+				switch param.Class {
 				case definition.EvmClass:
 					existent := rC.rpcManager.HasEvmNetwork(param.ChainId)
 					if !existent {
@@ -677,7 +677,7 @@ func (rC *znnNetwork) GetWrapEventById(id types.Hash) (*events.WrapRequestZnn, e
 
 func (rC *znnNetwork) AddWrapEvent(rpcEvent *definition.WrapTokenRequest) error {
 	event := events.WrapRequestZnn{
-		NetworkType:   rpcEvent.NetworkType,
+		NetworkClass:  rpcEvent.NetworkClass,
 		ChainId:       rpcEvent.ChainId,
 		Id:            rpcEvent.Id,
 		ToAddress:     rpcEvent.ToAddress,

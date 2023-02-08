@@ -125,7 +125,7 @@ func (r *EvmRpc) SendTransaction(tx *etypes.Transaction) error {
 	return r.rpcClient.SendTransaction(context.Background(), tx)
 }
 
-func (r *EvmRpc) GetChangeTssEcdsaPubKeyEvmMessage(newAddress ecommon.Address, networkType, chainId uint32, contractAddress *ecommon.Address) ([]byte, error) {
+func (r *EvmRpc) GetChangeTssEcdsaPubKeyEvmMessage(newAddress ecommon.Address, networkClass, chainId uint32, contractAddress *ecommon.Address) ([]byte, error) {
 	actionsNonce, err := r.GetActionNonce()
 	if err != nil {
 		return nil, err
@@ -134,7 +134,7 @@ func (r *EvmRpc) GetChangeTssEcdsaPubKeyEvmMessage(newAddress ecommon.Address, n
 	args := abi.Arguments{{Type: definition.StringTy}, {Type: definition.Uint256Ty}, {Type: definition.Uint256Ty}, {Type: definition.AddressTy}, {Type: definition.Uint256Ty}, {Type: definition.AddressTy}}
 	values := make([]interface{}, 0)
 	values = append(values, "changeTssAddress",
-		big.NewInt(int64(networkType)),
+		big.NewInt(int64(networkClass)),
 		big.NewInt(int64(chainId)),
 		contractAddress,
 		actionsNonce,
@@ -211,7 +211,7 @@ func (r *EvmRpc) GetChangeTssEcdsaPubKeyEvmTx(newTssAddress, sender ecommon.Addr
 	}
 }
 
-func (r *EvmRpc) GetHaltEvmMessage(networkType, chainId uint32, contractAddress *ecommon.Address) ([]byte, error) {
+func (r *EvmRpc) GetHaltEvmMessage(networkClass, chainId uint32, contractAddress *ecommon.Address) ([]byte, error) {
 	actionsNonce, err := r.GetActionNonce()
 	if err != nil {
 		return nil, err
@@ -219,7 +219,7 @@ func (r *EvmRpc) GetHaltEvmMessage(networkType, chainId uint32, contractAddress 
 
 	args := abi.Arguments{{Type: definition.StringTy}, {Type: definition.Uint256Ty}, {Type: definition.Uint256Ty}, {Type: definition.AddressTy}, {Type: definition.Uint256Ty}}
 	values := make([]interface{}, 0)
-	values = append(values, "halt", big.NewInt(int64(networkType)), big.NewInt(int64(chainId)), contractAddress, actionsNonce)
+	values = append(values, "halt", big.NewInt(int64(networkClass)), big.NewInt(int64(chainId)), contractAddress, actionsNonce)
 
 	packedData, err := args.PackValues(values)
 	if err != nil {

@@ -315,7 +315,7 @@ func main() {
 				fmt.Println("TransactionHash: ", requestF.TransactionHash.String())
 				fmt.Println("LogIndex: ", requestF.LogIndex)
 				fmt.Println("RegistrationMomentumHeight: ", requestF.RegistrationMomentumHeight)
-				fmt.Println("NetworkType: ", requestF.NetworkType)
+				fmt.Println("NetworkClass: ", requestF.NetworkClass)
 				fmt.Println("ChainId: ", requestF.ChainId)
 				fmt.Println("Amount: ", requestF.Amount.String())
 				fmt.Println("Redeemed: ", requestF.Redeemed)
