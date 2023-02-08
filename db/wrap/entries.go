@@ -22,7 +22,7 @@ func (es *eventStore) AddWrapRequest(event events.WrapRequestZnn) error {
 		es.SendKillSignal()
 		return err
 	} else {
-		if err := es.DB.Put(getWrapEventKey(event.Nonce), eventBytes); err != nil {
+		if err := es.DB.Put(getWrapEventKey(event.Id), eventBytes); err != nil {
 			es.SendKillSignal()
 			return err
 		}
@@ -61,7 +61,7 @@ func (es *eventStore) SetWrapRequestStatus(id types.Hash, status uint32) error {
 			es.SendKillSignal()
 			return err
 		} else {
-			if err := es.DB.Put(getWrapEventKey(event.Nonce), eventBytes); err != nil {
+			if err := es.DB.Put(getWrapEventKey(event.Id), eventBytes); err != nil {
 				es.SendKillSignal()
 				return err
 			}
@@ -83,7 +83,7 @@ func (es *eventStore) SetWrapRequestSignature(id types.Hash, signature string) e
 			es.SendKillSignal()
 			return err
 		} else {
-			if err := es.DB.Put(getWrapEventKey(event.Nonce), eventBytes); err != nil {
+			if err := es.DB.Put(getWrapEventKey(event.Id), eventBytes); err != nil {
 				es.SendKillSignal()
 				return err
 			}
@@ -105,7 +105,7 @@ func (es *eventStore) SetWrapRequestSentSignature(id types.Hash) error {
 			es.SendKillSignal()
 			return err
 		} else {
-			if err := es.DB.Put(getWrapEventKey(event.Nonce), eventBytes); err != nil {
+			if err := es.DB.Put(getWrapEventKey(event.Id), eventBytes); err != nil {
 				es.SendKillSignal()
 				return err
 			}

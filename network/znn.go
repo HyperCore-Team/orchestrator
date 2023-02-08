@@ -679,7 +679,7 @@ func (rC *znnNetwork) AddWrapEvent(rpcEvent *definition.WrapTokenRequest) error 
 	event := events.WrapRequestZnn{
 		NetworkType:   rpcEvent.NetworkType,
 		ChainId:       rpcEvent.ChainId,
-		Nonce:         rpcEvent.Id,
+		Id:            rpcEvent.Id,
 		ToAddress:     rpcEvent.ToAddress,
 		TokenAddress:  rpcEvent.TokenAddress,
 		Amount:        big.NewInt(0).Set(rpcEvent.Amount),

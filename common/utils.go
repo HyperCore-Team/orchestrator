@@ -64,7 +64,7 @@ func ZnnWrapToOrchestratorWrap(rpcEvent *definition.WrapTokenRequest) events.Wra
 	return events.WrapRequestZnn{
 		NetworkType:   rpcEvent.NetworkType,
 		ChainId:       rpcEvent.ChainId,
-		Nonce:         rpcEvent.Id,
+		Id:            rpcEvent.Id,
 		ToAddress:     rpcEvent.ToAddress,
 		TokenAddress:  rpcEvent.TokenAddress,
 		Amount:        big.NewInt(0).Set(rpcEvent.Amount),

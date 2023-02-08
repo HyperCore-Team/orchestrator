@@ -12,10 +12,9 @@ import (
 
 // WrapRequestZnn znn -> wZnn networkType and ChainId belong to the destination network
 type WrapRequestZnn struct {
-	NetworkType uint32
-	ChainId     uint32
-	// todo refactor to ID
-	Nonce         types.Hash // hash of the send block
+	NetworkType   uint32
+	ChainId       uint32
+	Id            types.Hash // hash of the send block
 	ToAddress     string
 	TokenAddress  string
 	Amount        *big.Int
@@ -29,7 +28,7 @@ func (e *WrapRequestZnn) GetMessage(address *ecommon.Address) ([]byte, error) {
 	request := &definition.WrapTokenRequest{
 		NetworkType:  e.NetworkType,
 		ChainId:      e.ChainId,
-		Id:           e.Nonce,
+		Id:           e.Id,
 		ToAddress:    e.ToAddress,
 		TokenAddress: e.TokenAddress,
 		Amount:       e.Amount,
@@ -42,7 +41,7 @@ func (e *WrapRequestZnn) Proto() *WrapRequestZnnProto {
 	return &WrapRequestZnnProto{
 		NetworkType:   e.NetworkType,
 		ChainId:       e.ChainId,
-		Nonce:         e.Nonce.Bytes(),
+		Id:            e.Id.Bytes(),
 		ToAddress:     e.ToAddress,
 		TokenAddress:  e.TokenAddress,
 		Amount:        e.Amount.Bytes(),
@@ -57,7 +56,7 @@ func DeProtoWrapEventZnn(e *WrapRequestZnnProto) *WrapRequestZnn {
 	ev := &WrapRequestZnn{
 		NetworkType:   e.NetworkType,
 		ChainId:       e.ChainId,
-		Nonce:         types.BytesToHashPanic(e.Nonce),
+		Id:            types.BytesToHashPanic(e.Id),
 		ToAddress:     e.ToAddress,
 		TokenAddress:  e.TokenAddress,
 		Amount:        zcommon.BytesToBigInt(e.Amount),

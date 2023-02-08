@@ -217,7 +217,7 @@ func (m *NetworksManager) GetWrapRequests() ([]events.WrapRequestZnn, error) {
 		list = append(list, events.WrapRequestZnn{
 			NetworkType:  entry.NetworkType,
 			ChainId:      entry.ChainId,
-			Nonce:        entry.Id,
+			Id:           entry.Id,
 			ToAddress:    entry.ToAddress,
 			TokenAddress: entry.TokenAddress,
 			Amount:       entry.Amount,

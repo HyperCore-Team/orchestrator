@@ -620,7 +620,7 @@ func (node *Node) processSignatures() {
 				continue
 			} else {
 				for _, request := range requests {
-					if err := node.networksManager.SetWrapEventSignature(request.Nonce, ""); err != nil {
+					if err := node.networksManager.SetWrapEventSignature(request.Id, ""); err != nil {
 						node.logger.Debug(err)
 						continue
 					}
@@ -1051,29 +1051,29 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 	}
 
 	for _, req := range requests {
-		rpcRequest, err := node.networksManager.GetWrapRequestByIdRPC(req.Nonce)
+		rpcRequest, err := node.networksManager.GetWrapRequestByIdRPC(req.Id)
 		if err != nil {
 			node.logger.Debug(err)
 			continue
 		} else if len(rpcRequest.Signature) != 0 {
-			delete(seenEventsCount, req.Nonce.String())
+			delete(seenEventsCount, req.Id.String())
 			continue
 		}
 
-		index := uint32(req.Nonce.Bytes()[31]) % node.GetParticipantsLength()
-		if seenEventsCount[req.Nonce.String()] > 2 {
-			index = (index + seenEventsCount[req.Nonce.String()]) % node.GetParticipantsLength()
+		index := uint32(req.Id.Bytes()[31]) % node.GetParticipantsLength()
+		if seenEventsCount[req.Id.String()] > 2 {
+			index = (index + seenEventsCount[req.Id.String()]) % node.GetParticipantsLength()
 		}
-		seenEventsCount[req.Nonce.String()] += 1
+		seenEventsCount[req.Id.String()] += 1
 		producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
 		if producerPubKey == node.GetParticipant(index) {
 			node.logger.Info("[sendSignaturesWrap] this is me")
-			err = node.networksManager.UpdateWrapRequest(req.Nonce, rpcRequest.Signature, node.producerKeyPair)
+			err = node.networksManager.UpdateWrapRequest(req.Id, rpcRequest.Signature, node.producerKeyPair)
 			if err != nil {
 				node.logger.Debug(err)
 				continue
 			}
-			delete(seenEventsCount, req.Nonce.String())
+			delete(seenEventsCount, req.Id.String())
 			node.logger.Info("[sendSignaturesWrap] sent request")
 		}
 	}

@@ -6,7 +6,7 @@ option go_package = "./events";
 message WrapRequestZnnProto {
   uint32 networkType = 1;
   uint32 chainId = 2;
-  bytes nonce = 3;
+  bytes id = 3;
   string toAddress = 4;
   string tokenAddress = 5;
   bytes amount = 6;
