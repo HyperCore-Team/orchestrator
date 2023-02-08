@@ -1058,10 +1058,17 @@ func (node *Node) sendSignatures() {
 		switch currentState {
 		case common.LiveState:
 			if len(node.tssManager.GetPubKey()) != 0 {
-				// todo parallelize
-				node.sendSignaturesWrap(seenEventsCount)
-				time.Sleep(1 * time.Second)
-				node.sendUnwrapRequests(seenEventsCount)
+				var senders sync.WaitGroup
+				senders.Add(2)
+				go func() {
+					defer senders.Done()
+					node.sendSignaturesWrap(seenEventsCount)
+				}()
+				go func() {
+					defer senders.Done()
+					node.sendUnwrapRequests(seenEventsCount)
+				}()
+				senders.Wait()
 			}
 		}
 		// todo use constant for momentum duration
