@@ -556,54 +556,65 @@ func (node *Node) processSignatures() {
 				}
 				node.logger.Debug("Signatures generated from the old key are valid!")
 
+				var senders sync.WaitGroup
+				senders.Add(2)
 				//we send the account block on the znn network
-				// we take the first base64 char of the signature and transform it to its ascii value
-				index := uint32(int(znnOldKeySignature[0])) % node.GetParticipantsLength()
-				for {
-					index = (index + 1) % node.GetParticipantsLength()
-					producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
-					bridgeInfo, err := node.networksManager.GetBridgeInfo()
-					if err != nil {
-						node.logger.Debug(err)
-						continue
-					}
-					// The pubKey was changed
-					if bridgeInfo.CompressedTssECDSAPubKey == keyGenResponse.PubKey {
-						break
-					}
-					if producerPubKey == node.GetParticipant(index) {
-						node.logger.Debug("[sendZnnTx PubKey] this is me")
-						err = node.networksManager.ChangeTssEcdsaPubKeyZnn(keyGenResponse.PubKey, znnOldKeySignature, znnNewKeySignature, newKeySignThreshold, node.producerKeyPair)
+				go func() {
+					defer senders.Done()
+					// we take the first base64 char of the signature and transform it to its ascii value
+					index := uint32(int(znnOldKeySignature[0])) % node.GetParticipantsLength()
+					for {
+						index = (index + 1) % node.GetParticipantsLength()
+						producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
+						bridgeInfo, err := node.networksManager.GetBridgeInfo()
 						if err != nil {
 							node.logger.Debug(err)
 							continue
 						}
-						node.logger.Debug("[sendZnnTx PubKey] sent tx")
-						// we wait 2 momentums so that the send and receive block are inserted and the pubKey changes
-						time.Sleep(20 * time.Second)
-
-					}
-					time.Sleep(20 * time.Second)
-				}
-
-				for {
-					index = (index + 1) % node.GetParticipantsLength()
-					producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
-					if producerPubKey == node.GetParticipant(index) {
-						node.logger.Debug("[send change tss ecdsa pub key evm tx] this is me")
-						if changed, err := node.networksManager.ChangeTssEcdsaPubKeyEvm(oldKeyFullSignatures, newKeyFullSignatures, keyGenResponse.PubKey, node.ecdsaPrivateKey, node.evmAddress); err != nil {
-							node.logger.Debug(err)
-							continue
-						} else if changed {
+						// The pubKey was changed
+						if bridgeInfo.CompressedTssECDSAPubKey == keyGenResponse.PubKey {
 							break
 						}
-					}
-					// todo use estimatedBlockTime / TimeToFinality
-					time.Sleep(20 * time.Second)
-				}
-				node.logger.Info("Successfully changed pubKey on all networks")
-			}
+						if producerPubKey == node.GetParticipant(index) {
+							node.logger.Debug("[sendZnnTx PubKey] this is me")
+							err = node.networksManager.ChangeTssEcdsaPubKeyZnn(keyGenResponse.PubKey, znnOldKeySignature, znnNewKeySignature, newKeySignThreshold, node.producerKeyPair)
+							if err != nil {
+								node.logger.Debug(err)
+								continue
+							}
+							node.logger.Debug("[sendZnnTx PubKey] sent tx")
+							// we wait 2 momentums so that the send and receive block are inserted and the pubKey changes
+							// todo use constants
+							time.Sleep(20 * time.Second)
 
+						}
+						time.Sleep(20 * time.Second)
+					}
+				}()
+
+				go func() {
+					defer senders.Done()
+					index := uint32(int(znnOldKeySignature[0])) % node.GetParticipantsLength()
+					for {
+						index = (index + 1) % node.GetParticipantsLength()
+						producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
+						if producerPubKey == node.GetParticipant(index) {
+							node.logger.Debug("[send change tss ecdsa pub key evm tx] this is me")
+							if changed, err := node.networksManager.ChangeTssEcdsaPubKeyEvm(oldKeyFullSignatures, newKeyFullSignatures, keyGenResponse.PubKey, node.ecdsaPrivateKey, node.evmAddress); err != nil {
+								node.logger.Debug(err)
+								continue
+							} else if changed {
+								break
+							}
+						}
+						// todo use estimatedBlockTime / TimeToFinality
+						time.Sleep(20 * time.Second)
+					}
+					node.logger.Info("Successfully changed pubKey on all networks")
+				}()
+
+				senders.Wait()
+			}
 			if requests, err := node.networksManager.GetUnsentSignedUnwrapRequests(); err != nil {
 				node.logger.Debug(err)
 				continue
@@ -758,49 +769,64 @@ func (node *Node) processSignatures() {
 				continue
 			}
 
-			// todo concurrent halting each network
-			// todo nodes should not wait to send halt tx on any network
 			node.logger.Debug("Halt signatures are valid!")
-			index := uint32(int(znnSignature[0])) % node.GetParticipantsLength()
-			if !node.networksManager.Znn().IsHalted() {
+			var senders sync.WaitGroup
+			senders.Add(2)
+			go func() {
+				defer senders.Done()
+				index := uint32(int(znnSignature[0])) % node.GetParticipantsLength()
+				if !node.networksManager.Znn().IsHalted() {
+					for {
+						index = (index + 1) % node.GetParticipantsLength()
+						if node.networksManager.Znn().IsHalted() {
+							break
+						}
+						producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
+						if producerPubKey == node.GetParticipant(index) {
+							node.logger.Debug("[send Halt Znn Tx] this is me")
+							err = node.networksManager.HaltZnn(znnSignature, node.producerKeyPair)
+							if err != nil {
+								node.logger.Info(err.Error())
+								continue
+							}
+							node.logger.Debug("[send Halt Znn Tx] sent request")
+							// we wait 2 momentums so that the send and receive block are inserted and the pubKey changes
+							// todo wait use constant
+							time.Sleep(20 * time.Second)
+						}
+					}
+					time.Sleep(time.Second)
+				}
+			}()
+
+			go func() {
+				defer senders.Done()
+				index := uint32(int(znnSignature[0])) % node.GetParticipantsLength()
 				for {
 					index = (index + 1) % node.GetParticipantsLength()
-					if node.networksManager.Znn().IsHalted() {
-						break
-					}
 					producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
 					if producerPubKey == node.GetParticipant(index) {
-						node.logger.Debug("[send Halt Znn Tx] this is me")
-						err = node.networksManager.HaltZnn(znnSignature, node.producerKeyPair)
-						if err != nil {
-							node.logger.Info(err.Error())
+						node.logger.Debug("[send halt evm tx] this is me")
+						// todo discuss using concurrent send for different networks with different senders
+						if changed, err := node.networksManager.SendHaltEvm(evmFullSignatures, node.ecdsaPrivateKey, node.evmAddress); err != nil {
+							node.logger.Debug(err)
 							continue
+						} else if changed {
+							break
+						} else {
+							// todo use estimatedBlockTime / TimeToFinality
+							time.Sleep(15 * time.Second)
 						}
-						node.logger.Debug("[send Halt Znn Tx] sent request")
-						// we wait 2 momentums so that the send and receive block are inserted and the pubKey changes
-						time.Sleep(20 * time.Second)
 					}
-					time.Sleep(20 * time.Second)
+					time.Sleep(time.Second)
 				}
-			}
+			}()
+			senders.Wait()
 
-			for {
-				index = (index + 1) % node.GetParticipantsLength()
-				producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
-				if producerPubKey == node.GetParticipant(index) {
-					node.logger.Debug("[send halt evm tx] this is me")
-					if changed, err := node.networksManager.SendHaltEvm(evmFullSignatures, node.ecdsaPrivateKey, node.evmAddress); err != nil {
-						node.logger.Debug(err)
-					} else if changed {
-						break
-					}
-				}
-				// todo use estimatedBlockTime / TimeToFinality
-				time.Sleep(10 * time.Second)
-			}
 			if err := node.state.SetState(common.HaltedState); err != nil {
 				node.logger.Error(err)
 				node.stopChan <- syscall.SIGKILL
+				return
 			}
 		case common.HaltedState:
 			if halted, unhalted, err := node.networksManager.CountNetworksHaltState(); err != nil {
@@ -1043,6 +1069,7 @@ func (node *Node) sendSignatures() {
 	}
 }
 
+// todo wait between sends?
 func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 	requests, err := node.networksManager.GetUnsentSignedWrapRequests()
 	if err != nil {
@@ -1079,6 +1106,7 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 	}
 }
 
+// todo wait between sends?
 func (node *Node) sendUnwrapRequests(seenEventsCount map[string]uint32) {
 	requests, err := node.networksManager.GetUnsentSignedUnwrapRequests()
 	if err != nil {

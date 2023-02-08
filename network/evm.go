@@ -182,7 +182,6 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			return nil
 		}
 
-		// todo refactor networkClass to networkClass
 		event := events.UnwrapRequestEvm{
 			NetworkClass:    eN.NetworkClass(),
 			ChainId:         eN.ChainId(),
