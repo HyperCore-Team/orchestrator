@@ -1,7 +1,6 @@
 package node
 
 import (
-	"github.com/binance-chain/tss-lib/ecdsa/keygen"
 	gotss "gitlab.com/thorchain/tss/go-tss/common"
 	"orchestrator/common"
 	"orchestrator/common/config"
@@ -29,19 +28,9 @@ var DefaultNodeConfig = config.Config{
 	},
 	GlobalState: common.LiveState,
 	TssConfig: config.TssManagerConfig{
-		Port:         25000,
-		PublicKey:    "",
-		LocalPubKeys: nil,
-		Param: &keygen.LocalPreParams{
-			PaillierSK: nil,
-			NTildei:    nil,
-			H1i:        nil,
-			H2i:        nil,
-			Alpha:      nil,
-			Beta:       nil,
-			P:          nil,
-			Q:          nil,
-		},
+		Port:            25000,
+		PublicKey:       "",
+		LocalPubKeys:    nil,
 		Bootstrap:       "",
 		PubKeyWhitelist: map[string]bool{},
 		BaseDir:         path.Join(common.DefaultDataDir(), DefaultTssDir),

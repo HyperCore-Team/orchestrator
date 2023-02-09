@@ -129,20 +129,16 @@ func (node *Node) Start() error {
 		return tssErr
 	}
 
-	if err := node.networksManager.Start(); err != nil {
+	if frMomRpc, err := node.networksManager.Znn().ZnnRpc().GetFrontierMomentum(); err != nil {
 		return err
+	} else {
+		if errState := node.state.SetFrontierMomentum(frMomRpc.Height); errState != nil {
+			return errState
+		}
 	}
 
-	// sleep so we can query the momentum
-	for {
-		time.Sleep(4 * time.Second)
-		frMom, err := node.state.GetFrontierMomentum()
-		if err != nil {
-			node.logger.Info(err.Error())
-		}
-		if frMom > 0 {
-			break
-		}
+	if err := node.networksManager.Start(); err != nil {
+		return err
 	}
 
 	currentState, stateErr := node.state.GetState()
@@ -637,10 +633,10 @@ func (node *Node) processSignatures() {
 					}
 				}
 			}
+			// todo set unsent wrap requests signatures as unsigned
 
 			node.logger.Infof("ECDSA KeyGen Response here: %v", keyGenResponse)
 			node.config.TssConfig.PublicKey = keyGenResponse.PubKey
-			node.config.TssConfig.Param = node.tssManager.GetPreParams()
 			node.tssManager.SetPubKey(keyGenResponse.PubKey)
 			if stateErr := node.state.SetState(common.LiveState); stateErr != nil {
 				node.logger.Info("Could not set state to live after key gen")
@@ -660,19 +656,15 @@ func (node *Node) processSignatures() {
 			}
 		case common.LiveState:
 			time.Sleep(10 * time.Second)
-			ok, err := node.networksManager.ShouldKeyGen()
+			bridgeInfo, err := node.networksManager.GetBridgeInfo()
 			if err != nil {
 				node.logger.Debug(err)
 				continue
-			} else if ok == true {
-				bridgeInfo, err := node.networksManager.GetBridgeInfo()
-				if err != nil {
-					node.logger.Debug(err)
-					continue
-				} else if bridgeInfo == nil {
-					node.logger.Debug("processSignatures bridgeInfo == nil")
-					continue
-				}
+			} else if bridgeInfo == nil {
+				node.logger.Debug("processSignatures bridgeInfo == nil")
+				continue
+			}
+			if bridgeInfo.AllowKeyGen == true {
 				// this means we generated a key and we wait for the administrator to change it
 				if len(bridgeInfo.CompressedTssECDSAPubKey) == 0 && len(node.tssManager.GetPubKey()) != 0 {
 					time.Sleep(10 * time.Second)
@@ -681,7 +673,7 @@ func (node *Node) processSignatures() {
 				if err := node.state.SetState(common.KeyGenState); err != nil {
 					node.logger.Debug(err.Error())
 				}
-			} else if node.tssManager.CanProcessSignatures() {
+			} else if node.tssManager.CanProcessSignatures() && bridgeInfo.CompressedTssECDSAPubKey == node.tssManager.GetPubKey() {
 				frontierMomentum, getFrErr := node.state.GetFrontierMomentum()
 				if getFrErr != nil {
 					node.logger.Debug(getFrErr)
@@ -869,7 +861,7 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 
 	messagesToSign := make([][]byte, 0)
 	msgsIndexes := make(map[string]int)
-	node.logger.Debug("WrapRequests: ", wrapRequestsIds)
+	node.logger.Debugf("WrapRequests len: %d", len(wrapRequestsIds))
 	for idx, request := range wrapRequestsIds {
 		event, err := node.networksManager.GetWrapEventById(request.Id)
 		if err != nil || event == nil {
@@ -889,6 +881,21 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 		} else if len(event.Signature) > 0 {
 			continue
 		}
+		node.logger.Debugf("param.Id: %s", request.Id.String())
+		node.logger.Debugf("param.ToAddress: %s", request.ToAddress)
+		node.logger.Debugf("param.TokenAddress: %s", request.TokenAddress)
+		node.logger.Debugf("param.Amount: %s", request.Amount.String())
+
+		if localEvent, errStorage := node.dbManager.ZnnStorage().GetWrapRequestById(event.Id); err != nil {
+			node.logger.Debug(errStorage)
+		} else {
+			// if we have a signature but it was not sent yet, do not sign again
+			// on a new key sign, this will be set as unsigned if the signature set will not be succeeded
+			if len(localEvent.Signature) > 0 {
+				continue
+			}
+		}
+
 		msg, err := event.GetMessage(node.networksManager.Evm(event.ChainId).ContractAddress())
 		if err != nil {
 			node.logger.Debug(err)
@@ -921,7 +928,18 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 		}
 		recoverID, err := base64.StdEncoding.DecodeString(sig.RecoveryID)
 		fullSignature := append(signature, recoverID...)
-		if err = node.networksManager.SetWrapEventSignature(wrapRequestsIds[idx].Id, base64.StdEncoding.EncodeToString(fullSignature)); err != nil {
+		fullSignatureStr := base64.StdEncoding.EncodeToString(fullSignature)
+
+		ok, err := implementation.CheckECDSASignature(messagesToSign[idx], node.config.TssConfig.DecompressedPublicKey, fullSignatureStr)
+		if err != nil {
+			node.logger.Debug("Error checking ecdsa signature for wrap: %s", err.Error())
+			continue
+		} else if ok == false {
+			node.logger.Debugf("invalid signature when checking ecdsa signature for wrap msg: %s", messagesToSign[idx])
+			continue
+		}
+
+		if err = node.networksManager.SetWrapEventSignature(wrapRequestsIds[idx].Id, fullSignatureStr); err != nil {
 			node.logger.Debug(err)
 			continue
 		}
@@ -983,6 +1001,16 @@ func (node *Node) processSignaturesUnwrap() (error, bool) {
 		recoverID, err := base64.StdEncoding.DecodeString(sig.RecoveryID)
 		fullSignature := append(signature, recoverID...)
 		requests[idx].Signature = base64.StdEncoding.EncodeToString(fullSignature)
+
+		ok, err := implementation.CheckECDSASignature(messagesToSign[idx], node.config.TssConfig.DecompressedPublicKey, requests[idx].Signature)
+		if err != nil {
+			node.logger.Debug("Error checking ecdsa signature for unwrap: %s", err.Error())
+			continue
+		} else if ok == false {
+			node.logger.Debugf("invalid signature when checking ecdsa signature for unwrap msg: %s", messagesToSign[idx])
+			continue
+		}
+
 		if err = node.networksManager.AddEvmUnwrapRequest(*requests[idx]); err != nil {
 			node.logger.Debug(err.Error())
 			continue
@@ -1076,7 +1104,6 @@ func (node *Node) sendSignatures() {
 	}
 }
 
-// todo wait between sends?
 func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 	requests, err := node.networksManager.GetUnsentSignedWrapRequests()
 	if err != nil {
@@ -1102,7 +1129,7 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 		producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
 		if producerPubKey == node.GetParticipant(index) {
 			node.logger.Info("[sendSignaturesWrap] this is me")
-			err = node.networksManager.UpdateWrapRequest(req.Id, rpcRequest.Signature, node.producerKeyPair)
+			err = node.networksManager.UpdateWrapRequest(req.Id, req.Signature, node.producerKeyPair)
 			if err != nil {
 				node.logger.Debug(err)
 				continue
@@ -1110,10 +1137,11 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 			delete(seenEventsCount, req.Id.String())
 			node.logger.Info("[sendSignaturesWrap] sent request")
 		}
+		// todo how much to wait between sends?
+		time.Sleep(5 * time.Second)
 	}
 }
 
-// todo wait between sends?
 func (node *Node) sendUnwrapRequests(seenEventsCount map[string]uint32) {
 	requests, err := node.networksManager.GetUnsentSignedUnwrapRequests()
 	if err != nil {
@@ -1148,5 +1176,7 @@ func (node *Node) sendUnwrapRequests(seenEventsCount map[string]uint32) {
 				node.logger.Debug(err)
 			}
 		}
+		// todo how much to wait between sends?
+		time.Sleep(5 * time.Second)
 	}
 }

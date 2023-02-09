@@ -134,14 +134,6 @@ func (m *NetworksManager) RpcManager() *rpc.Manager {
 
 ///////// state
 
-func (m *NetworksManager) ShouldKeyGen() (bool, error) {
-	bridgeInfo, err := m.znnNetwork.GetBridgeInfo()
-	if err != nil {
-		return false, err
-	}
-	return bridgeInfo.AllowKeyGen, nil
-}
-
 func (m *NetworksManager) CountNetworksHaltState() (int, int, error) {
 	halted, unhalted := 0, 0
 	for _, network := range m.evmNetworks {

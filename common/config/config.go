@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	btsskeygen "github.com/binance-chain/tss-lib/ecdsa/keygen"
 	gotss "gitlab.com/thorchain/tss/go-tss/common"
 	"io/ioutil"
 	"orchestrator/common"
@@ -20,7 +19,6 @@ type TssManagerConfig struct {
 	PublicKey             string
 	DecompressedPublicKey string
 	LocalPubKeys          []string
-	Param                 *btsskeygen.LocalPreParams
 	Bootstrap             string
 	PubKeyWhitelist       map[string]bool
 	BaseDir               string

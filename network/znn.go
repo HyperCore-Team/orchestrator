@@ -2,7 +2,7 @@ package network
 
 import (
 	"encoding/base64"
-	"github.com/ethereum/go-ethereum"
+	"fmt"
 	ecommon "github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
 	"github.com/zenon-network/go-zenon/chain/nom"
@@ -104,12 +104,13 @@ func NewZnnNetwork(rpcManager *rpc.Manager, dbManager *manager.Manager, state *c
 /// Utils
 
 func (rC *znnNetwork) Start() error {
+	go rC.ListenForMomentumHeight()
+
 	if err := rC.Sync(); err != nil {
 		rC.logger.Debugf("error: %s", err.Error())
 		return err
 	}
 
-	go rC.ListenForMomentumHeight()
 	go rC.ListenForEmbeddedBridgeAccountBlocks()
 	return nil
 }
@@ -151,7 +152,7 @@ func (rC *znnNetwork) Sync() error {
 							return errFrMom
 						}
 						if frMomHeight < accBlock.ConfirmationDetail.MomentumHeight {
-							return errors.New("frMomHeight cannot be less than the height of the momentum in which was included the acc block we process")
+							return errors.New(fmt.Sprintf("frMomHeight %d cannot be less than the height of the momentum %d in which was included the acc block we process", frMomHeight, accBlock.ConfirmationDetail.MomentumHeight))
 						}
 						live = (frMomHeight - accBlock.ConfirmationDetail.MomentumHeight) < uint64(rC.ConfirmationsToFinality())
 						live = live && rC.IsSynced()
@@ -185,7 +186,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		}
 
 		if request, err := rC.ZnnRpc().GetWrapTokenRequestById(sendBlock.Hash); err != nil {
-			if err == constants.ErrDataNonExistent {
+			if err.Error() == constants.ErrDataNonExistent.Error() {
 				rC.logger.Debug(constants.ErrDataNonExistent)
 				return nil
 			}
@@ -205,7 +206,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			return constants.ErrUnpackError
 		}
 		if request, err := rC.ZnnRpc().GetWrapTokenRequestById(param.Id); err != nil {
-			if err == constants.ErrDataNonExistent {
+			if err.Error() == constants.ErrDataNonExistent.Error() {
 				rC.logger.Debug(constants.ErrDataNonExistent)
 				return nil
 			}

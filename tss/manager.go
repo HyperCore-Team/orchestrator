@@ -2,7 +2,6 @@ package tss
 
 import (
 	"encoding/base64"
-	btsskeygen "github.com/binance-chain/tss-lib/ecdsa/keygen"
 	ic "github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	maddr "github.com/multiformats/go-multiaddr"
@@ -87,8 +86,9 @@ func NewTssManager(conf config.TssManagerConfig, privateKey string) (*TssManager
 		} else {
 			algo = messages.ECDSAKEYSIGN
 		}
-		// todo change rendezvous
-		server, err = tss.NewTss(peerIDs, conf.Port, priKey, "Asgard", conf.BaseDir, conf.BaseConfig, conf.Param, "", algo, conf.PubKeyWhitelist)
+
+		// we call pre params with nil because we want to recompute it when we key gen, at key signs it takes it from the pubKey file
+		server, err = tss.NewTss(peerIDs, conf.Port, priKey, "Zenon", conf.BaseDir, conf.BaseConfig, nil, "", algo, conf.PubKeyWhitelist)
 	}()
 	wg.Wait()
 	if err != nil {
@@ -138,7 +138,13 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 	} else {
 		return nil, errors.New("invalid algorithm")
 	}
-
+	start := time.Now()
+	// we reset pre params so we always generate it before a keyGen
+	if errPrecompute := m.server.GeneratePreParams(); errPrecompute != nil {
+		return nil, errPrecompute
+	}
+	elapsed := time.Since(start)
+	common.GlobalLogger.Infof("preParams took %f", elapsed.Seconds())
 	var req keygen.Request
 	if algo == messages.ECDSAKEYGEN {
 		req = keygen.NewRequest(m.localPubKeys, 10, "0.13.0", algorithm)
@@ -198,8 +204,4 @@ func (m *TssManager) GetWhitelist() map[string]bool {
 
 func (m *TssManager) DeleteWhitelistEntry(pubKey string) {
 	m.server.DeleteWhitelistEntry(pubKey)
-}
-
-func (m *TssManager) GetPreParams() *btsskeygen.LocalPreParams {
-	return m.server.GetPreParams()
 }
