@@ -11,7 +11,8 @@ import (
 var DefaultNodeConfigFileName = "config.json"
 
 type BaseNetworkConfig struct {
-	Urls []string
+	Urls            []string
+	FilterQuerySize uint64
 }
 
 type TssManagerConfig struct {

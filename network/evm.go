@@ -129,18 +129,17 @@ func (eN *evmNetwork) Sync() error {
 			}
 
 			end := false
-			// todo use constants or in config
-			span := uint64(2000)
+			filterQuerySize := eN.rpcManager.Evm(eN.ChainId()).FilterQuerySize()
 			distance := latestBlock - updateHeight
 			if distance < eN.ConfirmationsToFinality() {
-				span = distance
+				filterQuerySize = distance
 				end = true
-			} else if distance < span {
-				span = distance
+			} else if distance < filterQuerySize {
+				filterQuerySize = distance
 			}
-			//eN.logger.Infof("distange: %d, left: %d, right: %d, span: %d\n", distance, updateHeight, updateHeight+span, span)
+			//eN.logger.Infof("distange: %d, left: %d, right: %d, filterQuerySize: %d\n", distance, updateHeight, updateHeight+filterQuerySize, filterQuerySize)
 
-			if logs, err := eN.EvmRpc().FilterLogs(updateHeight, updateHeight+span); err != nil {
+			if logs, err := eN.EvmRpc().FilterLogs(updateHeight, updateHeight+filterQuerySize); err != nil {
 				return err
 			} else {
 				for _, log := range logs {
@@ -153,7 +152,7 @@ func (eN *evmNetwork) Sync() error {
 				}
 			}
 
-			updateHeight += span
+			updateHeight += filterQuerySize
 			if err := eN.eventsStore().SetLastUpdateHeight(updateHeight); err != nil {
 				return err
 			}

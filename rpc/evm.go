@@ -22,9 +22,10 @@ type EvmRpc struct {
 	rpcClient *ethclient.Client
 	Urls      config.UrlsInfo
 
-	bridgeContract *bridge.Bridge
-	bridgeAddress  ecommon.Address
-	filterQuery    ethereum.FilterQuery
+	bridgeContract  *bridge.Bridge
+	bridgeAddress   ecommon.Address
+	filterQuery     ethereum.FilterQuery
+	filterQuerySize uint64
 
 	logSub  ethereum.Subscription
 	logChan chan etypes.Log
@@ -68,13 +69,14 @@ func NewEvmRpcClient(networkConfig config.BaseNetworkConfig, address ecommon.Add
 	}
 
 	return &EvmRpc{
-		rpcClient:      newRpcClient,
-		Urls:           *newUrls,
-		bridgeContract: newBridgeContract,
-		bridgeAddress:  address,
-		filterQuery:    newFilterQuery,
-		logChan:        make(chan etypes.Log, 20000),
-		logger:         logger,
+		rpcClient:       newRpcClient,
+		Urls:            *newUrls,
+		bridgeContract:  newBridgeContract,
+		bridgeAddress:   address,
+		filterQuery:     newFilterQuery,
+		filterQuerySize: networkConfig.FilterQuerySize,
+		logChan:         make(chan etypes.Log, 20000),
+		logger:          logger,
 	}, nil
 }
 
@@ -86,6 +88,10 @@ func (r *EvmRpc) Bridge() *bridge.Bridge {
 
 func (r *EvmRpc) BridgeAddress() ecommon.Address {
 	return r.bridgeAddress
+}
+
+func (r *EvmRpc) FilterQuerySize() uint64 {
+	return r.filterQuerySize
 }
 
 func (r *EvmRpc) Stop() {
