@@ -611,29 +611,8 @@ func (node *Node) processSignatures() {
 
 				senders.Wait()
 			}
-			if requests, err := node.networksManager.GetUnsentSignedUnwrapRequests(); err != nil {
-				node.logger.Debug(err)
-				continue
-			} else {
-				for _, request := range requests {
-					if err := node.networksManager.SetUnsentUnwrapRequestAsUnsigned(*request); err != nil {
-						node.logger.Debug(err)
-						continue
-					}
-				}
-			}
-			if requests, err := node.networksManager.Znn().GetUnredeemedWrapRequests(); err != nil {
-				node.logger.Debug(err)
-				continue
-			} else {
-				for _, request := range requests {
-					if err := node.networksManager.SetWrapEventSignature(request.Id, ""); err != nil {
-						node.logger.Debug(err)
-						continue
-					}
-				}
-			}
-			// todo set unsent wrap requests signatures as unsigned
+
+			node.resetSignatures()
 
 			node.logger.Infof("ECDSA KeyGen Response here: %v", keyGenResponse)
 			node.config.TssConfig.PublicKey = keyGenResponse.PubKey
@@ -844,6 +823,45 @@ func (node *Node) processSignatures() {
 						}
 					}
 				}
+			}
+		}
+	}
+}
+
+// Some signed events will not work anymore so we need to resign them
+func (node *Node) resetSignatures() {
+	// 1. Unwrap events that were signed but not send
+	if requests, err := node.networksManager.GetUnsentSignedUnwrapRequests(); err != nil {
+		node.logger.Debug(err)
+	} else {
+		for _, request := range requests {
+			if err := node.networksManager.SetUnsentUnwrapRequestAsUnsigned(*request); err != nil {
+				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.TransactionHash.String())
+				continue
+			}
+		}
+	}
+
+	// 2. Wrap requests that were signed but the signature was not sent
+	if requests, err := node.networksManager.GetUnsentSignedWrapRequests(); err != nil {
+		node.logger.Debug(err)
+	} else {
+		for _, request := range requests {
+			if err := node.networksManager.SetWrapEventSignature(request.Id, ""); err != nil {
+				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.Id.String())
+				continue
+			}
+		}
+	}
+
+	// 3. Signed wrap request that were not redeemed even once
+	if requests, err := node.networksManager.Znn().GetUnredeemedWrapRequests(); err != nil {
+		node.logger.Debug(err)
+	} else {
+		for _, request := range requests {
+			if err := node.networksManager.SetWrapEventSignature(request.Id, ""); err != nil {
+				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.Id.String())
+				continue
 			}
 		}
 	}

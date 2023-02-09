@@ -3,6 +3,7 @@ package network
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/ethereum/go-ethereum"
 	ecommon "github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
 	"github.com/zenon-network/go-zenon/chain/nom"
@@ -205,6 +206,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		if err := definition.ABIBridge.UnpackMethod(param, definition.UpdateWrapRequestMethodName, sendBlock.Data); err != nil {
 			return constants.ErrUnpackError
 		}
+
 		if request, err := rC.ZnnRpc().GetWrapTokenRequestById(param.Id); err != nil {
 			if err.Error() == constants.ErrDataNonExistent.Error() {
 				rC.logger.Debug(constants.ErrDataNonExistent)
@@ -665,7 +667,7 @@ func (rC *znnNetwork) GetUnsentSignedWrapRequests() ([]*events.WrapRequestZnn, e
 }
 
 func (rC *znnNetwork) GetUnredeemedWrapRequests() ([]*events.WrapRequestZnn, error) {
-	return rC.eventsStore().GetUnsentSignedWrapRequests()
+	return rC.eventsStore().GetUnredeemedWrapRequests()
 }
 
 func (rC *znnNetwork) SetWrapEventSignature(id types.Hash, signature string) error {
