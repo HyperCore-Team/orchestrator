@@ -3,6 +3,7 @@ package network
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/ethereum/go-ethereum"
 	ecommon "github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
 	"github.com/zenon-network/go-zenon/chain/nom"
@@ -404,7 +405,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			if err := definition.ABIBridge.UnpackMethod(param, definition.AddNetworkMethodName, sendBlock.Data); err != nil {
 				return constants.ErrUnpackError
 			}
-			network, err := rC.ZnnRpc().GetNetworkByClassAndId(param.Class, param.ChainId)
+			network, err := rC.ZnnRpc().GetNetworkByClassAndId(param.NetworkClass, param.ChainId)
 			if err != nil {
 				return err
 			} else if network == nil {
@@ -412,14 +413,16 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 				rC.logger.Info("network not added")
 				return nil
 			}
+			rC.logger.Debugf("network found in go-zeonon: %s, %d, %d", network.Name, network.NetworkClass, network.Id)
 			// check locally that the network is added
-			switch param.Class {
+			switch param.NetworkClass {
 			case definition.EvmClass:
 				existent := rC.rpcManager.HasEvmNetwork(param.ChainId)
 				if existent {
 					rC.logger.Info("network already existent")
 					break
 				}
+				rC.logger.Debug("network non existent")
 				configData, ok := rC.networksInfo[network.Name]
 				if ok == false {
 					rC.logger.Infof("network url non existent for network: %s chainId: %d", network.Name, network.Id)
@@ -439,6 +442,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 					rC.stopChan <- syscall.SIGKILL
 					return err
 				}
+				rC.logger.Debug("add evm client ok")
 				if err := newEvmNetwork.Start(); err != nil {
 					rC.logger.Error(err)
 					rC.stopChan <- syscall.SIGKILL
@@ -455,11 +459,11 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			if err := definition.ABIBridge.UnpackMethod(param, definition.RemoveNetworkMethodName, sendBlock.Data); err != nil {
 				return constants.ErrUnpackError
 			}
-			network, err := rC.ZnnRpc().GetNetworkByClassAndId(param.Class, param.ChainId)
+			network, err := rC.ZnnRpc().GetNetworkByClassAndId(param.NetworkClass, param.ChainId)
 			if err != nil {
 				return err
 			} else if network == nil {
-				switch param.Class {
+				switch param.NetworkClass {
 				case definition.EvmClass:
 					existent := rC.rpcManager.HasEvmNetwork(param.ChainId)
 					if !existent {

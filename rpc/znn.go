@@ -217,7 +217,7 @@ func (r *ZnnRpc) GetNetworkByClassAndId(networkClass, id uint32) (*definition.Ne
 	network, err := r.rpcClient.BridgeApi.GetNetworkInfo(networkClass, id)
 	if err != nil {
 		return nil, err
-	} else if network.Class == 0 {
+	} else if network.NetworkClass == 0 {
 		return nil, nil
 	}
 

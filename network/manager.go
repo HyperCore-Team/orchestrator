@@ -71,7 +71,7 @@ func (m *NetworksManager) Init(networksInfo map[string]config.BaseNetworkConfig,
 
 	newEvmNetworks := make([]*evmNetwork, 0)
 	for _, network := range networks {
-		switch network.Class {
+		switch network.NetworkClass {
 		// we only support evm network types
 		case definition.EvmClass:
 			configData, ok := networksInfo[network.Name]

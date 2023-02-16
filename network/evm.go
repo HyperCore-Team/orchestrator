@@ -43,7 +43,7 @@ func NewEvmNetwork(network *definition.NetworkInfo, dbManager *manager.Manager, 
 		return nil, err
 	}
 
-	newQueue, err := storage.CreateOrOpenQueue(network.Class, network.Name)
+	newQueue, err := storage.CreateOrOpenQueue(network.NetworkClass, network.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -130,6 +130,7 @@ func (eN *evmNetwork) Sync() error {
 
 			end := false
 			filterQuerySize := eN.rpcManager.Evm(eN.ChainId()).FilterQuerySize()
+			eN.logger.Debugf("filterQuerySize: %d", filterQuerySize)
 			distance := latestBlock - updateHeight
 			if distance < eN.ConfirmationsToFinality() {
 				filterQuerySize = distance

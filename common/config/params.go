@@ -20,7 +20,7 @@ type EvmParams struct {
 func NewEvmParams(network *definition.NetworkInfo) (EvmParams, error) {
 	return EvmParams{
 		networkName:              network.Name,
-		networkClass:             network.Class,
+		networkClass:             network.NetworkClass,
 		chainId:                  network.Id,
 		contractAddress:          ecommon.HexToAddress(network.ContractAddress),
 		contractDeploymentHeight: 0,
