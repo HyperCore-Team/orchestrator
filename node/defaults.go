@@ -7,12 +7,6 @@ import (
 	"path"
 )
 
-const (
-	DefaultEventsDir  = "events"
-	DefaultQueuesDirs = "queues"
-	DefaultTssDir     = "tss"
-)
-
 var DefaultNodeConfig = config.Config{
 	DataPath: common.DefaultDataDir(),
 	Networks: map[string]config.BaseNetworkConfig{
@@ -35,7 +29,7 @@ var DefaultNodeConfig = config.Config{
 		LocalPubKeys:    nil,
 		Bootstrap:       "",
 		PubKeyWhitelist: map[string]bool{},
-		BaseDir:         path.Join(common.DefaultDataDir(), DefaultTssDir),
+		BaseDir:         path.Join(common.DefaultDataDir(), common.DefaultTssDir),
 		BaseConfig: gotss.TssConfig{
 			PartyTimeout:      60000000000,  // 1 minute
 			KeyGenTimeout:     900000000000, // 15 minutes

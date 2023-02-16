@@ -21,7 +21,7 @@ import (
 	"gitlab.com/thorchain/tss/go-tss/messages"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/sha3"
-	"io/ioutil"
+	"io"
 	"orchestrator/common"
 	oconfig "orchestrator/common/config"
 	"orchestrator/db/manager"
@@ -76,9 +76,12 @@ func NewNode(config *oconfig.Config, logger *zap.Logger) (*Node, error) {
 		return nil, err
 	}
 	node.logger.Info("dbMan")
-	node.networksManager, err = network.NewNetworksManager(config.Networks, node.dbManager, node.state, node.stopChan, node.SetKeySignTimeouts)
+	node.networksManager, err = network.NewNetworksManager(node.stopChan)
 	if err != nil {
 		return nil, err
+	}
+	if errInit := node.networksManager.Init(config.Networks, node.dbManager, node.state, node.SetKeySignTimeouts); errInit != nil {
+		return nil, errInit
 	}
 	node.logger.Info("netMan")
 	newKeyStore, err := wallet2.ReadKeyFile(config.ProducerKeyFileName, config.ProducerKeyFilePassphrase, path.Join(config.DataPath, config.ProducerKeyFileName))
@@ -249,7 +252,7 @@ func (node *Node) configurePubKey() error {
 			return err
 		}
 
-		bytesValue, _ := ioutil.ReadAll(jsonFile)
+		bytesValue, _ := io.ReadAll(jsonFile)
 		if err := jsonFile.Close(); err != nil {
 			return err
 		}
@@ -658,6 +661,7 @@ func (node *Node) processSignatures() {
 					node.logger.Debug(getFrErr)
 					continue
 				}
+
 				currentCeremony := frontierMomentum / node.networksManager.WindowSize()
 				state := currentCeremony % 2
 				lastCeremony := node.state.GetLastCeremony()

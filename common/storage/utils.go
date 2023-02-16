@@ -15,7 +15,7 @@ import (
 )
 
 func CreateOrOpenQueue(networkClass uint32, networkName string) (*dque.DQue, error) {
-	qDir := filepath.Join(common.DefaultDataDir(), "queues")
+	qDir := filepath.Join(common.DefaultDataDir(), common.DefaultQueuesDirs)
 	if _, err := os.Stat(qDir); os.IsNotExist(err) {
 		err := os.MkdirAll(qDir, 0700)
 		if err != nil {
@@ -39,16 +39,20 @@ func CreateOrOpenQueue(networkClass uint32, networkName string) (*dque.DQue, err
 	return queue, nil
 }
 
+func DeleteQueue(name string) error {
+	queuePath := filepath.Join(common.DefaultDataDir(), common.DefaultQueuesDirs, name)
+	return os.RemoveAll(queuePath)
+}
+
 func CreateOrOpenLevelDb(name string) (*leveldb.DB, error) {
 	opts := &opt.Options{OpenFilesCacheCapacity: 200}
-	dbDir := filepath.Join(common.DefaultDataDir(), "events", name)
-	evDir := filepath.Join(common.DefaultDataDir(), "events")
+	evDir := filepath.Join(common.DefaultDataDir(), common.DefaultEventsDir)
 	if _, err := os.Stat(evDir); os.IsNotExist(err) {
 		if err = os.MkdirAll(evDir, 0700); err != nil {
 			return nil, err
 		}
 	}
-
+	dbDir := filepath.Join(evDir, name)
 	ldb, err := leveldb.OpenFile(dbDir, opts)
 	if _, isCorrupted := err.(*lerrors.ErrCorrupted); isCorrupted {
 		ldb, err = leveldb.RecoverFile(dbDir, nil)
@@ -58,4 +62,9 @@ func CreateOrOpenLevelDb(name string) (*leveldb.DB, error) {
 	}
 
 	return ldb, nil
+}
+
+func DeleteLvlDb(name string) error {
+	dbPath := filepath.Join(common.DefaultDataDir(), common.DefaultEventsDir, name)
+	return os.RemoveAll(dbPath)
 }

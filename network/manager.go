@@ -29,34 +29,44 @@ type NetworksManager struct {
 	logger      *zap.SugaredLogger
 }
 
-func NewNetworksManager(networksInfo map[string]config.BaseNetworkConfig, dbManager *manager.Manager, state *common.GlobalState, stopChan chan os.Signal, windowSizeFallback func(uint64)) (*NetworksManager, error) {
+func NewNetworksManager(stopChan chan os.Signal) (*NetworksManager, error) {
 	newLogger, errLogger := common.CreateSugarLogger()
 	if errLogger != nil {
 		return nil, errLogger
 	}
 
+	newNetworkManager := &NetworksManager{
+		stopChan: stopChan,
+		logger:   newLogger,
+	}
+
+	return newNetworkManager, nil
+}
+
+func (m *NetworksManager) Init(networksInfo map[string]config.BaseNetworkConfig, dbManager *manager.Manager, state *common.GlobalState, windowSizeFallback func(uint64)) error {
 	if len(networksInfo) < 2 {
-		return nil, errors.New("wrong network initializers 1")
+		return errors.New("wrong network initializers 1")
 	}
 
 	znnInfo, ok := networksInfo[common.ZenonNetworkName]
 	if ok == false {
-		return nil, errors.New("wrong network initializers 2")
+		return errors.New("wrong network initializers 2")
 	}
 
-	newRpcManager, err := rpc.NewRpcManager(znnInfo, stopChan)
+	newRpcManager, err := rpc.NewRpcManager(znnInfo, m.stopChan)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	newZnnNetwork, err := NewZnnNetwork(newRpcManager, dbManager, state, networksInfo, stopChan, windowSizeFallback)
+	newZnnNetwork, err := NewZnnNetwork(newRpcManager, dbManager, m, state, networksInfo, m.stopChan, windowSizeFallback)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	m.znnNetwork = newZnnNetwork
 
 	networks, err := newZnnNetwork.GetAllNetworks()
 	if err != nil {
-		return nil, errors.New("wrong network initializers 3")
+		return errors.New("wrong network initializers 3")
 	}
 
 	newEvmNetworks := make([]*evmNetwork, 0)
@@ -66,38 +76,31 @@ func NewNetworksManager(networksInfo map[string]config.BaseNetworkConfig, dbMana
 		case definition.EvmClass:
 			configData, ok := networksInfo[network.Name]
 			if ok == false {
-				return nil, errors.New("wrong network initializers 4 for network " + network.Name)
+				return errors.New("wrong network initializers 4 for network " + network.Name)
 			}
 
-			newEvmNetwork, err := NewEvmNetwork(network, dbManager, newRpcManager, state, stopChan)
+			newEvmNetwork, err := NewEvmNetwork(network, dbManager, newRpcManager, state, m.stopChan)
 			if err != nil {
-				return nil, err
+				return err
 			}
-			err = newRpcManager.AddEvmClient(configData, network.Id, *newEvmNetwork.ContractAddress())
+			err = newRpcManager.AddEvmClient(configData, network.Id, newEvmNetwork.NetworkName(), *newEvmNetwork.ContractAddress())
 			if err != nil {
-				return nil, err
+				return err
 			}
 			newEvmNetworks = append(newEvmNetworks, newEvmNetwork)
 		default:
 			if newZnnNetwork != nil {
 				err = newZnnNetwork.Stop()
-				newLogger.Error(err)
+				m.logger.Error(err)
 			}
 			for _, eNetwork := range newEvmNetworks {
 				eNetwork.Stop()
 			}
-			return nil, errors.New("wrong network initializers 3")
+			return errors.New("wrong network initializers 3")
 		}
 	}
-
-	newNetworkManager := &NetworksManager{
-		znnNetwork:  newZnnNetwork,
-		evmNetworks: newEvmNetworks,
-		stopChan:    stopChan,
-		logger:      newLogger,
-	}
-
-	return newNetworkManager, nil
+	m.evmNetworks = newEvmNetworks
+	return nil
 }
 
 func (m *NetworksManager) Start() error {
@@ -113,6 +116,18 @@ func (m *NetworksManager) Start() error {
 	}
 
 	return nil
+}
+
+func (m *NetworksManager) AddEvmNetwork(network *evmNetwork) {
+	m.evmNetworks = append(m.evmNetworks, network)
+}
+
+func (m *NetworksManager) RemoveEvmNetwork(chainId uint32) {
+	for idx, network := range m.evmNetworks {
+		if network.ChainId() == chainId {
+			m.evmNetworks = append(m.evmNetworks[:idx], m.evmNetworks[idx+1:]...)
+		}
+	}
 }
 
 func (m *NetworksManager) Stop() {
@@ -266,7 +281,7 @@ func (m *NetworksManager) GetUnsignedWrapRequests() ([]*embedded.WrapTokenReques
 	return ans, nil
 }
 
-/// Evm
+// / Evm
 func (m *NetworksManager) Evm(chainId uint32) *evmNetwork {
 	if m.evmNetworks == nil {
 		panic(errors.New("evm networks not init"))

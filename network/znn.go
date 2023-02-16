@@ -3,7 +3,6 @@ package network
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/ethereum/go-ethereum"
 	ecommon "github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
 	"github.com/zenon-network/go-zenon/chain/nom"
@@ -32,6 +31,7 @@ type znnNetwork struct {
 	config.ZnnParams
 	dbManager          *manager.Manager
 	rpcManager         *rpc.Manager
+	networkManager     *NetworksManager
 	networksInfo       map[string]config.BaseNetworkConfig
 	state              *common.GlobalState
 	stopChan           chan os.Signal
@@ -57,7 +57,7 @@ func CheckSecurityInfoInitialized(securityInfo *definition.SecurityInfoVariable)
 	return nil
 }
 
-func NewZnnNetwork(rpcManager *rpc.Manager, dbManager *manager.Manager, state *common.GlobalState, networksInfo map[string]config.BaseNetworkConfig, stopChan chan os.Signal, windowSizeFallback func(uint64)) (*znnNetwork, error) {
+func NewZnnNetwork(rpcManager *rpc.Manager, dbManager *manager.Manager, networkManager *NetworksManager, state *common.GlobalState, networksInfo map[string]config.BaseNetworkConfig, stopChan chan os.Signal, windowSizeFallback func(uint64)) (*znnNetwork, error) {
 	bridgeInfo, err := rpcManager.Znn().GetBridgeInfo()
 	if err != nil {
 		return nil, err
@@ -93,6 +93,7 @@ func NewZnnNetwork(rpcManager *rpc.Manager, dbManager *manager.Manager, state *c
 		ZnnParams:          *newZnnParams,
 		rpcManager:         rpcManager,
 		dbManager:          dbManager,
+		networkManager:     networkManager,
 		networksInfo:       networksInfo,
 		state:              state,
 		windowSizeFallBack: windowSizeFallback,
@@ -122,7 +123,6 @@ func (rC *znnNetwork) Stop() error {
 func (rC *znnNetwork) eventsStore() db.ZnnStorage {
 	return rC.dbManager.ZnnStorage()
 }
-
 func (rC *znnNetwork) ZnnRpc() *rpc.ZnnRpc {
 	return rC.rpcManager.Znn()
 }
@@ -141,12 +141,27 @@ func (rC *znnNetwork) Sync() error {
 			for _, accBlock := range accountBlockList.List {
 				if accBlock.BlockType == nom.BlockTypeContractReceive {
 					rC.logger.Debug("found receive block")
+					for {
+						rC.logger.Debugf("confDetail is nil: %v", accBlock.ConfirmationDetail == nil)
+						accBlock, errRpc = rC.ZnnRpc().GetAccountBlockByHash(accBlock.Hash)
+						if errRpc != nil {
+							rC.logger.Debug(err)
+							time.Sleep(5 * time.Second)
+							continue
+						} else if accBlock == nil {
+							time.Sleep(5 * time.Second)
+							continue
+						}
+						if accBlock.ConfirmationDetail != nil {
+							break
+						}
+					}
+
 					if sendBlock, errRpc := rC.ZnnRpc().GetAccountBlockByHash(accBlock.FromBlockHash); err != nil {
 						return errRpc
 					} else if sendBlock == nil {
 						return errors.Errorf("Send block %s for associated receive %s is non existent", accBlock.Hash.String(), accBlock.FromBlockHash.String())
 					} else {
-						// fix live
 						var live bool
 						frMomHeight, errFrMom := rC.state.GetFrontierMomentum()
 						if errFrMom != nil {
@@ -418,7 +433,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 					rC.stopChan <- syscall.SIGKILL
 					return err
 				}
-				err = rC.rpcManager.AddEvmClient(configData, network.Id, *newEvmNetwork.ContractAddress())
+				err = rC.rpcManager.AddEvmClient(configData, network.Id, newEvmNetwork.NetworkName(), *newEvmNetwork.ContractAddress())
 				if err != nil {
 					rC.logger.Error(err)
 					rC.stopChan <- syscall.SIGKILL
@@ -429,6 +444,8 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 					rC.stopChan <- syscall.SIGKILL
 					return err
 				}
+				rC.logger.Debug("network start ok")
+				rC.networkManager.AddEvmNetwork(newEvmNetwork)
 			}
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.RemoveNetworkMethodName].Id()):
@@ -449,7 +466,9 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 						rC.logger.Info("network already deleted")
 						break
 					}
+					// todo integrate these two
 					rC.rpcManager.RemoveEvmClient(param.ChainId)
+					rC.networkManager.RemoveEvmNetwork(param.ChainId)
 				}
 			}
 		}
@@ -574,6 +593,7 @@ func (rC *znnNetwork) ListenForEmbeddedBridgeAccountBlocks() {
 					rC.logger.Info("send block non existent")
 				} else {
 					rC.logger.Info("found send block")
+					rC.logger.Infof("confirmationDetail is nil: %v", sendBlock.ConfirmationDetail == nil)
 					if newErr := rC.InterpretSendBlockData(sendBlock, true, accBlock.Height); newErr != nil {
 						rC.logger.Info(newErr)
 					}

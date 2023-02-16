@@ -16,11 +16,13 @@ import (
 	"orchestrator/common"
 	"orchestrator/common/bridge"
 	"orchestrator/common/config"
+	"orchestrator/common/storage"
 )
 
 type EvmRpc struct {
-	rpcClient *ethclient.Client
-	Urls      config.UrlsInfo
+	rpcClient   *ethclient.Client
+	Urls        config.UrlsInfo
+	networkName string
 
 	bridgeContract  *bridge.Bridge
 	bridgeAddress   ecommon.Address
@@ -32,7 +34,7 @@ type EvmRpc struct {
 	logger  *zap.SugaredLogger
 }
 
-func NewEvmRpcClient(networkConfig config.BaseNetworkConfig, address ecommon.Address) (*EvmRpc, error) {
+func NewEvmRpcClient(networkConfig config.BaseNetworkConfig, networkName string, address ecommon.Address) (*EvmRpc, error) {
 	logger, errLog := common.CreateSugarLogger()
 	if errLog != nil {
 		return nil, errLog
@@ -71,6 +73,7 @@ func NewEvmRpcClient(networkConfig config.BaseNetworkConfig, address ecommon.Add
 	return &EvmRpc{
 		rpcClient:       newRpcClient,
 		Urls:            *newUrls,
+		networkName:     networkName,
 		bridgeContract:  newBridgeContract,
 		bridgeAddress:   address,
 		filterQuery:     newFilterQuery,
@@ -97,6 +100,16 @@ func (r *EvmRpc) FilterQuerySize() uint64 {
 func (r *EvmRpc) Stop() {
 	r.rpcClient.Close()
 	r.logSub.Unsubscribe()
+}
+
+// todo return an error?
+func (r *EvmRpc) DeleteDirectories() {
+	if errDel := storage.DeleteQueue(r.networkName); errDel != nil {
+		r.logger.Debug(errDel)
+	}
+	if errDel := storage.DeleteLvlDb(r.networkName); errDel != nil {
+		r.logger.Debug(errDel)
+	}
 }
 
 func (r *EvmRpc) IsSynced() bool {

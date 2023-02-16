@@ -14,6 +14,10 @@ const (
 	WrapCeremonyState = iota
 	UnwrapCeremonyState
 
+	DefaultEventsDir  = "events"
+	DefaultQueuesDirs = "queues"
+	DefaultTssDir     = "tss"
+
 	// UnredeemedStatus for unwrap events, unredeemed also means unsent
 	UnredeemedStatus uint32 = 0
 	// PendingRedeemStatus For wrap events it is the first redeem call, for unwrap events it is when the event is added
