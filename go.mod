@@ -24,7 +24,7 @@ require (
 	github.com/99designs/keyring v1.1.6 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
 	github.com/DataDog/zstd v1.4.5 // indirect
-	github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 // indirect
+	github.com/agl/ed25519 v0.0.0-20200225211852-fd4d107ace12 // indirect
 	github.com/armon/go-metrics v0.3.6 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
@@ -215,6 +215,6 @@ replace (
 	github.com/binance-chain/tss-lib => github.com/HyperCore-Team/tss-lib v1.3.3-thorchain
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
 	github.com/zenon-network/go-zenon => github.com/HyperCore-Team/go-zenon v0.0.0-20230216104453-3bf084baaeeb
-	gitlab.com/thorchain/tss/go-tss => github.com/HyperCore-Team/go-tss v1.5.1-0.20230216115814-aeaf4bd75e0c
-	znn-sdk-go => github.com/HyperCore-Team/znn-sdk-go v0.0.0-20230216113304-c5290d7254a4
+	gitlab.com/thorchain/tss/go-tss => github.com/HyperCore-Team/go-tss v1.5.1-0.20230216123113-cfe30a0f397e
+	znn-sdk-go => github.com/HyperCore-Team/znn-sdk-go v0.0.0-20230216124410-4f0a66c84668
 )
