@@ -41,10 +41,13 @@ jobs:
           cd build
           zip orchestrator-linux-amd64.zip orchestrator-linux-amd64
           zip orchestrator-linux-arm64.zip orchestrator-linux-arm64
+          rm orchestrator-linux-amd64 
+          rm orchestrator-linux-arm64
       - name: Generate checksums
         run: |
           cd build
-          sha256sum * > SHA256CHECKSUMS.txt
+          echo $(sha256sum *)
+          echo $(sha256sum *) >> SHA256CHECKSUMS.txt
       - name: Upload files to a GitHub release
         uses: svenstaro/upload-release-action@2.3.0
         with:
