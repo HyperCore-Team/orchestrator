@@ -180,8 +180,8 @@ func (m *NetworksManager) UpdateWrapRequest(id types.Hash, signature string, key
 	return m.Znn().UpdateWrapRequest(id, signature, keyPair)
 }
 
-func (m *NetworksManager) ChangeTssEcdsaPubKeyZnn(pubKey, signature, newSignature string, keySignThreshold uint32, keyPair *wallet.KeyPair) error {
-	return m.Znn().ChangeTssEcdsaPubKey(pubKey, signature, newSignature, keySignThreshold, keyPair)
+func (m *NetworksManager) ChangeTssEcdsaPubKeyZnn(pubKey, signature, newSignature string, keyPair *wallet.KeyPair) error {
+	return m.Znn().ChangeTssEcdsaPubKey(pubKey, signature, newSignature, keyPair)
 }
 
 func (m *NetworksManager) SendUnwrapRequest(event *events.UnwrapRequestEvm, keyPair *wallet.KeyPair) error {

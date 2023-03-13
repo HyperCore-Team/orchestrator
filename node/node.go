@@ -456,12 +456,6 @@ func (node *Node) processSignatures() {
 				node.logger.Debug(errDecompress)
 				continue
 			}
-			newKeySignThreshold, err := implementation.GetThreshold(node.GetParticipantsLength())
-			if err != nil {
-				node.logger.Debug(err)
-				continue
-			}
-			node.logger.Debugf("NewKeySignThreshold: %d", newKeySignThreshold)
 
 			time.Sleep(5 * time.Second)
 			// we save the old pubKey because we will need it
@@ -576,7 +570,7 @@ func (node *Node) processSignatures() {
 						}
 						if producerPubKey == node.GetParticipant(index) {
 							node.logger.Debug("[sendZnnTx PubKey] this is me")
-							err = node.networksManager.ChangeTssEcdsaPubKeyZnn(keyGenResponse.PubKey, znnOldKeySignature, znnNewKeySignature, newKeySignThreshold, node.producerKeyPair)
+							err = node.networksManager.ChangeTssEcdsaPubKeyZnn(keyGenResponse.PubKey, znnOldKeySignature, znnNewKeySignature, node.producerKeyPair)
 							if err != nil {
 								node.logger.Debug(err)
 								continue

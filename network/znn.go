@@ -398,11 +398,11 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 				}
 			}
 		}
-	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.AddNetworkMethodName].Id()):
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetNetworkMethodName].Id()):
 		rC.logger.Debug("found AddNetworkMethodName")
 		if live {
 			param := new(definition.NetworkInfoParam)
-			if err := definition.ABIBridge.UnpackMethod(param, definition.AddNetworkMethodName, sendBlock.Data); err != nil {
+			if err := definition.ABIBridge.UnpackMethod(param, definition.SetNetworkMethodName, sendBlock.Data); err != nil {
 				return constants.ErrUnpackError
 			}
 			network, err := rC.ZnnRpc().GetNetworkByClassAndId(param.NetworkClass, param.ChainId)
@@ -489,16 +489,6 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			rC.SetKeyGenThreshold(orchestratorInfo.KeyGenThreshold)
 			rC.SetConfirmationsToFinality(orchestratorInfo.ConfirmationsToFinality)
 			rC.SetEstimatedMomentumTime(orchestratorInfo.EstimatedMomentumTime)
-		}
-	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.ChangeTssECDSAPubKeyMethodName].Id()):
-		rC.logger.Debug("found ChangeTssECDSAPubKeyMethodName")
-		if live {
-			orchestratorInfo, err := rC.GetOrchestratorInfo()
-			if err != nil {
-				rC.logger.Error(err)
-				return err
-			}
-			rC.SetKeySignThreshold(orchestratorInfo.KeySignThreshold)
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.HaltMethodName].Id()):
 		rC.logger.Debug("found HaltMethodName")
@@ -639,8 +629,8 @@ func (rC *znnNetwork) GetWrapTokenRequestById(id types.Hash) (*definition.WrapTo
 	return rC.ZnnRpc().GetWrapTokenRequestById(id)
 }
 
-func (rC *znnNetwork) ChangeTssEcdsaPubKey(pubKey, signature, newSignature string, keySignThreshold uint32, keyPair *wallet.KeyPair) error {
-	return rC.ZnnRpc().ChangeTssEcdsaPubKey(pubKey, signature, newSignature, keySignThreshold, keyPair)
+func (rC *znnNetwork) ChangeTssEcdsaPubKey(pubKey, signature, newSignature string, keyPair *wallet.KeyPair) error {
+	return rC.ZnnRpc().ChangeTssEcdsaPubKey(pubKey, signature, newSignature, keyPair)
 }
 
 func (rC *znnNetwork) GetPillarPublicKeys() (map[string]string, error) {
