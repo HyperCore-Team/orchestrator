@@ -26,11 +26,12 @@ var (
 	_ = common.Big1
 	_ = types.BloomLookup
 	_ = event.NewSubscription
+	_ = abi.ConvertType
 )
 
 // BridgeMetaData contains all meta data concerning the Bridge contract.
 var BridgeMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"unhaltDuration\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"administratorDelayParam\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"tssDelay\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"blockTime\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"confirmations\",\"type\":\"uint64\"},{\"internalType\":\"address[]\",\"name\":\"initialGuardians\",\"type\":\"address[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldAdministrator\",\"type\":\"address\"}],\"name\":\"ChangedAdministrator\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"ChangedGuardians\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newTssAddress\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldTssAddress\",\"type\":\"address\"}],\"name\":\"ChangedTssAddress\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"Halted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"}],\"name\":\"PendingAdministrator\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"PendingGuardians\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newTssAddress\",\"type\":\"address\"}],\"name\":\"PendingTssAddress\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Redeemed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"RegisteredRedeem\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"name\":\"RevokedRedeem\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"Unhalted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"to\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Unwrapped\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"actionsNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"administrator\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"administratorChangeBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"administratorDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"allowKeyGen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"}],\"name\":\"changeAdministrator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newTssAddress\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"oldSignature\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"newSignature\",\"type\":\"bytes\"}],\"name\":\"changeTssAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"changeTssAddressDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"confirmationsToFinality\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"contractDeploymentHeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"emergency\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"estimatedBlockTime\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"guardianChangeBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"guardians\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"guardiansVotes\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"halt\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"halted\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isHalted\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minAdministratorDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minTssAddressChangeDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minUnhaltDurationInBlocks\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"newGuardians\",\"type\":\"address[]\"}],\"name\":\"nominateGuardians\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"nominatedGuardians\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"}],\"name\":\"proposeAdministrator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"redeem\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"redeemsInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"paramsHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"requestedAdministrator\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"requestedTssAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"nonces\",\"type\":\"uint256[]\"}],\"name\":\"revokeRedeems\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"value\",\"type\":\"bool\"}],\"name\":\"setAllowKeyGen\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"delay\",\"type\":\"uint256\"}],\"name\":\"setChangeTssAddressDelay\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"confirmations\",\"type\":\"uint64\"}],\"name\":\"setConfirmationsToFinality\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"blockTime\",\"type\":\"uint64\"}],\"name\":\"setEstimatedBlockTime\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"minAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"redeemDelay\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"allowed\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isOwned\",\"type\":\"bool\"}],\"name\":\"setTokenInfo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"}],\"name\":\"setUnhaltDuration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"tokensInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"minAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"redeemDelayInBlocks\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"allowed\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"owned\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tssAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tssAddressChangeBlock\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unhalt\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unhaltDurationInBlocks\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unhaltedAt\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"to\",\"type\":\"string\"}],\"name\":\"unwrap\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"votesCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"unhaltDurationParam\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"administratorDelayParam\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"softDelayParam\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"blockTime\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"confirmations\",\"type\":\"uint64\"},{\"internalType\":\"address[]\",\"name\":\"initialGuardians\",\"type\":\"address[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"Halted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"}],\"name\":\"PendingAdministrator\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"PendingGuardians\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newTss\",\"type\":\"address\"}],\"name\":\"PendingTss\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Redeemed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"RegisteredRedeem\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"name\":\"RevokedRedeem\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldAdministrator\",\"type\":\"address\"}],\"name\":\"SetAdministrator\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"SetGuardians\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newTss\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldTss\",\"type\":\"address\"}],\"name\":\"SetTss\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"Unhalted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"to\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Unwrapped\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"actionsNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"administrator\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"administratorDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"allowKeyGen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"confirmationsToFinality\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"contractDeploymentHeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"emergency\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"estimatedBlockTime\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"guardians\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"guardiansVotes\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"halt\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"halted\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isHalted\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minAdministratorDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minSoftDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minUnhaltDuration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"newGuardians\",\"type\":\"address[]\"}],\"name\":\"nominateGuardians\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"nominatedGuardians\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"}],\"name\":\"proposeAdministrator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"redeem\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"redeemsInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"paramsHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"nonces\",\"type\":\"uint256[]\"}],\"name\":\"revokeRedeems\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"}],\"name\":\"setAdministrator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"value\",\"type\":\"bool\"}],\"name\":\"setAllowKeyGen\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"confirmations\",\"type\":\"uint64\"}],\"name\":\"setConfirmationsToFinality\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"blockTime\",\"type\":\"uint64\"}],\"name\":\"setEstimatedBlockTime\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"delay\",\"type\":\"uint256\"}],\"name\":\"setSoftDelay\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"minAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"redeemDelay\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"bridgeable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"redeemable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isOwned\",\"type\":\"bool\"}],\"name\":\"setTokenInfo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newTss\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"oldSignature\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"newSignature\",\"type\":\"bytes\"}],\"name\":\"setTss\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"}],\"name\":\"setUnhaltDuration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"softDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"name\":\"timeChallengesInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"paramsHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"tokensInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"minAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"redeemDelay\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"bridgeable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"redeemable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"owned\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tss\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unhalt\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unhaltDuration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unhaltedAt\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"to\",\"type\":\"string\"}],\"name\":\"unwrap\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"votesCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // BridgeABI is the input ABI used to generate the binding from.
@@ -134,11 +135,11 @@ func NewBridgeFilterer(address common.Address, filterer bind.ContractFilterer) (
 
 // bindBridge binds a generic wrapper to an already deployed contract.
 func bindBridge(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(BridgeABI))
+	parsed, err := BridgeMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
-	return bind.NewBoundContract(address, parsed, caller, transactor, filterer), nil
+	return bind.NewBoundContract(address, *parsed, caller, transactor, filterer), nil
 }
 
 // Call invokes the (constant) contract method with params as input values and
@@ -241,37 +242,6 @@ func (_Bridge *BridgeCallerSession) Administrator() (common.Address, error) {
 	return _Bridge.Contract.Administrator(&_Bridge.CallOpts)
 }
 
-// AdministratorChangeBlock is a free data retrieval call binding the contract method 0x8a1a2375.
-//
-// Solidity: function administratorChangeBlock() view returns(uint256)
-func (_Bridge *BridgeCaller) AdministratorChangeBlock(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _Bridge.contract.Call(opts, &out, "administratorChangeBlock")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// AdministratorChangeBlock is a free data retrieval call binding the contract method 0x8a1a2375.
-//
-// Solidity: function administratorChangeBlock() view returns(uint256)
-func (_Bridge *BridgeSession) AdministratorChangeBlock() (*big.Int, error) {
-	return _Bridge.Contract.AdministratorChangeBlock(&_Bridge.CallOpts)
-}
-
-// AdministratorChangeBlock is a free data retrieval call binding the contract method 0x8a1a2375.
-//
-// Solidity: function administratorChangeBlock() view returns(uint256)
-func (_Bridge *BridgeCallerSession) AdministratorChangeBlock() (*big.Int, error) {
-	return _Bridge.Contract.AdministratorChangeBlock(&_Bridge.CallOpts)
-}
-
 // AdministratorDelay is a free data retrieval call binding the contract method 0x7f34ad69.
 //
 // Solidity: function administratorDelay() view returns(uint256)
@@ -332,37 +302,6 @@ func (_Bridge *BridgeSession) AllowKeyGen() (bool, error) {
 // Solidity: function allowKeyGen() view returns(bool)
 func (_Bridge *BridgeCallerSession) AllowKeyGen() (bool, error) {
 	return _Bridge.Contract.AllowKeyGen(&_Bridge.CallOpts)
-}
-
-// ChangeTssAddressDelay is a free data retrieval call binding the contract method 0x6c2e7be4.
-//
-// Solidity: function changeTssAddressDelay() view returns(uint256)
-func (_Bridge *BridgeCaller) ChangeTssAddressDelay(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _Bridge.contract.Call(opts, &out, "changeTssAddressDelay")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// ChangeTssAddressDelay is a free data retrieval call binding the contract method 0x6c2e7be4.
-//
-// Solidity: function changeTssAddressDelay() view returns(uint256)
-func (_Bridge *BridgeSession) ChangeTssAddressDelay() (*big.Int, error) {
-	return _Bridge.Contract.ChangeTssAddressDelay(&_Bridge.CallOpts)
-}
-
-// ChangeTssAddressDelay is a free data retrieval call binding the contract method 0x6c2e7be4.
-//
-// Solidity: function changeTssAddressDelay() view returns(uint256)
-func (_Bridge *BridgeCallerSession) ChangeTssAddressDelay() (*big.Int, error) {
-	return _Bridge.Contract.ChangeTssAddressDelay(&_Bridge.CallOpts)
 }
 
 // ConfirmationsToFinality is a free data retrieval call binding the contract method 0x5e2b8902.
@@ -456,37 +395,6 @@ func (_Bridge *BridgeSession) EstimatedBlockTime() (uint64, error) {
 // Solidity: function estimatedBlockTime() view returns(uint64)
 func (_Bridge *BridgeCallerSession) EstimatedBlockTime() (uint64, error) {
 	return _Bridge.Contract.EstimatedBlockTime(&_Bridge.CallOpts)
-}
-
-// GuardianChangeBlock is a free data retrieval call binding the contract method 0x92d669a9.
-//
-// Solidity: function guardianChangeBlock() view returns(uint256)
-func (_Bridge *BridgeCaller) GuardianChangeBlock(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _Bridge.contract.Call(opts, &out, "guardianChangeBlock")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// GuardianChangeBlock is a free data retrieval call binding the contract method 0x92d669a9.
-//
-// Solidity: function guardianChangeBlock() view returns(uint256)
-func (_Bridge *BridgeSession) GuardianChangeBlock() (*big.Int, error) {
-	return _Bridge.Contract.GuardianChangeBlock(&_Bridge.CallOpts)
-}
-
-// GuardianChangeBlock is a free data retrieval call binding the contract method 0x92d669a9.
-//
-// Solidity: function guardianChangeBlock() view returns(uint256)
-func (_Bridge *BridgeCallerSession) GuardianChangeBlock() (*big.Int, error) {
-	return _Bridge.Contract.GuardianChangeBlock(&_Bridge.CallOpts)
 }
 
 // Guardians is a free data retrieval call binding the contract method 0xf560c734.
@@ -644,12 +552,12 @@ func (_Bridge *BridgeCallerSession) MinAdministratorDelay() (*big.Int, error) {
 	return _Bridge.Contract.MinAdministratorDelay(&_Bridge.CallOpts)
 }
 
-// MinTssAddressChangeDelay is a free data retrieval call binding the contract method 0xf547e0c8.
+// MinSoftDelay is a free data retrieval call binding the contract method 0xb4edfaf3.
 //
-// Solidity: function minTssAddressChangeDelay() view returns(uint256)
-func (_Bridge *BridgeCaller) MinTssAddressChangeDelay(opts *bind.CallOpts) (*big.Int, error) {
+// Solidity: function minSoftDelay() view returns(uint256)
+func (_Bridge *BridgeCaller) MinSoftDelay(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _Bridge.contract.Call(opts, &out, "minTssAddressChangeDelay")
+	err := _Bridge.contract.Call(opts, &out, "minSoftDelay")
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -661,26 +569,26 @@ func (_Bridge *BridgeCaller) MinTssAddressChangeDelay(opts *bind.CallOpts) (*big
 
 }
 
-// MinTssAddressChangeDelay is a free data retrieval call binding the contract method 0xf547e0c8.
+// MinSoftDelay is a free data retrieval call binding the contract method 0xb4edfaf3.
 //
-// Solidity: function minTssAddressChangeDelay() view returns(uint256)
-func (_Bridge *BridgeSession) MinTssAddressChangeDelay() (*big.Int, error) {
-	return _Bridge.Contract.MinTssAddressChangeDelay(&_Bridge.CallOpts)
+// Solidity: function minSoftDelay() view returns(uint256)
+func (_Bridge *BridgeSession) MinSoftDelay() (*big.Int, error) {
+	return _Bridge.Contract.MinSoftDelay(&_Bridge.CallOpts)
 }
 
-// MinTssAddressChangeDelay is a free data retrieval call binding the contract method 0xf547e0c8.
+// MinSoftDelay is a free data retrieval call binding the contract method 0xb4edfaf3.
 //
-// Solidity: function minTssAddressChangeDelay() view returns(uint256)
-func (_Bridge *BridgeCallerSession) MinTssAddressChangeDelay() (*big.Int, error) {
-	return _Bridge.Contract.MinTssAddressChangeDelay(&_Bridge.CallOpts)
+// Solidity: function minSoftDelay() view returns(uint256)
+func (_Bridge *BridgeCallerSession) MinSoftDelay() (*big.Int, error) {
+	return _Bridge.Contract.MinSoftDelay(&_Bridge.CallOpts)
 }
 
-// MinUnhaltDurationInBlocks is a free data retrieval call binding the contract method 0x57161706.
+// MinUnhaltDuration is a free data retrieval call binding the contract method 0x1ea9e496.
 //
-// Solidity: function minUnhaltDurationInBlocks() view returns(uint256)
-func (_Bridge *BridgeCaller) MinUnhaltDurationInBlocks(opts *bind.CallOpts) (*big.Int, error) {
+// Solidity: function minUnhaltDuration() view returns(uint256)
+func (_Bridge *BridgeCaller) MinUnhaltDuration(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _Bridge.contract.Call(opts, &out, "minUnhaltDurationInBlocks")
+	err := _Bridge.contract.Call(opts, &out, "minUnhaltDuration")
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -692,18 +600,18 @@ func (_Bridge *BridgeCaller) MinUnhaltDurationInBlocks(opts *bind.CallOpts) (*bi
 
 }
 
-// MinUnhaltDurationInBlocks is a free data retrieval call binding the contract method 0x57161706.
+// MinUnhaltDuration is a free data retrieval call binding the contract method 0x1ea9e496.
 //
-// Solidity: function minUnhaltDurationInBlocks() view returns(uint256)
-func (_Bridge *BridgeSession) MinUnhaltDurationInBlocks() (*big.Int, error) {
-	return _Bridge.Contract.MinUnhaltDurationInBlocks(&_Bridge.CallOpts)
+// Solidity: function minUnhaltDuration() view returns(uint256)
+func (_Bridge *BridgeSession) MinUnhaltDuration() (*big.Int, error) {
+	return _Bridge.Contract.MinUnhaltDuration(&_Bridge.CallOpts)
 }
 
-// MinUnhaltDurationInBlocks is a free data retrieval call binding the contract method 0x57161706.
+// MinUnhaltDuration is a free data retrieval call binding the contract method 0x1ea9e496.
 //
-// Solidity: function minUnhaltDurationInBlocks() view returns(uint256)
-func (_Bridge *BridgeCallerSession) MinUnhaltDurationInBlocks() (*big.Int, error) {
-	return _Bridge.Contract.MinUnhaltDurationInBlocks(&_Bridge.CallOpts)
+// Solidity: function minUnhaltDuration() view returns(uint256)
+func (_Bridge *BridgeCallerSession) MinUnhaltDuration() (*big.Int, error) {
+	return _Bridge.Contract.MinUnhaltDuration(&_Bridge.CallOpts)
 }
 
 // NominatedGuardians is a free data retrieval call binding the contract method 0x8029992f.
@@ -782,94 +690,111 @@ func (_Bridge *BridgeCallerSession) RedeemsInfo(arg0 *big.Int) (struct {
 	return _Bridge.Contract.RedeemsInfo(&_Bridge.CallOpts, arg0)
 }
 
-// RequestedAdministrator is a free data retrieval call binding the contract method 0xeb9f8edd.
+// SoftDelay is a free data retrieval call binding the contract method 0x08c3c888.
 //
-// Solidity: function requestedAdministrator() view returns(address)
-func (_Bridge *BridgeCaller) RequestedAdministrator(opts *bind.CallOpts) (common.Address, error) {
+// Solidity: function softDelay() view returns(uint256)
+func (_Bridge *BridgeCaller) SoftDelay(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _Bridge.contract.Call(opts, &out, "requestedAdministrator")
+	err := _Bridge.contract.Call(opts, &out, "softDelay")
 
 	if err != nil {
-		return *new(common.Address), err
+		return *new(*big.Int), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
 
 	return out0, err
 
 }
 
-// RequestedAdministrator is a free data retrieval call binding the contract method 0xeb9f8edd.
+// SoftDelay is a free data retrieval call binding the contract method 0x08c3c888.
 //
-// Solidity: function requestedAdministrator() view returns(address)
-func (_Bridge *BridgeSession) RequestedAdministrator() (common.Address, error) {
-	return _Bridge.Contract.RequestedAdministrator(&_Bridge.CallOpts)
+// Solidity: function softDelay() view returns(uint256)
+func (_Bridge *BridgeSession) SoftDelay() (*big.Int, error) {
+	return _Bridge.Contract.SoftDelay(&_Bridge.CallOpts)
 }
 
-// RequestedAdministrator is a free data retrieval call binding the contract method 0xeb9f8edd.
+// SoftDelay is a free data retrieval call binding the contract method 0x08c3c888.
 //
-// Solidity: function requestedAdministrator() view returns(address)
-func (_Bridge *BridgeCallerSession) RequestedAdministrator() (common.Address, error) {
-	return _Bridge.Contract.RequestedAdministrator(&_Bridge.CallOpts)
+// Solidity: function softDelay() view returns(uint256)
+func (_Bridge *BridgeCallerSession) SoftDelay() (*big.Int, error) {
+	return _Bridge.Contract.SoftDelay(&_Bridge.CallOpts)
 }
 
-// RequestedTssAddress is a free data retrieval call binding the contract method 0x9cecc98e.
+// TimeChallengesInfo is a free data retrieval call binding the contract method 0xa6fd410e.
 //
-// Solidity: function requestedTssAddress() view returns(address)
-func (_Bridge *BridgeCaller) RequestedTssAddress(opts *bind.CallOpts) (common.Address, error) {
+// Solidity: function timeChallengesInfo(string ) view returns(uint256 blockNumber, bytes32 paramsHash)
+func (_Bridge *BridgeCaller) TimeChallengesInfo(opts *bind.CallOpts, arg0 string) (struct {
+	BlockNumber *big.Int
+	ParamsHash  [32]byte
+}, error) {
 	var out []interface{}
-	err := _Bridge.contract.Call(opts, &out, "requestedTssAddress")
+	err := _Bridge.contract.Call(opts, &out, "timeChallengesInfo", arg0)
 
+	outstruct := new(struct {
+		BlockNumber *big.Int
+		ParamsHash  [32]byte
+	})
 	if err != nil {
-		return *new(common.Address), err
+		return *outstruct, err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+	outstruct.BlockNumber = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	outstruct.ParamsHash = *abi.ConvertType(out[1], new([32]byte)).(*[32]byte)
 
-	return out0, err
+	return *outstruct, err
 
 }
 
-// RequestedTssAddress is a free data retrieval call binding the contract method 0x9cecc98e.
+// TimeChallengesInfo is a free data retrieval call binding the contract method 0xa6fd410e.
 //
-// Solidity: function requestedTssAddress() view returns(address)
-func (_Bridge *BridgeSession) RequestedTssAddress() (common.Address, error) {
-	return _Bridge.Contract.RequestedTssAddress(&_Bridge.CallOpts)
+// Solidity: function timeChallengesInfo(string ) view returns(uint256 blockNumber, bytes32 paramsHash)
+func (_Bridge *BridgeSession) TimeChallengesInfo(arg0 string) (struct {
+	BlockNumber *big.Int
+	ParamsHash  [32]byte
+}, error) {
+	return _Bridge.Contract.TimeChallengesInfo(&_Bridge.CallOpts, arg0)
 }
 
-// RequestedTssAddress is a free data retrieval call binding the contract method 0x9cecc98e.
+// TimeChallengesInfo is a free data retrieval call binding the contract method 0xa6fd410e.
 //
-// Solidity: function requestedTssAddress() view returns(address)
-func (_Bridge *BridgeCallerSession) RequestedTssAddress() (common.Address, error) {
-	return _Bridge.Contract.RequestedTssAddress(&_Bridge.CallOpts)
+// Solidity: function timeChallengesInfo(string ) view returns(uint256 blockNumber, bytes32 paramsHash)
+func (_Bridge *BridgeCallerSession) TimeChallengesInfo(arg0 string) (struct {
+	BlockNumber *big.Int
+	ParamsHash  [32]byte
+}, error) {
+	return _Bridge.Contract.TimeChallengesInfo(&_Bridge.CallOpts, arg0)
 }
 
 // TokensInfo is a free data retrieval call binding the contract method 0xba8dbea2.
 //
-// Solidity: function tokensInfo(address ) view returns(uint256 minAmount, uint256 redeemDelayInBlocks, bool allowed, bool owned)
+// Solidity: function tokensInfo(address ) view returns(uint256 minAmount, uint256 redeemDelay, bool bridgeable, bool redeemable, bool owned)
 func (_Bridge *BridgeCaller) TokensInfo(opts *bind.CallOpts, arg0 common.Address) (struct {
-	MinAmount           *big.Int
-	RedeemDelayInBlocks *big.Int
-	Allowed             bool
-	Owned               bool
+	MinAmount   *big.Int
+	RedeemDelay *big.Int
+	Bridgeable  bool
+	Redeemable  bool
+	Owned       bool
 }, error) {
 	var out []interface{}
 	err := _Bridge.contract.Call(opts, &out, "tokensInfo", arg0)
 
 	outstruct := new(struct {
-		MinAmount           *big.Int
-		RedeemDelayInBlocks *big.Int
-		Allowed             bool
-		Owned               bool
+		MinAmount   *big.Int
+		RedeemDelay *big.Int
+		Bridgeable  bool
+		Redeemable  bool
+		Owned       bool
 	})
 	if err != nil {
 		return *outstruct, err
 	}
 
 	outstruct.MinAmount = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-	outstruct.RedeemDelayInBlocks = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
-	outstruct.Allowed = *abi.ConvertType(out[2], new(bool)).(*bool)
-	outstruct.Owned = *abi.ConvertType(out[3], new(bool)).(*bool)
+	outstruct.RedeemDelay = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
+	outstruct.Bridgeable = *abi.ConvertType(out[2], new(bool)).(*bool)
+	outstruct.Redeemable = *abi.ConvertType(out[3], new(bool)).(*bool)
+	outstruct.Owned = *abi.ConvertType(out[4], new(bool)).(*bool)
 
 	return *outstruct, err
 
@@ -877,34 +802,36 @@ func (_Bridge *BridgeCaller) TokensInfo(opts *bind.CallOpts, arg0 common.Address
 
 // TokensInfo is a free data retrieval call binding the contract method 0xba8dbea2.
 //
-// Solidity: function tokensInfo(address ) view returns(uint256 minAmount, uint256 redeemDelayInBlocks, bool allowed, bool owned)
+// Solidity: function tokensInfo(address ) view returns(uint256 minAmount, uint256 redeemDelay, bool bridgeable, bool redeemable, bool owned)
 func (_Bridge *BridgeSession) TokensInfo(arg0 common.Address) (struct {
-	MinAmount           *big.Int
-	RedeemDelayInBlocks *big.Int
-	Allowed             bool
-	Owned               bool
+	MinAmount   *big.Int
+	RedeemDelay *big.Int
+	Bridgeable  bool
+	Redeemable  bool
+	Owned       bool
 }, error) {
 	return _Bridge.Contract.TokensInfo(&_Bridge.CallOpts, arg0)
 }
 
 // TokensInfo is a free data retrieval call binding the contract method 0xba8dbea2.
 //
-// Solidity: function tokensInfo(address ) view returns(uint256 minAmount, uint256 redeemDelayInBlocks, bool allowed, bool owned)
+// Solidity: function tokensInfo(address ) view returns(uint256 minAmount, uint256 redeemDelay, bool bridgeable, bool redeemable, bool owned)
 func (_Bridge *BridgeCallerSession) TokensInfo(arg0 common.Address) (struct {
-	MinAmount           *big.Int
-	RedeemDelayInBlocks *big.Int
-	Allowed             bool
-	Owned               bool
+	MinAmount   *big.Int
+	RedeemDelay *big.Int
+	Bridgeable  bool
+	Redeemable  bool
+	Owned       bool
 }, error) {
 	return _Bridge.Contract.TokensInfo(&_Bridge.CallOpts, arg0)
 }
 
-// TssAddress is a free data retrieval call binding the contract method 0x5b112591.
+// Tss is a free data retrieval call binding the contract method 0x6e6dbb51.
 //
-// Solidity: function tssAddress() view returns(address)
-func (_Bridge *BridgeCaller) TssAddress(opts *bind.CallOpts) (common.Address, error) {
+// Solidity: function tss() view returns(address)
+func (_Bridge *BridgeCaller) Tss(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _Bridge.contract.Call(opts, &out, "tssAddress")
+	err := _Bridge.contract.Call(opts, &out, "tss")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -916,26 +843,26 @@ func (_Bridge *BridgeCaller) TssAddress(opts *bind.CallOpts) (common.Address, er
 
 }
 
-// TssAddress is a free data retrieval call binding the contract method 0x5b112591.
+// Tss is a free data retrieval call binding the contract method 0x6e6dbb51.
 //
-// Solidity: function tssAddress() view returns(address)
-func (_Bridge *BridgeSession) TssAddress() (common.Address, error) {
-	return _Bridge.Contract.TssAddress(&_Bridge.CallOpts)
+// Solidity: function tss() view returns(address)
+func (_Bridge *BridgeSession) Tss() (common.Address, error) {
+	return _Bridge.Contract.Tss(&_Bridge.CallOpts)
 }
 
-// TssAddress is a free data retrieval call binding the contract method 0x5b112591.
+// Tss is a free data retrieval call binding the contract method 0x6e6dbb51.
 //
-// Solidity: function tssAddress() view returns(address)
-func (_Bridge *BridgeCallerSession) TssAddress() (common.Address, error) {
-	return _Bridge.Contract.TssAddress(&_Bridge.CallOpts)
+// Solidity: function tss() view returns(address)
+func (_Bridge *BridgeCallerSession) Tss() (common.Address, error) {
+	return _Bridge.Contract.Tss(&_Bridge.CallOpts)
 }
 
-// TssAddressChangeBlock is a free data retrieval call binding the contract method 0x4d78ec6d.
+// UnhaltDuration is a free data retrieval call binding the contract method 0xdc22c2ac.
 //
-// Solidity: function tssAddressChangeBlock() view returns(uint256)
-func (_Bridge *BridgeCaller) TssAddressChangeBlock(opts *bind.CallOpts) (*big.Int, error) {
+// Solidity: function unhaltDuration() view returns(uint256)
+func (_Bridge *BridgeCaller) UnhaltDuration(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _Bridge.contract.Call(opts, &out, "tssAddressChangeBlock")
+	err := _Bridge.contract.Call(opts, &out, "unhaltDuration")
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -947,49 +874,18 @@ func (_Bridge *BridgeCaller) TssAddressChangeBlock(opts *bind.CallOpts) (*big.In
 
 }
 
-// TssAddressChangeBlock is a free data retrieval call binding the contract method 0x4d78ec6d.
+// UnhaltDuration is a free data retrieval call binding the contract method 0xdc22c2ac.
 //
-// Solidity: function tssAddressChangeBlock() view returns(uint256)
-func (_Bridge *BridgeSession) TssAddressChangeBlock() (*big.Int, error) {
-	return _Bridge.Contract.TssAddressChangeBlock(&_Bridge.CallOpts)
+// Solidity: function unhaltDuration() view returns(uint256)
+func (_Bridge *BridgeSession) UnhaltDuration() (*big.Int, error) {
+	return _Bridge.Contract.UnhaltDuration(&_Bridge.CallOpts)
 }
 
-// TssAddressChangeBlock is a free data retrieval call binding the contract method 0x4d78ec6d.
+// UnhaltDuration is a free data retrieval call binding the contract method 0xdc22c2ac.
 //
-// Solidity: function tssAddressChangeBlock() view returns(uint256)
-func (_Bridge *BridgeCallerSession) TssAddressChangeBlock() (*big.Int, error) {
-	return _Bridge.Contract.TssAddressChangeBlock(&_Bridge.CallOpts)
-}
-
-// UnhaltDurationInBlocks is a free data retrieval call binding the contract method 0x35e96ed8.
-//
-// Solidity: function unhaltDurationInBlocks() view returns(uint256)
-func (_Bridge *BridgeCaller) UnhaltDurationInBlocks(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _Bridge.contract.Call(opts, &out, "unhaltDurationInBlocks")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// UnhaltDurationInBlocks is a free data retrieval call binding the contract method 0x35e96ed8.
-//
-// Solidity: function unhaltDurationInBlocks() view returns(uint256)
-func (_Bridge *BridgeSession) UnhaltDurationInBlocks() (*big.Int, error) {
-	return _Bridge.Contract.UnhaltDurationInBlocks(&_Bridge.CallOpts)
-}
-
-// UnhaltDurationInBlocks is a free data retrieval call binding the contract method 0x35e96ed8.
-//
-// Solidity: function unhaltDurationInBlocks() view returns(uint256)
-func (_Bridge *BridgeCallerSession) UnhaltDurationInBlocks() (*big.Int, error) {
-	return _Bridge.Contract.UnhaltDurationInBlocks(&_Bridge.CallOpts)
+// Solidity: function unhaltDuration() view returns(uint256)
+func (_Bridge *BridgeCallerSession) UnhaltDuration() (*big.Int, error) {
+	return _Bridge.Contract.UnhaltDuration(&_Bridge.CallOpts)
 }
 
 // UnhaltedAt is a free data retrieval call binding the contract method 0x69d11381.
@@ -1052,48 +948,6 @@ func (_Bridge *BridgeSession) VotesCount(arg0 common.Address) (*big.Int, error) 
 // Solidity: function votesCount(address ) view returns(uint256)
 func (_Bridge *BridgeCallerSession) VotesCount(arg0 common.Address) (*big.Int, error) {
 	return _Bridge.Contract.VotesCount(&_Bridge.CallOpts, arg0)
-}
-
-// ChangeAdministrator is a paid mutator transaction binding the contract method 0x988a9727.
-//
-// Solidity: function changeAdministrator(address newAdministrator) returns()
-func (_Bridge *BridgeTransactor) ChangeAdministrator(opts *bind.TransactOpts, newAdministrator common.Address) (*types.Transaction, error) {
-	return _Bridge.contract.Transact(opts, "changeAdministrator", newAdministrator)
-}
-
-// ChangeAdministrator is a paid mutator transaction binding the contract method 0x988a9727.
-//
-// Solidity: function changeAdministrator(address newAdministrator) returns()
-func (_Bridge *BridgeSession) ChangeAdministrator(newAdministrator common.Address) (*types.Transaction, error) {
-	return _Bridge.Contract.ChangeAdministrator(&_Bridge.TransactOpts, newAdministrator)
-}
-
-// ChangeAdministrator is a paid mutator transaction binding the contract method 0x988a9727.
-//
-// Solidity: function changeAdministrator(address newAdministrator) returns()
-func (_Bridge *BridgeTransactorSession) ChangeAdministrator(newAdministrator common.Address) (*types.Transaction, error) {
-	return _Bridge.Contract.ChangeAdministrator(&_Bridge.TransactOpts, newAdministrator)
-}
-
-// ChangeTssAddress is a paid mutator transaction binding the contract method 0x9ee657c6.
-//
-// Solidity: function changeTssAddress(address newTssAddress, bytes oldSignature, bytes newSignature) returns()
-func (_Bridge *BridgeTransactor) ChangeTssAddress(opts *bind.TransactOpts, newTssAddress common.Address, oldSignature []byte, newSignature []byte) (*types.Transaction, error) {
-	return _Bridge.contract.Transact(opts, "changeTssAddress", newTssAddress, oldSignature, newSignature)
-}
-
-// ChangeTssAddress is a paid mutator transaction binding the contract method 0x9ee657c6.
-//
-// Solidity: function changeTssAddress(address newTssAddress, bytes oldSignature, bytes newSignature) returns()
-func (_Bridge *BridgeSession) ChangeTssAddress(newTssAddress common.Address, oldSignature []byte, newSignature []byte) (*types.Transaction, error) {
-	return _Bridge.Contract.ChangeTssAddress(&_Bridge.TransactOpts, newTssAddress, oldSignature, newSignature)
-}
-
-// ChangeTssAddress is a paid mutator transaction binding the contract method 0x9ee657c6.
-//
-// Solidity: function changeTssAddress(address newTssAddress, bytes oldSignature, bytes newSignature) returns()
-func (_Bridge *BridgeTransactorSession) ChangeTssAddress(newTssAddress common.Address, oldSignature []byte, newSignature []byte) (*types.Transaction, error) {
-	return _Bridge.Contract.ChangeTssAddress(&_Bridge.TransactOpts, newTssAddress, oldSignature, newSignature)
 }
 
 // Emergency is a paid mutator transaction binding the contract method 0xcaa6fea4.
@@ -1222,6 +1076,27 @@ func (_Bridge *BridgeTransactorSession) RevokeRedeems(nonces []*big.Int) (*types
 	return _Bridge.Contract.RevokeRedeems(&_Bridge.TransactOpts, nonces)
 }
 
+// SetAdministrator is a paid mutator transaction binding the contract method 0xdf8089ef.
+//
+// Solidity: function setAdministrator(address newAdministrator) returns()
+func (_Bridge *BridgeTransactor) SetAdministrator(opts *bind.TransactOpts, newAdministrator common.Address) (*types.Transaction, error) {
+	return _Bridge.contract.Transact(opts, "setAdministrator", newAdministrator)
+}
+
+// SetAdministrator is a paid mutator transaction binding the contract method 0xdf8089ef.
+//
+// Solidity: function setAdministrator(address newAdministrator) returns()
+func (_Bridge *BridgeSession) SetAdministrator(newAdministrator common.Address) (*types.Transaction, error) {
+	return _Bridge.Contract.SetAdministrator(&_Bridge.TransactOpts, newAdministrator)
+}
+
+// SetAdministrator is a paid mutator transaction binding the contract method 0xdf8089ef.
+//
+// Solidity: function setAdministrator(address newAdministrator) returns()
+func (_Bridge *BridgeTransactorSession) SetAdministrator(newAdministrator common.Address) (*types.Transaction, error) {
+	return _Bridge.Contract.SetAdministrator(&_Bridge.TransactOpts, newAdministrator)
+}
+
 // SetAllowKeyGen is a paid mutator transaction binding the contract method 0x949ffc7b.
 //
 // Solidity: function setAllowKeyGen(bool value) returns()
@@ -1241,27 +1116,6 @@ func (_Bridge *BridgeSession) SetAllowKeyGen(value bool) (*types.Transaction, er
 // Solidity: function setAllowKeyGen(bool value) returns()
 func (_Bridge *BridgeTransactorSession) SetAllowKeyGen(value bool) (*types.Transaction, error) {
 	return _Bridge.Contract.SetAllowKeyGen(&_Bridge.TransactOpts, value)
-}
-
-// SetChangeTssAddressDelay is a paid mutator transaction binding the contract method 0xa876530a.
-//
-// Solidity: function setChangeTssAddressDelay(uint256 delay) returns()
-func (_Bridge *BridgeTransactor) SetChangeTssAddressDelay(opts *bind.TransactOpts, delay *big.Int) (*types.Transaction, error) {
-	return _Bridge.contract.Transact(opts, "setChangeTssAddressDelay", delay)
-}
-
-// SetChangeTssAddressDelay is a paid mutator transaction binding the contract method 0xa876530a.
-//
-// Solidity: function setChangeTssAddressDelay(uint256 delay) returns()
-func (_Bridge *BridgeSession) SetChangeTssAddressDelay(delay *big.Int) (*types.Transaction, error) {
-	return _Bridge.Contract.SetChangeTssAddressDelay(&_Bridge.TransactOpts, delay)
-}
-
-// SetChangeTssAddressDelay is a paid mutator transaction binding the contract method 0xa876530a.
-//
-// Solidity: function setChangeTssAddressDelay(uint256 delay) returns()
-func (_Bridge *BridgeTransactorSession) SetChangeTssAddressDelay(delay *big.Int) (*types.Transaction, error) {
-	return _Bridge.Contract.SetChangeTssAddressDelay(&_Bridge.TransactOpts, delay)
 }
 
 // SetConfirmationsToFinality is a paid mutator transaction binding the contract method 0x53a1dba9.
@@ -1306,25 +1160,67 @@ func (_Bridge *BridgeTransactorSession) SetEstimatedBlockTime(blockTime uint64) 
 	return _Bridge.Contract.SetEstimatedBlockTime(&_Bridge.TransactOpts, blockTime)
 }
 
-// SetTokenInfo is a paid mutator transaction binding the contract method 0x51557449.
+// SetSoftDelay is a paid mutator transaction binding the contract method 0x64d9e2e4.
 //
-// Solidity: function setTokenInfo(address token, uint256 minAmount, uint256 redeemDelay, bool allowed, bool isOwned) returns()
-func (_Bridge *BridgeTransactor) SetTokenInfo(opts *bind.TransactOpts, token common.Address, minAmount *big.Int, redeemDelay *big.Int, allowed bool, isOwned bool) (*types.Transaction, error) {
-	return _Bridge.contract.Transact(opts, "setTokenInfo", token, minAmount, redeemDelay, allowed, isOwned)
+// Solidity: function setSoftDelay(uint256 delay) returns()
+func (_Bridge *BridgeTransactor) SetSoftDelay(opts *bind.TransactOpts, delay *big.Int) (*types.Transaction, error) {
+	return _Bridge.contract.Transact(opts, "setSoftDelay", delay)
 }
 
-// SetTokenInfo is a paid mutator transaction binding the contract method 0x51557449.
+// SetSoftDelay is a paid mutator transaction binding the contract method 0x64d9e2e4.
 //
-// Solidity: function setTokenInfo(address token, uint256 minAmount, uint256 redeemDelay, bool allowed, bool isOwned) returns()
-func (_Bridge *BridgeSession) SetTokenInfo(token common.Address, minAmount *big.Int, redeemDelay *big.Int, allowed bool, isOwned bool) (*types.Transaction, error) {
-	return _Bridge.Contract.SetTokenInfo(&_Bridge.TransactOpts, token, minAmount, redeemDelay, allowed, isOwned)
+// Solidity: function setSoftDelay(uint256 delay) returns()
+func (_Bridge *BridgeSession) SetSoftDelay(delay *big.Int) (*types.Transaction, error) {
+	return _Bridge.Contract.SetSoftDelay(&_Bridge.TransactOpts, delay)
 }
 
-// SetTokenInfo is a paid mutator transaction binding the contract method 0x51557449.
+// SetSoftDelay is a paid mutator transaction binding the contract method 0x64d9e2e4.
 //
-// Solidity: function setTokenInfo(address token, uint256 minAmount, uint256 redeemDelay, bool allowed, bool isOwned) returns()
-func (_Bridge *BridgeTransactorSession) SetTokenInfo(token common.Address, minAmount *big.Int, redeemDelay *big.Int, allowed bool, isOwned bool) (*types.Transaction, error) {
-	return _Bridge.Contract.SetTokenInfo(&_Bridge.TransactOpts, token, minAmount, redeemDelay, allowed, isOwned)
+// Solidity: function setSoftDelay(uint256 delay) returns()
+func (_Bridge *BridgeTransactorSession) SetSoftDelay(delay *big.Int) (*types.Transaction, error) {
+	return _Bridge.Contract.SetSoftDelay(&_Bridge.TransactOpts, delay)
+}
+
+// SetTokenInfo is a paid mutator transaction binding the contract method 0x39cbc5b9.
+//
+// Solidity: function setTokenInfo(address token, uint256 minAmount, uint256 redeemDelay, bool bridgeable, bool redeemable, bool isOwned) returns()
+func (_Bridge *BridgeTransactor) SetTokenInfo(opts *bind.TransactOpts, token common.Address, minAmount *big.Int, redeemDelay *big.Int, bridgeable bool, redeemable bool, isOwned bool) (*types.Transaction, error) {
+	return _Bridge.contract.Transact(opts, "setTokenInfo", token, minAmount, redeemDelay, bridgeable, redeemable, isOwned)
+}
+
+// SetTokenInfo is a paid mutator transaction binding the contract method 0x39cbc5b9.
+//
+// Solidity: function setTokenInfo(address token, uint256 minAmount, uint256 redeemDelay, bool bridgeable, bool redeemable, bool isOwned) returns()
+func (_Bridge *BridgeSession) SetTokenInfo(token common.Address, minAmount *big.Int, redeemDelay *big.Int, bridgeable bool, redeemable bool, isOwned bool) (*types.Transaction, error) {
+	return _Bridge.Contract.SetTokenInfo(&_Bridge.TransactOpts, token, minAmount, redeemDelay, bridgeable, redeemable, isOwned)
+}
+
+// SetTokenInfo is a paid mutator transaction binding the contract method 0x39cbc5b9.
+//
+// Solidity: function setTokenInfo(address token, uint256 minAmount, uint256 redeemDelay, bool bridgeable, bool redeemable, bool isOwned) returns()
+func (_Bridge *BridgeTransactorSession) SetTokenInfo(token common.Address, minAmount *big.Int, redeemDelay *big.Int, bridgeable bool, redeemable bool, isOwned bool) (*types.Transaction, error) {
+	return _Bridge.Contract.SetTokenInfo(&_Bridge.TransactOpts, token, minAmount, redeemDelay, bridgeable, redeemable, isOwned)
+}
+
+// SetTss is a paid mutator transaction binding the contract method 0x72461d7b.
+//
+// Solidity: function setTss(address newTss, bytes oldSignature, bytes newSignature) returns()
+func (_Bridge *BridgeTransactor) SetTss(opts *bind.TransactOpts, newTss common.Address, oldSignature []byte, newSignature []byte) (*types.Transaction, error) {
+	return _Bridge.contract.Transact(opts, "setTss", newTss, oldSignature, newSignature)
+}
+
+// SetTss is a paid mutator transaction binding the contract method 0x72461d7b.
+//
+// Solidity: function setTss(address newTss, bytes oldSignature, bytes newSignature) returns()
+func (_Bridge *BridgeSession) SetTss(newTss common.Address, oldSignature []byte, newSignature []byte) (*types.Transaction, error) {
+	return _Bridge.Contract.SetTss(&_Bridge.TransactOpts, newTss, oldSignature, newSignature)
+}
+
+// SetTss is a paid mutator transaction binding the contract method 0x72461d7b.
+//
+// Solidity: function setTss(address newTss, bytes oldSignature, bytes newSignature) returns()
+func (_Bridge *BridgeTransactorSession) SetTss(newTss common.Address, oldSignature []byte, newSignature []byte) (*types.Transaction, error) {
+	return _Bridge.Contract.SetTss(&_Bridge.TransactOpts, newTss, oldSignature, newSignature)
 }
 
 // SetUnhaltDuration is a paid mutator transaction binding the contract method 0xbca9525d.
@@ -1388,429 +1284,6 @@ func (_Bridge *BridgeSession) Unwrap(token common.Address, amount *big.Int, to s
 // Solidity: function unwrap(address token, uint256 amount, string to) returns()
 func (_Bridge *BridgeTransactorSession) Unwrap(token common.Address, amount *big.Int, to string) (*types.Transaction, error) {
 	return _Bridge.Contract.Unwrap(&_Bridge.TransactOpts, token, amount, to)
-}
-
-// BridgeChangedAdministratorIterator is returned from FilterChangedAdministrator and is used to iterate over the raw logs and unpacked data for ChangedAdministrator events raised by the Bridge contract.
-type BridgeChangedAdministratorIterator struct {
-	Event *BridgeChangedAdministrator // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *BridgeChangedAdministratorIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(BridgeChangedAdministrator)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(BridgeChangedAdministrator)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *BridgeChangedAdministratorIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *BridgeChangedAdministratorIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// BridgeChangedAdministrator represents a ChangedAdministrator event raised by the Bridge contract.
-type BridgeChangedAdministrator struct {
-	NewAdministrator common.Address
-	OldAdministrator common.Address
-	Raw              types.Log // Blockchain specific contextual infos
-}
-
-// FilterChangedAdministrator is a free log retrieval operation binding the contract event 0xd26c57e646f4fdb3f746240d8408ad897af56bb48d9ec17aa31859be0bccd795.
-//
-// Solidity: event ChangedAdministrator(address indexed newAdministrator, address oldAdministrator)
-func (_Bridge *BridgeFilterer) FilterChangedAdministrator(opts *bind.FilterOpts, newAdministrator []common.Address) (*BridgeChangedAdministratorIterator, error) {
-
-	var newAdministratorRule []interface{}
-	for _, newAdministratorItem := range newAdministrator {
-		newAdministratorRule = append(newAdministratorRule, newAdministratorItem)
-	}
-
-	logs, sub, err := _Bridge.contract.FilterLogs(opts, "ChangedAdministrator", newAdministratorRule)
-	if err != nil {
-		return nil, err
-	}
-	return &BridgeChangedAdministratorIterator{contract: _Bridge.contract, event: "ChangedAdministrator", logs: logs, sub: sub}, nil
-}
-
-// WatchChangedAdministrator is a free log subscription operation binding the contract event 0xd26c57e646f4fdb3f746240d8408ad897af56bb48d9ec17aa31859be0bccd795.
-//
-// Solidity: event ChangedAdministrator(address indexed newAdministrator, address oldAdministrator)
-func (_Bridge *BridgeFilterer) WatchChangedAdministrator(opts *bind.WatchOpts, sink chan<- *BridgeChangedAdministrator, newAdministrator []common.Address) (event.Subscription, error) {
-
-	var newAdministratorRule []interface{}
-	for _, newAdministratorItem := range newAdministrator {
-		newAdministratorRule = append(newAdministratorRule, newAdministratorItem)
-	}
-
-	logs, sub, err := _Bridge.contract.WatchLogs(opts, "ChangedAdministrator", newAdministratorRule)
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(BridgeChangedAdministrator)
-				if err := _Bridge.contract.UnpackLog(event, "ChangedAdministrator", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseChangedAdministrator is a log parse operation binding the contract event 0xd26c57e646f4fdb3f746240d8408ad897af56bb48d9ec17aa31859be0bccd795.
-//
-// Solidity: event ChangedAdministrator(address indexed newAdministrator, address oldAdministrator)
-func (_Bridge *BridgeFilterer) ParseChangedAdministrator(log types.Log) (*BridgeChangedAdministrator, error) {
-	event := new(BridgeChangedAdministrator)
-	if err := _Bridge.contract.UnpackLog(event, "ChangedAdministrator", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// BridgeChangedGuardiansIterator is returned from FilterChangedGuardians and is used to iterate over the raw logs and unpacked data for ChangedGuardians events raised by the Bridge contract.
-type BridgeChangedGuardiansIterator struct {
-	Event *BridgeChangedGuardians // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *BridgeChangedGuardiansIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(BridgeChangedGuardians)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(BridgeChangedGuardians)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *BridgeChangedGuardiansIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *BridgeChangedGuardiansIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// BridgeChangedGuardians represents a ChangedGuardians event raised by the Bridge contract.
-type BridgeChangedGuardians struct {
-	Raw types.Log // Blockchain specific contextual infos
-}
-
-// FilterChangedGuardians is a free log retrieval operation binding the contract event 0x5f25b7a8dc5f9542e3cf70285ca7075f66d4688be0e75e950d816c6cfbd7b336.
-//
-// Solidity: event ChangedGuardians()
-func (_Bridge *BridgeFilterer) FilterChangedGuardians(opts *bind.FilterOpts) (*BridgeChangedGuardiansIterator, error) {
-
-	logs, sub, err := _Bridge.contract.FilterLogs(opts, "ChangedGuardians")
-	if err != nil {
-		return nil, err
-	}
-	return &BridgeChangedGuardiansIterator{contract: _Bridge.contract, event: "ChangedGuardians", logs: logs, sub: sub}, nil
-}
-
-// WatchChangedGuardians is a free log subscription operation binding the contract event 0x5f25b7a8dc5f9542e3cf70285ca7075f66d4688be0e75e950d816c6cfbd7b336.
-//
-// Solidity: event ChangedGuardians()
-func (_Bridge *BridgeFilterer) WatchChangedGuardians(opts *bind.WatchOpts, sink chan<- *BridgeChangedGuardians) (event.Subscription, error) {
-
-	logs, sub, err := _Bridge.contract.WatchLogs(opts, "ChangedGuardians")
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(BridgeChangedGuardians)
-				if err := _Bridge.contract.UnpackLog(event, "ChangedGuardians", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseChangedGuardians is a log parse operation binding the contract event 0x5f25b7a8dc5f9542e3cf70285ca7075f66d4688be0e75e950d816c6cfbd7b336.
-//
-// Solidity: event ChangedGuardians()
-func (_Bridge *BridgeFilterer) ParseChangedGuardians(log types.Log) (*BridgeChangedGuardians, error) {
-	event := new(BridgeChangedGuardians)
-	if err := _Bridge.contract.UnpackLog(event, "ChangedGuardians", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// BridgeChangedTssAddressIterator is returned from FilterChangedTssAddress and is used to iterate over the raw logs and unpacked data for ChangedTssAddress events raised by the Bridge contract.
-type BridgeChangedTssAddressIterator struct {
-	Event *BridgeChangedTssAddress // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *BridgeChangedTssAddressIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(BridgeChangedTssAddress)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(BridgeChangedTssAddress)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *BridgeChangedTssAddressIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *BridgeChangedTssAddressIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// BridgeChangedTssAddress represents a ChangedTssAddress event raised by the Bridge contract.
-type BridgeChangedTssAddress struct {
-	NewTssAddress common.Address
-	OldTssAddress common.Address
-	Raw           types.Log // Blockchain specific contextual infos
-}
-
-// FilterChangedTssAddress is a free log retrieval operation binding the contract event 0xda91bc0c8df0b1b4750875013dc731906e54b411afea3459c0e923f2c424a432.
-//
-// Solidity: event ChangedTssAddress(address indexed newTssAddress, address oldTssAddress)
-func (_Bridge *BridgeFilterer) FilterChangedTssAddress(opts *bind.FilterOpts, newTssAddress []common.Address) (*BridgeChangedTssAddressIterator, error) {
-
-	var newTssAddressRule []interface{}
-	for _, newTssAddressItem := range newTssAddress {
-		newTssAddressRule = append(newTssAddressRule, newTssAddressItem)
-	}
-
-	logs, sub, err := _Bridge.contract.FilterLogs(opts, "ChangedTssAddress", newTssAddressRule)
-	if err != nil {
-		return nil, err
-	}
-	return &BridgeChangedTssAddressIterator{contract: _Bridge.contract, event: "ChangedTssAddress", logs: logs, sub: sub}, nil
-}
-
-// WatchChangedTssAddress is a free log subscription operation binding the contract event 0xda91bc0c8df0b1b4750875013dc731906e54b411afea3459c0e923f2c424a432.
-//
-// Solidity: event ChangedTssAddress(address indexed newTssAddress, address oldTssAddress)
-func (_Bridge *BridgeFilterer) WatchChangedTssAddress(opts *bind.WatchOpts, sink chan<- *BridgeChangedTssAddress, newTssAddress []common.Address) (event.Subscription, error) {
-
-	var newTssAddressRule []interface{}
-	for _, newTssAddressItem := range newTssAddress {
-		newTssAddressRule = append(newTssAddressRule, newTssAddressItem)
-	}
-
-	logs, sub, err := _Bridge.contract.WatchLogs(opts, "ChangedTssAddress", newTssAddressRule)
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(BridgeChangedTssAddress)
-				if err := _Bridge.contract.UnpackLog(event, "ChangedTssAddress", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseChangedTssAddress is a log parse operation binding the contract event 0xda91bc0c8df0b1b4750875013dc731906e54b411afea3459c0e923f2c424a432.
-//
-// Solidity: event ChangedTssAddress(address indexed newTssAddress, address oldTssAddress)
-func (_Bridge *BridgeFilterer) ParseChangedTssAddress(log types.Log) (*BridgeChangedTssAddress, error) {
-	event := new(BridgeChangedTssAddress)
-	if err := _Bridge.contract.UnpackLog(event, "ChangedTssAddress", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
 }
 
 // BridgeHaltedIterator is returned from FilterHalted and is used to iterate over the raw logs and unpacked data for Halted events raised by the Bridge contract.
@@ -2223,9 +1696,9 @@ func (_Bridge *BridgeFilterer) ParsePendingGuardians(log types.Log) (*BridgePend
 	return event, nil
 }
 
-// BridgePendingTssAddressIterator is returned from FilterPendingTssAddress and is used to iterate over the raw logs and unpacked data for PendingTssAddress events raised by the Bridge contract.
-type BridgePendingTssAddressIterator struct {
-	Event *BridgePendingTssAddress // Event containing the contract specifics and raw log
+// BridgePendingTssIterator is returned from FilterPendingTss and is used to iterate over the raw logs and unpacked data for PendingTss events raised by the Bridge contract.
+type BridgePendingTssIterator struct {
+	Event *BridgePendingTss // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -2239,7 +1712,7 @@ type BridgePendingTssAddressIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *BridgePendingTssAddressIterator) Next() bool {
+func (it *BridgePendingTssIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -2248,7 +1721,7 @@ func (it *BridgePendingTssAddressIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(BridgePendingTssAddress)
+			it.Event = new(BridgePendingTss)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -2263,7 +1736,7 @@ func (it *BridgePendingTssAddressIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(BridgePendingTssAddress)
+		it.Event = new(BridgePendingTss)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -2279,51 +1752,51 @@ func (it *BridgePendingTssAddressIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *BridgePendingTssAddressIterator) Error() error {
+func (it *BridgePendingTssIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *BridgePendingTssAddressIterator) Close() error {
+func (it *BridgePendingTssIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// BridgePendingTssAddress represents a PendingTssAddress event raised by the Bridge contract.
-type BridgePendingTssAddress struct {
-	NewTssAddress common.Address
-	Raw           types.Log // Blockchain specific contextual infos
+// BridgePendingTss represents a PendingTss event raised by the Bridge contract.
+type BridgePendingTss struct {
+	NewTss common.Address
+	Raw    types.Log // Blockchain specific contextual infos
 }
 
-// FilterPendingTssAddress is a free log retrieval operation binding the contract event 0xdb0a7ee6019c8bdae9668159d0a941d7463cde5e39e6658226e34fa02a706680.
+// FilterPendingTss is a free log retrieval operation binding the contract event 0xad1c846290c418eec330f68f49d58cf79ff618f063a767abf9ee1c895f9d0f77.
 //
-// Solidity: event PendingTssAddress(address indexed newTssAddress)
-func (_Bridge *BridgeFilterer) FilterPendingTssAddress(opts *bind.FilterOpts, newTssAddress []common.Address) (*BridgePendingTssAddressIterator, error) {
+// Solidity: event PendingTss(address indexed newTss)
+func (_Bridge *BridgeFilterer) FilterPendingTss(opts *bind.FilterOpts, newTss []common.Address) (*BridgePendingTssIterator, error) {
 
-	var newTssAddressRule []interface{}
-	for _, newTssAddressItem := range newTssAddress {
-		newTssAddressRule = append(newTssAddressRule, newTssAddressItem)
+	var newTssRule []interface{}
+	for _, newTssItem := range newTss {
+		newTssRule = append(newTssRule, newTssItem)
 	}
 
-	logs, sub, err := _Bridge.contract.FilterLogs(opts, "PendingTssAddress", newTssAddressRule)
+	logs, sub, err := _Bridge.contract.FilterLogs(opts, "PendingTss", newTssRule)
 	if err != nil {
 		return nil, err
 	}
-	return &BridgePendingTssAddressIterator{contract: _Bridge.contract, event: "PendingTssAddress", logs: logs, sub: sub}, nil
+	return &BridgePendingTssIterator{contract: _Bridge.contract, event: "PendingTss", logs: logs, sub: sub}, nil
 }
 
-// WatchPendingTssAddress is a free log subscription operation binding the contract event 0xdb0a7ee6019c8bdae9668159d0a941d7463cde5e39e6658226e34fa02a706680.
+// WatchPendingTss is a free log subscription operation binding the contract event 0xad1c846290c418eec330f68f49d58cf79ff618f063a767abf9ee1c895f9d0f77.
 //
-// Solidity: event PendingTssAddress(address indexed newTssAddress)
-func (_Bridge *BridgeFilterer) WatchPendingTssAddress(opts *bind.WatchOpts, sink chan<- *BridgePendingTssAddress, newTssAddress []common.Address) (event.Subscription, error) {
+// Solidity: event PendingTss(address indexed newTss)
+func (_Bridge *BridgeFilterer) WatchPendingTss(opts *bind.WatchOpts, sink chan<- *BridgePendingTss, newTss []common.Address) (event.Subscription, error) {
 
-	var newTssAddressRule []interface{}
-	for _, newTssAddressItem := range newTssAddress {
-		newTssAddressRule = append(newTssAddressRule, newTssAddressItem)
+	var newTssRule []interface{}
+	for _, newTssItem := range newTss {
+		newTssRule = append(newTssRule, newTssItem)
 	}
 
-	logs, sub, err := _Bridge.contract.WatchLogs(opts, "PendingTssAddress", newTssAddressRule)
+	logs, sub, err := _Bridge.contract.WatchLogs(opts, "PendingTss", newTssRule)
 	if err != nil {
 		return nil, err
 	}
@@ -2333,8 +1806,8 @@ func (_Bridge *BridgeFilterer) WatchPendingTssAddress(opts *bind.WatchOpts, sink
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(BridgePendingTssAddress)
-				if err := _Bridge.contract.UnpackLog(event, "PendingTssAddress", log); err != nil {
+				event := new(BridgePendingTss)
+				if err := _Bridge.contract.UnpackLog(event, "PendingTss", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -2355,12 +1828,12 @@ func (_Bridge *BridgeFilterer) WatchPendingTssAddress(opts *bind.WatchOpts, sink
 	}), nil
 }
 
-// ParsePendingTssAddress is a log parse operation binding the contract event 0xdb0a7ee6019c8bdae9668159d0a941d7463cde5e39e6658226e34fa02a706680.
+// ParsePendingTss is a log parse operation binding the contract event 0xad1c846290c418eec330f68f49d58cf79ff618f063a767abf9ee1c895f9d0f77.
 //
-// Solidity: event PendingTssAddress(address indexed newTssAddress)
-func (_Bridge *BridgeFilterer) ParsePendingTssAddress(log types.Log) (*BridgePendingTssAddress, error) {
-	event := new(BridgePendingTssAddress)
-	if err := _Bridge.contract.UnpackLog(event, "PendingTssAddress", log); err != nil {
+// Solidity: event PendingTss(address indexed newTss)
+func (_Bridge *BridgeFilterer) ParsePendingTss(log types.Log) (*BridgePendingTss, error) {
+	event := new(BridgePendingTss)
+	if err := _Bridge.contract.UnpackLog(event, "PendingTss", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -2831,6 +2304,429 @@ func (_Bridge *BridgeFilterer) WatchRevokedRedeem(opts *bind.WatchOpts, sink cha
 func (_Bridge *BridgeFilterer) ParseRevokedRedeem(log types.Log) (*BridgeRevokedRedeem, error) {
 	event := new(BridgeRevokedRedeem)
 	if err := _Bridge.contract.UnpackLog(event, "RevokedRedeem", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BridgeSetAdministratorIterator is returned from FilterSetAdministrator and is used to iterate over the raw logs and unpacked data for SetAdministrator events raised by the Bridge contract.
+type BridgeSetAdministratorIterator struct {
+	Event *BridgeSetAdministrator // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BridgeSetAdministratorIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BridgeSetAdministrator)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BridgeSetAdministrator)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BridgeSetAdministratorIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BridgeSetAdministratorIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BridgeSetAdministrator represents a SetAdministrator event raised by the Bridge contract.
+type BridgeSetAdministrator struct {
+	NewAdministrator common.Address
+	OldAdministrator common.Address
+	Raw              types.Log // Blockchain specific contextual infos
+}
+
+// FilterSetAdministrator is a free log retrieval operation binding the contract event 0x525117b0c654ea4d9950e296eca92b77aa3c6fdeba6217801c6f32a0ed7a0922.
+//
+// Solidity: event SetAdministrator(address indexed newAdministrator, address oldAdministrator)
+func (_Bridge *BridgeFilterer) FilterSetAdministrator(opts *bind.FilterOpts, newAdministrator []common.Address) (*BridgeSetAdministratorIterator, error) {
+
+	var newAdministratorRule []interface{}
+	for _, newAdministratorItem := range newAdministrator {
+		newAdministratorRule = append(newAdministratorRule, newAdministratorItem)
+	}
+
+	logs, sub, err := _Bridge.contract.FilterLogs(opts, "SetAdministrator", newAdministratorRule)
+	if err != nil {
+		return nil, err
+	}
+	return &BridgeSetAdministratorIterator{contract: _Bridge.contract, event: "SetAdministrator", logs: logs, sub: sub}, nil
+}
+
+// WatchSetAdministrator is a free log subscription operation binding the contract event 0x525117b0c654ea4d9950e296eca92b77aa3c6fdeba6217801c6f32a0ed7a0922.
+//
+// Solidity: event SetAdministrator(address indexed newAdministrator, address oldAdministrator)
+func (_Bridge *BridgeFilterer) WatchSetAdministrator(opts *bind.WatchOpts, sink chan<- *BridgeSetAdministrator, newAdministrator []common.Address) (event.Subscription, error) {
+
+	var newAdministratorRule []interface{}
+	for _, newAdministratorItem := range newAdministrator {
+		newAdministratorRule = append(newAdministratorRule, newAdministratorItem)
+	}
+
+	logs, sub, err := _Bridge.contract.WatchLogs(opts, "SetAdministrator", newAdministratorRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BridgeSetAdministrator)
+				if err := _Bridge.contract.UnpackLog(event, "SetAdministrator", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSetAdministrator is a log parse operation binding the contract event 0x525117b0c654ea4d9950e296eca92b77aa3c6fdeba6217801c6f32a0ed7a0922.
+//
+// Solidity: event SetAdministrator(address indexed newAdministrator, address oldAdministrator)
+func (_Bridge *BridgeFilterer) ParseSetAdministrator(log types.Log) (*BridgeSetAdministrator, error) {
+	event := new(BridgeSetAdministrator)
+	if err := _Bridge.contract.UnpackLog(event, "SetAdministrator", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BridgeSetGuardiansIterator is returned from FilterSetGuardians and is used to iterate over the raw logs and unpacked data for SetGuardians events raised by the Bridge contract.
+type BridgeSetGuardiansIterator struct {
+	Event *BridgeSetGuardians // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BridgeSetGuardiansIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BridgeSetGuardians)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BridgeSetGuardians)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BridgeSetGuardiansIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BridgeSetGuardiansIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BridgeSetGuardians represents a SetGuardians event raised by the Bridge contract.
+type BridgeSetGuardians struct {
+	Raw types.Log // Blockchain specific contextual infos
+}
+
+// FilterSetGuardians is a free log retrieval operation binding the contract event 0xade9cb9e0d9bd2fc419ba2eb751a8adb44beb8a13c106e78a18b2afba085aaa5.
+//
+// Solidity: event SetGuardians()
+func (_Bridge *BridgeFilterer) FilterSetGuardians(opts *bind.FilterOpts) (*BridgeSetGuardiansIterator, error) {
+
+	logs, sub, err := _Bridge.contract.FilterLogs(opts, "SetGuardians")
+	if err != nil {
+		return nil, err
+	}
+	return &BridgeSetGuardiansIterator{contract: _Bridge.contract, event: "SetGuardians", logs: logs, sub: sub}, nil
+}
+
+// WatchSetGuardians is a free log subscription operation binding the contract event 0xade9cb9e0d9bd2fc419ba2eb751a8adb44beb8a13c106e78a18b2afba085aaa5.
+//
+// Solidity: event SetGuardians()
+func (_Bridge *BridgeFilterer) WatchSetGuardians(opts *bind.WatchOpts, sink chan<- *BridgeSetGuardians) (event.Subscription, error) {
+
+	logs, sub, err := _Bridge.contract.WatchLogs(opts, "SetGuardians")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BridgeSetGuardians)
+				if err := _Bridge.contract.UnpackLog(event, "SetGuardians", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSetGuardians is a log parse operation binding the contract event 0xade9cb9e0d9bd2fc419ba2eb751a8adb44beb8a13c106e78a18b2afba085aaa5.
+//
+// Solidity: event SetGuardians()
+func (_Bridge *BridgeFilterer) ParseSetGuardians(log types.Log) (*BridgeSetGuardians, error) {
+	event := new(BridgeSetGuardians)
+	if err := _Bridge.contract.UnpackLog(event, "SetGuardians", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BridgeSetTssIterator is returned from FilterSetTss and is used to iterate over the raw logs and unpacked data for SetTss events raised by the Bridge contract.
+type BridgeSetTssIterator struct {
+	Event *BridgeSetTss // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BridgeSetTssIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BridgeSetTss)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BridgeSetTss)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BridgeSetTssIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BridgeSetTssIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BridgeSetTss represents a SetTss event raised by the Bridge contract.
+type BridgeSetTss struct {
+	NewTss common.Address
+	OldTss common.Address
+	Raw    types.Log // Blockchain specific contextual infos
+}
+
+// FilterSetTss is a free log retrieval operation binding the contract event 0xa37f87a74fe0e5d7a2c17e4d76a9b3467a6f29260495db13ebd6a486cf7d3cef.
+//
+// Solidity: event SetTss(address indexed newTss, address oldTss)
+func (_Bridge *BridgeFilterer) FilterSetTss(opts *bind.FilterOpts, newTss []common.Address) (*BridgeSetTssIterator, error) {
+
+	var newTssRule []interface{}
+	for _, newTssItem := range newTss {
+		newTssRule = append(newTssRule, newTssItem)
+	}
+
+	logs, sub, err := _Bridge.contract.FilterLogs(opts, "SetTss", newTssRule)
+	if err != nil {
+		return nil, err
+	}
+	return &BridgeSetTssIterator{contract: _Bridge.contract, event: "SetTss", logs: logs, sub: sub}, nil
+}
+
+// WatchSetTss is a free log subscription operation binding the contract event 0xa37f87a74fe0e5d7a2c17e4d76a9b3467a6f29260495db13ebd6a486cf7d3cef.
+//
+// Solidity: event SetTss(address indexed newTss, address oldTss)
+func (_Bridge *BridgeFilterer) WatchSetTss(opts *bind.WatchOpts, sink chan<- *BridgeSetTss, newTss []common.Address) (event.Subscription, error) {
+
+	var newTssRule []interface{}
+	for _, newTssItem := range newTss {
+		newTssRule = append(newTssRule, newTssItem)
+	}
+
+	logs, sub, err := _Bridge.contract.WatchLogs(opts, "SetTss", newTssRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BridgeSetTss)
+				if err := _Bridge.contract.UnpackLog(event, "SetTss", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSetTss is a log parse operation binding the contract event 0xa37f87a74fe0e5d7a2c17e4d76a9b3467a6f29260495db13ebd6a486cf7d3cef.
+//
+// Solidity: event SetTss(address indexed newTss, address oldTss)
+func (_Bridge *BridgeFilterer) ParseSetTss(log types.Log) (*BridgeSetTss, error) {
+	event := new(BridgeSetTss)
+	if err := _Bridge.contract.UnpackLog(event, "SetTss", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

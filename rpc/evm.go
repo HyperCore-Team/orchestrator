@@ -144,7 +144,7 @@ func (r *EvmRpc) SendTransaction(tx *etypes.Transaction) error {
 	return r.rpcClient.SendTransaction(context.Background(), tx)
 }
 
-func (r *EvmRpc) GetChangeTssEcdsaPubKeyEvmMessage(newAddress ecommon.Address, networkClass, chainId uint32, contractAddress *ecommon.Address) ([]byte, error) {
+func (r *EvmRpc) GetSetTssEcdsaPubKeyEvmMessage(newAddress ecommon.Address, networkClass, chainId uint32, contractAddress *ecommon.Address) ([]byte, error) {
 	actionsNonce, err := r.GetActionNonce()
 	if err != nil {
 		return nil, err
@@ -152,7 +152,7 @@ func (r *EvmRpc) GetChangeTssEcdsaPubKeyEvmMessage(newAddress ecommon.Address, n
 
 	args := abi.Arguments{{Type: definition.StringTy}, {Type: definition.Uint256Ty}, {Type: definition.Uint256Ty}, {Type: definition.AddressTy}, {Type: definition.Uint256Ty}, {Type: definition.AddressTy}}
 	values := make([]interface{}, 0)
-	values = append(values, "changeTssAddress",
+	values = append(values, "setTss",
 		big.NewInt(int64(networkClass)),
 		big.NewInt(int64(chainId)),
 		contractAddress,
@@ -170,7 +170,7 @@ func (r *EvmRpc) GetChangeTssEcdsaPubKeyEvmMessage(newAddress ecommon.Address, n
 	return implementation.GetMessageToSignEvm(data)
 }
 
-func (r *EvmRpc) GetChangeTssEcdsaPubKeyEvmTx(newTssAddress, sender ecommon.Address, oldFullSignature, newFullSignature []byte, contractAddress *ecommon.Address) (*etypes.Transaction, error) {
+func (r *EvmRpc) GetSetTssEcdsaPubKeyEvmTx(newTss, sender ecommon.Address, oldFullSignature, newFullSignature []byte, contractAddress *ecommon.Address) (*etypes.Transaction, error) {
 	if blockHeight, err := r.BlockNumber(); err != nil {
 		return nil, err
 	} else {
@@ -178,7 +178,7 @@ func (r *EvmRpc) GetChangeTssEcdsaPubKeyEvmTx(newTssAddress, sender ecommon.Addr
 			return nil, err
 		} else {
 			if balance.Cmp(big.NewInt(0)) == 0 {
-				return nil, errors.New("Balance is 0, not enough to send change ecdsa pub key tx")
+				return nil, errors.New("Balance is 0, not enough to send set ecdsa pub key tx")
 			}
 			r.logger.Debugf("Balance: %d", balance.Uint64())
 			if nonce, err := r.NonceAt(sender, blockHeight); err != nil {
@@ -189,7 +189,7 @@ func (r *EvmRpc) GetChangeTssEcdsaPubKeyEvmTx(newTssAddress, sender ecommon.Addr
 					return nil, err
 				}
 
-				encodedData, err := common.EvmContractAbi.Pack("changeTssAddress", newTssAddress, oldFullSignature, newFullSignature)
+				encodedData, err := common.EvmContractAbi.Pack("setTss", newTss, oldFullSignature, newFullSignature)
 				if err != nil {
 					return nil, err
 				}
@@ -212,7 +212,7 @@ func (r *EvmRpc) GetChangeTssEcdsaPubKeyEvmTx(newTssAddress, sender ecommon.Addr
 				// We subtract the fees and send the difference to the contract
 				// We subtract the fees and send the difference to the contract
 				if balance.Cmp(fees) < 0 {
-					return nil, errors.New("not enough balance to send change ecdsa pub key tx")
+					return nil, errors.New("not enough balance to send set ecdsa pub key tx")
 				}
 				balance.Sub(balance, fees)
 				tx := etypes.NewTx(&etypes.LegacyTx{
@@ -344,8 +344,8 @@ func (r *EvmRpc) BlockNumber() (uint64, error) {
 	return r.rpcClient.BlockNumber(context.Background())
 }
 
-func (r *EvmRpc) GetCurrentTssAddress() (ecommon.Address, error) {
-	return r.bridgeContract.TssAddress(nil)
+func (r *EvmRpc) GetCurrentTss() (ecommon.Address, error) {
+	return r.bridgeContract.Tss(nil)
 }
 
 func (r *EvmRpc) IsHalted() (bool, error) {

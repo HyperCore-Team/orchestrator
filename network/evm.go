@@ -585,16 +585,16 @@ func (eN *evmNetwork) SendTransaction(tx *etypes.Transaction) error {
 	return eN.EvmRpc().SendTransaction(tx)
 }
 
-func (eN *evmNetwork) GetCurrentTssAddress() (ecommon.Address, error) {
-	return eN.EvmRpc().GetCurrentTssAddress()
+func (eN *evmNetwork) GetCurrentTss() (ecommon.Address, error) {
+	return eN.EvmRpc().GetCurrentTss()
 }
 
-func (eN *evmNetwork) GetChangeTssEcdsaPubKeyEvmMessage(newAddress ecommon.Address) ([]byte, error) {
-	return eN.EvmRpc().GetChangeTssEcdsaPubKeyEvmMessage(newAddress, eN.NetworkClass(), eN.ChainId(), eN.ContractAddress())
+func (eN *evmNetwork) GetSetTssEcdsaPubKeyEvmMessage(newAddress ecommon.Address) ([]byte, error) {
+	return eN.EvmRpc().GetSetTssEcdsaPubKeyEvmMessage(newAddress, eN.NetworkClass(), eN.ChainId(), eN.ContractAddress())
 }
 
-func (eN *evmNetwork) GetChangeTssEcdsaPubKeyEvmTx(newTssAddress, sender ecommon.Address, oldFullSignature, newFullSignature []byte) (*etypes.Transaction, error) {
-	return eN.EvmRpc().GetChangeTssEcdsaPubKeyEvmTx(newTssAddress, sender, oldFullSignature, newFullSignature, eN.ContractAddress())
+func (eN *evmNetwork) GetSetTssEcdsaPubKeyEvmTx(newTss, sender ecommon.Address, oldFullSignature, newFullSignature []byte) (*etypes.Transaction, error) {
+	return eN.EvmRpc().GetSetTssEcdsaPubKeyEvmTx(newTss, sender, oldFullSignature, newFullSignature, eN.ContractAddress())
 }
 
 func (eN *evmNetwork) GetHaltEvmMessage() ([]byte, error) {

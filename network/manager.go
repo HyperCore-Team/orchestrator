@@ -294,7 +294,7 @@ func (m *NetworksManager) Evm(chainId uint32) *evmNetwork {
 	panic(errors.Errorf("evm network with chainId: %d not found", chainId))
 }
 
-func (m *NetworksManager) ChangeTssEcdsaPubKeyEvm(oldKeySignatures, newKeySignatures [][]byte, newCompressedPubKey string, ecdsaPrivateKey *ecdsa.PrivateKey, evmAddress ecommon.Address) (bool, error) {
+func (m *NetworksManager) SetTssEcdsaPubKeyEvm(oldKeySignatures, newKeySignatures [][]byte, newCompressedPubKey string, ecdsaPrivateKey *ecdsa.PrivateKey, evmAddress ecommon.Address) (bool, error) {
 	newCompressedPubKeyBytes, err := base64.StdEncoding.DecodeString(newCompressedPubKey)
 	if err != nil {
 		m.logger.Debug(err)
@@ -305,23 +305,23 @@ func (m *NetworksManager) ChangeTssEcdsaPubKeyEvm(oldKeySignatures, newKeySignat
 		m.logger.Debug(err)
 		return false, err
 	}
-	newTssAddress := crypto.PubkeyToAddress(*newPubKey)
-	m.logger.Debugf("New tss address: %s", newTssAddress.String())
-	// true means that all evm networks have the new tssAddress
+	newTss := crypto.PubkeyToAddress(*newPubKey)
+	m.logger.Debugf("New tss address: %s", newTss.String())
+	// true means that all evm networks have the new tss
 	ok := true
 	for idx, network := range m.evmNetworks {
-		tssAddress, err := network.GetCurrentTssAddress()
+		tss, err := network.GetCurrentTss()
 		if err != nil {
 			m.logger.Debug(err)
 			continue
 		}
-		m.logger.Debugf("current tss address: %s for network: %d", tssAddress.String(), network.ChainId())
-		if tssAddress.String() == newTssAddress.String() {
+		m.logger.Debugf("current tss address: %s for network: %d", tss.String(), network.ChainId())
+		if tss.String() == newTss.String() {
 			continue
 		}
 		m.logger.Debug("before getting change ecdsa pub key tx")
 		ok = false
-		tx, err := network.GetChangeTssEcdsaPubKeyEvmTx(newTssAddress, evmAddress, oldKeySignatures[idx], newKeySignatures[idx])
+		tx, err := network.GetSetTssEcdsaPubKeyEvmTx(newTss, evmAddress, oldKeySignatures[idx], newKeySignatures[idx])
 		if err != nil {
 			m.logger.Debug(err)
 			continue
@@ -390,10 +390,10 @@ func (m *NetworksManager) GetHaltMessages() ([][]byte, error) {
 	return ans, nil
 }
 
-func (m *NetworksManager) GetHaltEvmTxs(signatures [][]byte, tssAddress ecommon.Address) ([]*etypes.Transaction, error) {
+func (m *NetworksManager) GetHaltEvmTxs(signatures [][]byte, tss ecommon.Address) ([]*etypes.Transaction, error) {
 	txs := make([]*etypes.Transaction, 0)
 	for idx, network := range m.evmNetworks {
-		tx, err := network.GetHaltEvmTx(signatures[idx], tssAddress)
+		tx, err := network.GetHaltEvmTx(signatures[idx], tss)
 		if err != nil {
 			return nil, err
 		}
@@ -421,7 +421,7 @@ func (m *NetworksManager) GetChangeTssEcdsaPubKeysEvmTxs(oldPublicKey, newPublic
 		return nil, err
 	}
 
-	oldTssAddress := crypto.PubkeyToAddress(*oldPublicKeyECDSA)
+	oldTss := crypto.PubkeyToAddress(*oldPublicKeyECDSA)
 
 	newPublicKeyBytes, err := base64.StdEncoding.DecodeString(newPublicKey)
 	if err != nil {
@@ -432,11 +432,11 @@ func (m *NetworksManager) GetChangeTssEcdsaPubKeysEvmTxs(oldPublicKey, newPublic
 		return nil, err
 	}
 
-	newTssAddress := crypto.PubkeyToAddress(*newPublicKeyECDSA)
+	newTss := crypto.PubkeyToAddress(*newPublicKeyECDSA)
 
 	txs := make([]*etypes.Transaction, 0)
 	for idx, network := range m.evmNetworks {
-		tx, err := network.GetChangeTssEcdsaPubKeyEvmTx(oldTssAddress, newTssAddress, oldKeyFullSignatures[idx], newKeyFullSignatures[idx])
+		tx, err := network.GetSetTssEcdsaPubKeyEvmTx(oldTss, newTss, oldKeyFullSignatures[idx], newKeyFullSignatures[idx])
 		if err != nil {
 			return nil, err
 		}
@@ -445,7 +445,7 @@ func (m *NetworksManager) GetChangeTssEcdsaPubKeysEvmTxs(oldPublicKey, newPublic
 	return txs, nil
 }
 
-func (m *NetworksManager) GetChangeTssEcdsaPubKeysEvmMessages(newCompressedPubKey string) ([][]byte, error) {
+func (m *NetworksManager) GetSetTssEcdsaPubKeysEvmMessages(newCompressedPubKey string) ([][]byte, error) {
 	newCompressedPubKeyBytes, err := base64.StdEncoding.DecodeString(newCompressedPubKey)
 	if err != nil {
 		m.logger.Debug(err)
@@ -456,11 +456,11 @@ func (m *NetworksManager) GetChangeTssEcdsaPubKeysEvmMessages(newCompressedPubKe
 		m.logger.Debug(err)
 		return nil, err
 	}
-	newTssAddress := crypto.PubkeyToAddress(*newPubKey)
+	newTss := crypto.PubkeyToAddress(*newPubKey)
 
 	ans := make([][]byte, 0)
 	for _, network := range m.evmNetworks {
-		msg, err := network.GetChangeTssEcdsaPubKeyEvmMessage(newTssAddress)
+		msg, err := network.GetSetTssEcdsaPubKeyEvmMessage(newTss)
 		if err != nil {
 			return nil, err
 		}
