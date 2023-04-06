@@ -1,0 +1,58 @@
+name: Build and release orchestrator
+
+on:
+  push:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  xgo:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install zip utility
+        run: |
+          sudo apt update
+          sudo apt install -y zip
+      - name: Build orchestrator
+        uses: crazy-max/ghaction-xgo@v2.4.0
+        with:
+          xgo_version: latest
+          go_version: 1.20.0
+          dest: build
+          prefix: orchestrator
+          pkg: ./main.go
+          targets: linux/amd64,linux/arm64
+          v: true
+          x: true
+          ldflags: '-extldflags "-Wl,--allow-multiple-definition"'
+          buildvcs: false
+          buildmode: default
+          trimpath: true
+      - name: Add execute flag
+        run: |
+          chmod +x build/*
+      - name: Archive files
+        run: |
+          cd build
+          zip orchestrator-linux-amd64.zip orchestrator-linux-amd64
+          zip orchestrator-linux-arm64.zip orchestrator-linux-arm64
+          rm orchestrator-linux-amd64
+          rm orchestrator-linux-arm64
+      - name: Generate checksums
+        run: |
+          cd build
+          echo $(sha256sum *)
+          echo $(sha256sum *) >> SHA256CHECKSUMS.txt
+      - name: Upload files to a GitHub release
+        uses: svenstaro/upload-release-action@2.5.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/*
+          release_name: v0.0.1-testnet
+          tag: v0.0.1-testnet
+          file_glob: true
+          overwrite: true
+          body: ""
