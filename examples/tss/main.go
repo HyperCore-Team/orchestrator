@@ -213,9 +213,8 @@ func main() {
 	if bridgeInfo == nil {
 		fmt.Println("bridge info nil")
 	} else {
-		// fmt.Println("CompressedTssECDSAPubKey: ", bridgeInfo.CompressedTssECDSAPubKey)
-		// fmt.Println("DecompressedTssECDSAPubKey: ", bridgeInfo.DecompressedTssECDSAPubKey)
-		// fmt.Println("AdministratorEDDSAPubKey: ", bridgeInfo.AdministratorEDDSAPubKey)
+		fmt.Println("CompressedTssECDSAPubKey: ", bridgeInfo.CompressedTssECDSAPubKey)
+		fmt.Println("DecompressedTssECDSAPubKey: ", bridgeInfo.DecompressedTssECDSAPubKey)
 		fmt.Println("AllowKeygen: ", bridgeInfo.AllowKeyGen)
 		fmt.Println("HaltActivated: ", bridgeInfo.Halted)
 		fmt.Println("UnhaltHeight: ", bridgeInfo.UnhaltedAt)
@@ -241,16 +240,9 @@ func main() {
 	if securityInfo == nil {
 		fmt.Println("securityInfo nil")
 	} else {
-		// fmt.Println("RequestedAdministratorPubKey: ", securityInfo.RequestedAdministratorPubKey)
 		fmt.Println("AdministratorDelay: ", securityInfo.AdministratorDelay)
-		// fmt.Println("AdministratorChangeMomentum: ", securityInfo.AdministratorChangeMomentum)
-		// fmt.Println("RequestedTssPubKey: ", securityInfo.RequestedTssPubKey)
-		fmt.Println("TssDelay: ", securityInfo.TssDelay)
-		// fmt.Println("TssChangeMomentum: ", securityInfo.TssChangeMomentum)
 		fmt.Println("Guardians: ", securityInfo.Guardians)
 		fmt.Println("GuardiansVotes: ", securityInfo.GuardiansVotes)
-		// fmt.Println("GuardiansNominationHeight: ", securityInfo.GuardiansNominationHeight)
-		// fmt.Println("NominatedGuardians: ", securityInfo.NominatedGuardians)
 	}
 
 	fmt.Println("--------------------------------\nNetworks")

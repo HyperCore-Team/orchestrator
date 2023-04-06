@@ -24,7 +24,7 @@ var DefaultNodeConfig = config.Config{
 	},
 	GlobalState: common.LiveState,
 	TssConfig: config.TssManagerConfig{
-		Port:            25000,
+		Port:            55055,
 		PublicKey:       "",
 		LocalPubKeys:    nil,
 		Bootstrap:       "",

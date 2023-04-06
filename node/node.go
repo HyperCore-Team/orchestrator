@@ -456,12 +456,6 @@ func (node *Node) processSignatures() {
 				node.logger.Debug(errDecompress)
 				continue
 			}
-			newKeySignThreshold, err := implementation.GetThreshold(node.GetParticipantsLength())
-			if err != nil {
-				node.logger.Debug(err)
-				continue
-			}
-			node.logger.Debugf("NewKeySignThreshold: %d", newKeySignThreshold)
 
 			time.Sleep(5 * time.Second)
 			// we save the old pubKey because we will need it
@@ -497,7 +491,7 @@ func (node *Node) processSignatures() {
 				messagesToSign = append(messagesToSign, znnMessage)
 
 				// EVM messages
-				toSignMessagesEvm, err := node.networksManager.GetChangeTssEcdsaPubKeysEvmMessages(keyGenResponse.PubKey)
+				toSignMessagesEvm, err := node.networksManager.GetSetTssEcdsaPubKeysEvmMessages(keyGenResponse.PubKey)
 				if err != nil {
 					node.logger.Debug(err)
 					continue
@@ -576,7 +570,7 @@ func (node *Node) processSignatures() {
 						}
 						if producerPubKey == node.GetParticipant(index) {
 							node.logger.Debug("[sendZnnTx PubKey] this is me")
-							err = node.networksManager.ChangeTssEcdsaPubKeyZnn(keyGenResponse.PubKey, znnOldKeySignature, znnNewKeySignature, newKeySignThreshold, node.producerKeyPair)
+							err = node.networksManager.ChangeTssEcdsaPubKeyZnn(keyGenResponse.PubKey, znnOldKeySignature, znnNewKeySignature, node.producerKeyPair)
 							if err != nil {
 								node.logger.Debug(err)
 								continue
@@ -598,8 +592,8 @@ func (node *Node) processSignatures() {
 						index = (index + 1) % node.GetParticipantsLength()
 						producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
 						if producerPubKey == node.GetParticipant(index) {
-							node.logger.Debug("[send change tss ecdsa pub key evm tx] this is me")
-							if changed, err := node.networksManager.ChangeTssEcdsaPubKeyEvm(oldKeyFullSignatures, newKeyFullSignatures, keyGenResponse.PubKey, node.ecdsaPrivateKey, node.evmAddress); err != nil {
+							node.logger.Debug("[send set tss ecdsa pub key evm tx] this is me")
+							if changed, err := node.networksManager.SetTssEcdsaPubKeyEvm(oldKeyFullSignatures, newKeyFullSignatures, keyGenResponse.PubKey, node.ecdsaPrivateKey, node.evmAddress); err != nil {
 								node.logger.Debug(err)
 								continue
 							} else if changed {
@@ -609,7 +603,7 @@ func (node *Node) processSignatures() {
 						// todo use estimatedBlockTime / TimeToFinality
 						time.Sleep(20 * time.Second)
 					}
-					node.logger.Info("Successfully changed pubKey on all networks")
+					node.logger.Info("Successfully set pubKey on all networks")
 				}()
 
 				senders.Wait()

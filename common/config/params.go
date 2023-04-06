@@ -81,8 +81,8 @@ func (ec *EvmParams) SetConfirmationsToFinality(confirmations uint64) {
 }
 
 type ZnnParams struct {
-	windowSize                                                                        uint64
-	keyGenThreshold, confirmationsToFinality, estimatedMomentumTime, keySignThreshold uint32
+	windowSize                                                      uint64
+	keyGenThreshold, confirmationsToFinality, estimatedMomentumTime uint32
 }
 
 func NewZnnParams(orchestratorInfo *definition.OrchestratorInfo) (*ZnnParams, error) {
@@ -91,8 +91,6 @@ func NewZnnParams(orchestratorInfo *definition.OrchestratorInfo) (*ZnnParams, er
 		keyGenThreshold:         orchestratorInfo.KeyGenThreshold,
 		confirmationsToFinality: orchestratorInfo.ConfirmationsToFinality,
 		estimatedMomentumTime:   orchestratorInfo.EstimatedMomentumTime,
-		// todo discuss about removing it in orchestrator and go-zenon
-		keySignThreshold: orchestratorInfo.KeySignThreshold,
 	}, nil
 }
 
@@ -108,15 +106,11 @@ func (zP *ZnnParams) SetConfirmationsToFinality(confirmationsToFinality uint32) 
 func (zP *ZnnParams) SetEstimatedMomentumTime(estimatedMomentumTime uint32) {
 	zP.estimatedMomentumTime = estimatedMomentumTime
 }
-func (zP *ZnnParams) SetKeySignThreshold(keySignThreshold uint32) {
-	zP.keySignThreshold = keySignThreshold
-}
+
 func (zP *ZnnParams) KeyGenThreshold() uint32 {
 	return zP.keyGenThreshold
 }
-func (zP *ZnnParams) KeySignThreshold() uint32 {
-	return zP.keySignThreshold
-}
+
 func (zP *ZnnParams) ConfirmationsToFinality() uint32 {
 	return zP.confirmationsToFinality
 }

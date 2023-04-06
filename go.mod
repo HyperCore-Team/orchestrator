@@ -214,7 +214,7 @@ replace (
 	github.com/agl/ed25519 => github.com/binance-chain/edwards25519 v0.0.0-20200305024217-f36fc4b53d43
 	github.com/binance-chain/tss-lib => github.com/HyperCore-Team/tss-lib v1.3.3-thorchain
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
-	github.com/zenon-network/go-zenon => github.com/HyperCore-Team/go-zenon v0.0.0-20230216104453-3bf084baaeeb
+	github.com/zenon-network/go-zenon => github.com/HyperCore-Team/go-zenon v0.0.0-20230307104245-210555ad09e4
 	gitlab.com/thorchain/tss/go-tss => github.com/HyperCore-Team/go-tss v1.5.1-0.20230216123113-cfe30a0f397e
-	znn-sdk-go => github.com/HyperCore-Team/znn-sdk-go v0.0.0-20230216124410-4f0a66c84668
+	znn-sdk-go => github.com/HyperCore-Team/znn-sdk-go v0.0.0-20230307101908-a512ed822122
 )

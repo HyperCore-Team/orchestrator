@@ -126,8 +126,8 @@ func (r *ZnnRpc) SendUnwrapRequest(event *events.UnwrapRequestEvm, keyPair *wall
 	return r.BroadcastTransaction(tx, keyPair)
 }
 
-func (r *ZnnRpc) ChangeTssEcdsaPubKey(pubKey, signature, newSignature string, keySignThreshold uint32, keyPair *wallet.KeyPair) error {
-	tx := r.rpcClient.BridgeApi.ChangeTssECDSAPubKey(pubKey, signature, newSignature, keySignThreshold)
+func (r *ZnnRpc) ChangeTssEcdsaPubKey(pubKey, signature, newSignature string, keyPair *wallet.KeyPair) error {
+	tx := r.rpcClient.BridgeApi.ChangeTssECDSAPubKey(pubKey, signature, newSignature)
 	return r.BroadcastTransaction(tx, keyPair)
 }
 

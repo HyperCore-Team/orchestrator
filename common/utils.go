@@ -53,7 +53,7 @@ func DefaultDataDir() string {
 		case "windows":
 			panic("windows not supported")
 		default:
-			return filepath.Join(home, ".node")
+			return filepath.Join(home, ".orchestrator")
 		}
 	}
 	// As we cannot guess a stable location, return empty and handle later
