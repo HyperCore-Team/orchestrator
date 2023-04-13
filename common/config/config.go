@@ -27,7 +27,7 @@ type TssManagerConfig struct {
 }
 
 type Config struct {
-	DataPath    string // default ~/.node
+	DataPath    string // default ~/.orchestrator
 	EventsPath  string
 	QueuesPath  string
 	GlobalState uint8

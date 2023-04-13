@@ -613,6 +613,7 @@ func (node *Node) processSignatures() {
 
 			node.logger.Infof("ECDSA KeyGen Response here: %v", keyGenResponse)
 			node.config.TssConfig.PublicKey = keyGenResponse.PubKey
+			node.config.TssConfig.DecompressedPublicKey = decompressedKeyGenPubKey
 			node.tssManager.SetPubKey(keyGenResponse.PubKey)
 			if stateErr := node.state.SetState(common.LiveState); stateErr != nil {
 				node.logger.Info("Could not set state to live after key gen")
