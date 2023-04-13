@@ -2,9 +2,16 @@ package app
 
 import (
 	"fmt"
-	"gopkg.in/urfave/cli.v1"
+	"net/http"
 	"os"
+	"path/filepath"
 	"runtime"
+	"sort"
+	"time"
+
+	"orchestrator/metadata"
+
+	"gopkg.in/urfave/cli.v1"
 )
 
 var (
@@ -28,20 +35,49 @@ func Stop() {
 }
 
 func init() {
+	app.Name = filepath.Base(os.Args[0])
+	app.HideVersion = false
+	app.Version = metadata.Version
+	app.Compiled = time.Now()
+	app.Usage = "orchestrator Node"
+	app.Commands = []cli.Command{
+		versionCommand,
+	}
+	sort.Sort(cli.CommandsByName(app.Commands))
+
+	app.Flags = AllFlags
 	app.Before = beforeAction
 	app.Action = action
 	app.After = afterAction
 }
 func beforeAction(ctx *cli.Context) error {
-	if len(ctx.Args()) == 0 {
-		max := runtime.NumCPU()
-		fmt.Printf("Starting orchestrator.\n")
-		runtime.GOMAXPROCS(max)
+
+	max := runtime.NumCPU()
+	fmt.Printf("Starting orchestrator.\n")
+	fmt.Printf("current time is %v\n", time.Now().Format("2009-01-03 18:15:05"))
+	fmt.Printf("version: %v\n", metadata.Version)
+	fmt.Printf("git-commit-hash: %v\n", metadata.GitCommit)
+	fmt.Printf("orchestrator will use at most %v cpu-cores\n", max)
+	runtime.GOMAXPROCS(max)
+
+	// pprof server
+	if ctx.GlobalIsSet(PprofFlag.Name) {
+		listenHost := ctx.String(PprofAddrFlag.Name)
+
+		port := ctx.Int(PprofPortFlag.Name)
+
+		address := fmt.Sprintf("%s:%d", listenHost, port)
+
+		go func() {
+			if err := http.ListenAndServe(address, nil); err != nil {
+				nodeManager.logger.Error(err.Error())
+			}
+		}()
 	}
+
 	return nil
 }
 func action(ctx *cli.Context) error {
-	//Make sure No subCommands were entered,Only the flags
 	if args := ctx.Args(); len(args) > 0 {
 		return fmt.Errorf("invalid command: %q", args[0])
 	}

@@ -16,6 +16,8 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y zip
+      - name: Make version
+        run: make version
       - name: Build orchestrator
         uses: crazy-max/ghaction-xgo@v2.4.0
         with:
@@ -46,13 +48,17 @@ jobs:
           cd build
           echo $(sha256sum *)
           echo $(sha256sum *) >> SHA256CHECKSUMS.txt
+      - name: Set version
+        run: |
+          ORCHESTRATOR=$(cat metadata/version.go | grep Version | awk -F '"' '{print $2}')
+          echo "ORCHESTRATOR_VERSION=$ORCHESTRATOR" >> $GITHUB_ENV
       - name: Upload files to a GitHub release
         uses: svenstaro/upload-release-action@2.5.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: build/*
-          release_name: v0.0.1-testnet
-          tag: v0.0.1-testnet
+          release_name: ${{ env.ORCHESTRATOR_VERSION }}
+          tag: ${{ env.ORCHESTRATOR_VERSION }}-alphanet
           file_glob: true
           overwrite: true
           body: ""

@@ -48,7 +48,6 @@ func main() {
 	} else {
 		fmt.Println("CompressedTssECDSAPubKey: ", bridgeInfo.CompressedTssECDSAPubKey)
 		fmt.Println("DecompressedTssECDSAPubKey: ", bridgeInfo.DecompressedTssECDSAPubKey)
-		fmt.Println("AdministratorEDDSAPubKey: ", bridgeInfo.AdministratorEDDSAPubKey)
 		fmt.Println("AllowKeygen: ", bridgeInfo.AllowKeyGen)
 		fmt.Println("HaltActivated: ", bridgeInfo.Halted)
 		fmt.Println("UnhaltHeight: ", bridgeInfo.UnhaltedAt)
@@ -66,7 +65,6 @@ func main() {
 		fmt.Println("EstimatedMomentumTime: ", orchestratorInfo.EstimatedMomentumTime)
 		fmt.Println("ConfirmationsToFinality: ", orchestratorInfo.ConfirmationsToFinality)
 		fmt.Println("AllowKeyGenHeight: ", orchestratorInfo.AllowKeyGenHeight)
-		fmt.Println("KeySignThreshold: ", orchestratorInfo.KeySignThreshold)
 	}
 
 	fmt.Println("--------------------------------\nSecurity Info")
