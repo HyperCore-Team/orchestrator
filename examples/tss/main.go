@@ -119,7 +119,7 @@ func main() {
 
 			// Start keygen
 			fmt.Println("Start keygen")
-			if err := z.Send(z.Client.BridgeApi.AllowKeygen()); err != nil {
+			if err := z.Send(z.Client.BridgeApi.SetAllowKeygen(true)); err != nil {
 				fmt.Println(err)
 			}
 			fmt.Println("Done")
@@ -154,7 +154,7 @@ func main() {
 
 			// Keygen is done, setting TSS Public Key
 			fmt.Println("Keygen is done, setting TSS Public Key", tssPubKey)
-			if err := z.Send(z.Client.BridgeApi.ChangeTssECDSAPubKey(tssPubKey, "", "", uint32(numPillars))); err != nil {
+			if err := z.Send(z.Client.BridgeApi.ChangeTssECDSAPubKey(tssPubKey, "", "")); err != nil {
 				fmt.Println("ChangeTssECDSAPubKey err:")
 				fmt.Println(err)
 			}
@@ -232,7 +232,7 @@ func main() {
 		fmt.Println("EstimatedMomentumTime: ", orchestratorInfo.EstimatedMomentumTime)
 		fmt.Println("ConfirmationsToFinality: ", orchestratorInfo.ConfirmationsToFinality)
 		fmt.Println("AllowKeyGenHeight: ", orchestratorInfo.AllowKeyGenHeight)
-		fmt.Println("KeySignThreshold: ", orchestratorInfo.KeySignThreshold)
+		fmt.Println("KeyGenThreshold: ", orchestratorInfo.KeyGenThreshold)
 	}
 
 	fmt.Println("--------------------------------\nSecurity Info")
