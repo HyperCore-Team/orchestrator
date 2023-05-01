@@ -269,11 +269,14 @@ func (r *EvmRpc) GetHaltTxEvm(sender ecommon.Address, signature []byte, contract
 				if err != nil {
 					return nil, err
 				}
-
-				encodedData, err := common.EvmContractAbi.Pack("halt", signature)
-				if err != nil {
-					return nil, err
+				var encodedData []byte
+				if len(signature) > 0 {
+					encodedData, err = common.EvmContractAbi.Pack("halt", signature)
+					if err != nil {
+						return nil, err
+					}
 				}
+
 				msg := ethereum.CallMsg{
 					From:     sender,
 					To:       contractAddress,

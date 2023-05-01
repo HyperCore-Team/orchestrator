@@ -1,4 +1,4 @@
-.PHONY: all clean version
+.PHONY: all clean version build
 
 GO ?= latest
 
@@ -21,4 +21,4 @@ version:
 
 clean:
 	go clean
-	rm $(BINARY_NAME)
+	rm $(BUILDDIR)/$(BINARY_NAME)

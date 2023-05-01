@@ -31,7 +31,7 @@ var (
 
 // BridgeMetaData contains all meta data concerning the Bridge contract.
 var BridgeMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"unhaltDurationParam\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"administratorDelayParam\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"softDelayParam\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"blockTime\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"confirmations\",\"type\":\"uint64\"},{\"internalType\":\"address[]\",\"name\":\"initialGuardians\",\"type\":\"address[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"Halted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"}],\"name\":\"PendingAdministrator\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"PendingGuardians\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newTss\",\"type\":\"address\"}],\"name\":\"PendingTss\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Redeemed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"RegisteredRedeem\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"name\":\"RevokedRedeem\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldAdministrator\",\"type\":\"address\"}],\"name\":\"SetAdministrator\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"SetGuardians\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newTss\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldTss\",\"type\":\"address\"}],\"name\":\"SetTss\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"Unhalted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"to\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Unwrapped\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"actionsNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"administrator\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"administratorDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"allowKeyGen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"confirmationsToFinality\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"contractDeploymentHeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"emergency\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"estimatedBlockTime\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"guardians\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"guardiansVotes\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"halt\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"halted\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isHalted\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minAdministratorDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minSoftDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minUnhaltDuration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"newGuardians\",\"type\":\"address[]\"}],\"name\":\"nominateGuardians\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"nominatedGuardians\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"}],\"name\":\"proposeAdministrator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"redeem\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"redeemsInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"paramsHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"nonces\",\"type\":\"uint256[]\"}],\"name\":\"revokeRedeems\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"}],\"name\":\"setAdministrator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"value\",\"type\":\"bool\"}],\"name\":\"setAllowKeyGen\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"confirmations\",\"type\":\"uint64\"}],\"name\":\"setConfirmationsToFinality\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"blockTime\",\"type\":\"uint64\"}],\"name\":\"setEstimatedBlockTime\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"delay\",\"type\":\"uint256\"}],\"name\":\"setSoftDelay\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"minAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"redeemDelay\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"bridgeable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"redeemable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isOwned\",\"type\":\"bool\"}],\"name\":\"setTokenInfo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newTss\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"oldSignature\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"newSignature\",\"type\":\"bytes\"}],\"name\":\"setTss\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"}],\"name\":\"setUnhaltDuration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"softDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"name\":\"timeChallengesInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"paramsHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"tokensInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"minAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"redeemDelay\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"bridgeable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"redeemable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"owned\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tss\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unhalt\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unhaltDuration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unhaltedAt\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"to\",\"type\":\"string\"}],\"name\":\"unwrap\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"votesCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"unhaltDurationParam\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"administratorDelayParam\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"softDelayParam\",\"type\":\"uint256\"},{\"internalType\":\"uint64\",\"name\":\"blockTime\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"confirmations\",\"type\":\"uint64\"},{\"internalType\":\"address[]\",\"name\":\"initialGuardians\",\"type\":\"address[]\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"Halted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"}],\"name\":\"PendingAdministrator\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"PendingGuardians\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"}],\"name\":\"PendingTokenInfo\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newTss\",\"type\":\"address\"}],\"name\":\"PendingTss\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Redeemed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"RegisteredRedeem\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"}],\"name\":\"RevokedRedeem\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldAdministrator\",\"type\":\"address\"}],\"name\":\"SetAdministrator\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"SetAdministratorDelay\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"name\":\"SetAllowKeyGen\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"SetConfirmationsToFinality\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"SetEstimatedBlockTime\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"SetGuardians\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"SetSoftDelay\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"}],\"name\":\"SetTokenInfo\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newTss\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldTss\",\"type\":\"address\"}],\"name\":\"SetTss\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"SetUnhaltDuration\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[],\"name\":\"Unhalted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"to\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Unwrapped\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"actionsNonce\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"administrator\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"administratorDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"allowKeyGen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"confirmationsToFinality\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"contractDeploymentHeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"emergency\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"estimatedBlockTime\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"guardians\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"guardiansVotes\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"halt\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"halted\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isHalted\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minAdministratorDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minSoftDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minUnhaltDuration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"newGuardians\",\"type\":\"address[]\"}],\"name\":\"nominateGuardians\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"}],\"name\":\"proposeAdministrator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"name\":\"redeem\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"redeemsInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"paramsHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"nonces\",\"type\":\"uint256[]\"}],\"name\":\"revokeRedeems\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newAdministrator\",\"type\":\"address\"}],\"name\":\"setAdministrator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"delay\",\"type\":\"uint256\"}],\"name\":\"setAdministratorDelay\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bool\",\"name\":\"value\",\"type\":\"bool\"}],\"name\":\"setAllowKeyGen\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"confirmations\",\"type\":\"uint64\"}],\"name\":\"setConfirmationsToFinality\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"blockTime\",\"type\":\"uint64\"}],\"name\":\"setEstimatedBlockTime\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"delay\",\"type\":\"uint256\"}],\"name\":\"setSoftDelay\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"minAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"redeemDelay\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"bridgeable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"redeemable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"isOwned\",\"type\":\"bool\"}],\"name\":\"setTokenInfo\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newTss\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"oldSignature\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"newSignature\",\"type\":\"bytes\"}],\"name\":\"setTss\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"}],\"name\":\"setUnhaltDuration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"softDelay\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"name\":\"timeChallengesInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockNumber\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"paramsHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"tokensInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"minAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"redeemDelay\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"bridgeable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"redeemable\",\"type\":\"bool\"},{\"internalType\":\"bool\",\"name\":\"owned\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tss\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unhalt\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unhaltDuration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unhaltedAt\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"to\",\"type\":\"string\"}],\"name\":\"unwrap\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"votesCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // BridgeABI is the input ABI used to generate the binding from.
@@ -614,37 +614,6 @@ func (_Bridge *BridgeCallerSession) MinUnhaltDuration() (*big.Int, error) {
 	return _Bridge.Contract.MinUnhaltDuration(&_Bridge.CallOpts)
 }
 
-// NominatedGuardians is a free data retrieval call binding the contract method 0x8029992f.
-//
-// Solidity: function nominatedGuardians(uint256 ) view returns(address)
-func (_Bridge *BridgeCaller) NominatedGuardians(opts *bind.CallOpts, arg0 *big.Int) (common.Address, error) {
-	var out []interface{}
-	err := _Bridge.contract.Call(opts, &out, "nominatedGuardians", arg0)
-
-	if err != nil {
-		return *new(common.Address), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-
-	return out0, err
-
-}
-
-// NominatedGuardians is a free data retrieval call binding the contract method 0x8029992f.
-//
-// Solidity: function nominatedGuardians(uint256 ) view returns(address)
-func (_Bridge *BridgeSession) NominatedGuardians(arg0 *big.Int) (common.Address, error) {
-	return _Bridge.Contract.NominatedGuardians(&_Bridge.CallOpts, arg0)
-}
-
-// NominatedGuardians is a free data retrieval call binding the contract method 0x8029992f.
-//
-// Solidity: function nominatedGuardians(uint256 ) view returns(address)
-func (_Bridge *BridgeCallerSession) NominatedGuardians(arg0 *big.Int) (common.Address, error) {
-	return _Bridge.Contract.NominatedGuardians(&_Bridge.CallOpts, arg0)
-}
-
 // RedeemsInfo is a free data retrieval call binding the contract method 0xa75f8096.
 //
 // Solidity: function redeemsInfo(uint256 ) view returns(uint256 blockNumber, bytes32 paramsHash)
@@ -1095,6 +1064,27 @@ func (_Bridge *BridgeSession) SetAdministrator(newAdministrator common.Address) 
 // Solidity: function setAdministrator(address newAdministrator) returns()
 func (_Bridge *BridgeTransactorSession) SetAdministrator(newAdministrator common.Address) (*types.Transaction, error) {
 	return _Bridge.Contract.SetAdministrator(&_Bridge.TransactOpts, newAdministrator)
+}
+
+// SetAdministratorDelay is a paid mutator transaction binding the contract method 0xb1d72e29.
+//
+// Solidity: function setAdministratorDelay(uint256 delay) returns()
+func (_Bridge *BridgeTransactor) SetAdministratorDelay(opts *bind.TransactOpts, delay *big.Int) (*types.Transaction, error) {
+	return _Bridge.contract.Transact(opts, "setAdministratorDelay", delay)
+}
+
+// SetAdministratorDelay is a paid mutator transaction binding the contract method 0xb1d72e29.
+//
+// Solidity: function setAdministratorDelay(uint256 delay) returns()
+func (_Bridge *BridgeSession) SetAdministratorDelay(delay *big.Int) (*types.Transaction, error) {
+	return _Bridge.Contract.SetAdministratorDelay(&_Bridge.TransactOpts, delay)
+}
+
+// SetAdministratorDelay is a paid mutator transaction binding the contract method 0xb1d72e29.
+//
+// Solidity: function setAdministratorDelay(uint256 delay) returns()
+func (_Bridge *BridgeTransactorSession) SetAdministratorDelay(delay *big.Int) (*types.Transaction, error) {
+	return _Bridge.Contract.SetAdministratorDelay(&_Bridge.TransactOpts, delay)
 }
 
 // SetAllowKeyGen is a paid mutator transaction binding the contract method 0x949ffc7b.
@@ -1690,6 +1680,150 @@ func (_Bridge *BridgeFilterer) WatchPendingGuardians(opts *bind.WatchOpts, sink 
 func (_Bridge *BridgeFilterer) ParsePendingGuardians(log types.Log) (*BridgePendingGuardians, error) {
 	event := new(BridgePendingGuardians)
 	if err := _Bridge.contract.UnpackLog(event, "PendingGuardians", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BridgePendingTokenInfoIterator is returned from FilterPendingTokenInfo and is used to iterate over the raw logs and unpacked data for PendingTokenInfo events raised by the Bridge contract.
+type BridgePendingTokenInfoIterator struct {
+	Event *BridgePendingTokenInfo // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BridgePendingTokenInfoIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BridgePendingTokenInfo)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BridgePendingTokenInfo)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BridgePendingTokenInfoIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BridgePendingTokenInfoIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BridgePendingTokenInfo represents a PendingTokenInfo event raised by the Bridge contract.
+type BridgePendingTokenInfo struct {
+	Token common.Address
+	Raw   types.Log // Blockchain specific contextual infos
+}
+
+// FilterPendingTokenInfo is a free log retrieval operation binding the contract event 0xb29cc088f961a7dbe14c460642a2d3afbbccc7af072a5e38e1f9227c5e5e7222.
+//
+// Solidity: event PendingTokenInfo(address indexed token)
+func (_Bridge *BridgeFilterer) FilterPendingTokenInfo(opts *bind.FilterOpts, token []common.Address) (*BridgePendingTokenInfoIterator, error) {
+
+	var tokenRule []interface{}
+	for _, tokenItem := range token {
+		tokenRule = append(tokenRule, tokenItem)
+	}
+
+	logs, sub, err := _Bridge.contract.FilterLogs(opts, "PendingTokenInfo", tokenRule)
+	if err != nil {
+		return nil, err
+	}
+	return &BridgePendingTokenInfoIterator{contract: _Bridge.contract, event: "PendingTokenInfo", logs: logs, sub: sub}, nil
+}
+
+// WatchPendingTokenInfo is a free log subscription operation binding the contract event 0xb29cc088f961a7dbe14c460642a2d3afbbccc7af072a5e38e1f9227c5e5e7222.
+//
+// Solidity: event PendingTokenInfo(address indexed token)
+func (_Bridge *BridgeFilterer) WatchPendingTokenInfo(opts *bind.WatchOpts, sink chan<- *BridgePendingTokenInfo, token []common.Address) (event.Subscription, error) {
+
+	var tokenRule []interface{}
+	for _, tokenItem := range token {
+		tokenRule = append(tokenRule, tokenItem)
+	}
+
+	logs, sub, err := _Bridge.contract.WatchLogs(opts, "PendingTokenInfo", tokenRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BridgePendingTokenInfo)
+				if err := _Bridge.contract.UnpackLog(event, "PendingTokenInfo", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParsePendingTokenInfo is a log parse operation binding the contract event 0xb29cc088f961a7dbe14c460642a2d3afbbccc7af072a5e38e1f9227c5e5e7222.
+//
+// Solidity: event PendingTokenInfo(address indexed token)
+func (_Bridge *BridgeFilterer) ParsePendingTokenInfo(log types.Log) (*BridgePendingTokenInfo, error) {
+	event := new(BridgePendingTokenInfo)
+	if err := _Bridge.contract.UnpackLog(event, "PendingTokenInfo", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -2455,6 +2589,542 @@ func (_Bridge *BridgeFilterer) ParseSetAdministrator(log types.Log) (*BridgeSetA
 	return event, nil
 }
 
+// BridgeSetAdministratorDelayIterator is returned from FilterSetAdministratorDelay and is used to iterate over the raw logs and unpacked data for SetAdministratorDelay events raised by the Bridge contract.
+type BridgeSetAdministratorDelayIterator struct {
+	Event *BridgeSetAdministratorDelay // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BridgeSetAdministratorDelayIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BridgeSetAdministratorDelay)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BridgeSetAdministratorDelay)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BridgeSetAdministratorDelayIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BridgeSetAdministratorDelayIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BridgeSetAdministratorDelay represents a SetAdministratorDelay event raised by the Bridge contract.
+type BridgeSetAdministratorDelay struct {
+	Arg0 *big.Int
+	Raw  types.Log // Blockchain specific contextual infos
+}
+
+// FilterSetAdministratorDelay is a free log retrieval operation binding the contract event 0x0cfb9bdc3485531feee3d5fc58e83d442a0f5de6b44a0cb275ece047cc3d691c.
+//
+// Solidity: event SetAdministratorDelay(uint256 arg0)
+func (_Bridge *BridgeFilterer) FilterSetAdministratorDelay(opts *bind.FilterOpts) (*BridgeSetAdministratorDelayIterator, error) {
+
+	logs, sub, err := _Bridge.contract.FilterLogs(opts, "SetAdministratorDelay")
+	if err != nil {
+		return nil, err
+	}
+	return &BridgeSetAdministratorDelayIterator{contract: _Bridge.contract, event: "SetAdministratorDelay", logs: logs, sub: sub}, nil
+}
+
+// WatchSetAdministratorDelay is a free log subscription operation binding the contract event 0x0cfb9bdc3485531feee3d5fc58e83d442a0f5de6b44a0cb275ece047cc3d691c.
+//
+// Solidity: event SetAdministratorDelay(uint256 arg0)
+func (_Bridge *BridgeFilterer) WatchSetAdministratorDelay(opts *bind.WatchOpts, sink chan<- *BridgeSetAdministratorDelay) (event.Subscription, error) {
+
+	logs, sub, err := _Bridge.contract.WatchLogs(opts, "SetAdministratorDelay")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BridgeSetAdministratorDelay)
+				if err := _Bridge.contract.UnpackLog(event, "SetAdministratorDelay", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSetAdministratorDelay is a log parse operation binding the contract event 0x0cfb9bdc3485531feee3d5fc58e83d442a0f5de6b44a0cb275ece047cc3d691c.
+//
+// Solidity: event SetAdministratorDelay(uint256 arg0)
+func (_Bridge *BridgeFilterer) ParseSetAdministratorDelay(log types.Log) (*BridgeSetAdministratorDelay, error) {
+	event := new(BridgeSetAdministratorDelay)
+	if err := _Bridge.contract.UnpackLog(event, "SetAdministratorDelay", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BridgeSetAllowKeyGenIterator is returned from FilterSetAllowKeyGen and is used to iterate over the raw logs and unpacked data for SetAllowKeyGen events raised by the Bridge contract.
+type BridgeSetAllowKeyGenIterator struct {
+	Event *BridgeSetAllowKeyGen // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BridgeSetAllowKeyGenIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BridgeSetAllowKeyGen)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BridgeSetAllowKeyGen)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BridgeSetAllowKeyGenIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BridgeSetAllowKeyGenIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BridgeSetAllowKeyGen represents a SetAllowKeyGen event raised by the Bridge contract.
+type BridgeSetAllowKeyGen struct {
+	Arg0 bool
+	Raw  types.Log // Blockchain specific contextual infos
+}
+
+// FilterSetAllowKeyGen is a free log retrieval operation binding the contract event 0xffa5f6b5dcc0b57eaa767458e1fba30bf9e2498b9b85114f874d7d5913c7d860.
+//
+// Solidity: event SetAllowKeyGen(bool arg0)
+func (_Bridge *BridgeFilterer) FilterSetAllowKeyGen(opts *bind.FilterOpts) (*BridgeSetAllowKeyGenIterator, error) {
+
+	logs, sub, err := _Bridge.contract.FilterLogs(opts, "SetAllowKeyGen")
+	if err != nil {
+		return nil, err
+	}
+	return &BridgeSetAllowKeyGenIterator{contract: _Bridge.contract, event: "SetAllowKeyGen", logs: logs, sub: sub}, nil
+}
+
+// WatchSetAllowKeyGen is a free log subscription operation binding the contract event 0xffa5f6b5dcc0b57eaa767458e1fba30bf9e2498b9b85114f874d7d5913c7d860.
+//
+// Solidity: event SetAllowKeyGen(bool arg0)
+func (_Bridge *BridgeFilterer) WatchSetAllowKeyGen(opts *bind.WatchOpts, sink chan<- *BridgeSetAllowKeyGen) (event.Subscription, error) {
+
+	logs, sub, err := _Bridge.contract.WatchLogs(opts, "SetAllowKeyGen")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BridgeSetAllowKeyGen)
+				if err := _Bridge.contract.UnpackLog(event, "SetAllowKeyGen", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSetAllowKeyGen is a log parse operation binding the contract event 0xffa5f6b5dcc0b57eaa767458e1fba30bf9e2498b9b85114f874d7d5913c7d860.
+//
+// Solidity: event SetAllowKeyGen(bool arg0)
+func (_Bridge *BridgeFilterer) ParseSetAllowKeyGen(log types.Log) (*BridgeSetAllowKeyGen, error) {
+	event := new(BridgeSetAllowKeyGen)
+	if err := _Bridge.contract.UnpackLog(event, "SetAllowKeyGen", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BridgeSetConfirmationsToFinalityIterator is returned from FilterSetConfirmationsToFinality and is used to iterate over the raw logs and unpacked data for SetConfirmationsToFinality events raised by the Bridge contract.
+type BridgeSetConfirmationsToFinalityIterator struct {
+	Event *BridgeSetConfirmationsToFinality // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BridgeSetConfirmationsToFinalityIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BridgeSetConfirmationsToFinality)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BridgeSetConfirmationsToFinality)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BridgeSetConfirmationsToFinalityIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BridgeSetConfirmationsToFinalityIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BridgeSetConfirmationsToFinality represents a SetConfirmationsToFinality event raised by the Bridge contract.
+type BridgeSetConfirmationsToFinality struct {
+	Arg0 uint64
+	Raw  types.Log // Blockchain specific contextual infos
+}
+
+// FilterSetConfirmationsToFinality is a free log retrieval operation binding the contract event 0x7a2bd81684c5f899a41d138f583876506d31e8f3e88f7a8d124ed169cdd6bfe0.
+//
+// Solidity: event SetConfirmationsToFinality(uint64 arg0)
+func (_Bridge *BridgeFilterer) FilterSetConfirmationsToFinality(opts *bind.FilterOpts) (*BridgeSetConfirmationsToFinalityIterator, error) {
+
+	logs, sub, err := _Bridge.contract.FilterLogs(opts, "SetConfirmationsToFinality")
+	if err != nil {
+		return nil, err
+	}
+	return &BridgeSetConfirmationsToFinalityIterator{contract: _Bridge.contract, event: "SetConfirmationsToFinality", logs: logs, sub: sub}, nil
+}
+
+// WatchSetConfirmationsToFinality is a free log subscription operation binding the contract event 0x7a2bd81684c5f899a41d138f583876506d31e8f3e88f7a8d124ed169cdd6bfe0.
+//
+// Solidity: event SetConfirmationsToFinality(uint64 arg0)
+func (_Bridge *BridgeFilterer) WatchSetConfirmationsToFinality(opts *bind.WatchOpts, sink chan<- *BridgeSetConfirmationsToFinality) (event.Subscription, error) {
+
+	logs, sub, err := _Bridge.contract.WatchLogs(opts, "SetConfirmationsToFinality")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BridgeSetConfirmationsToFinality)
+				if err := _Bridge.contract.UnpackLog(event, "SetConfirmationsToFinality", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSetConfirmationsToFinality is a log parse operation binding the contract event 0x7a2bd81684c5f899a41d138f583876506d31e8f3e88f7a8d124ed169cdd6bfe0.
+//
+// Solidity: event SetConfirmationsToFinality(uint64 arg0)
+func (_Bridge *BridgeFilterer) ParseSetConfirmationsToFinality(log types.Log) (*BridgeSetConfirmationsToFinality, error) {
+	event := new(BridgeSetConfirmationsToFinality)
+	if err := _Bridge.contract.UnpackLog(event, "SetConfirmationsToFinality", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BridgeSetEstimatedBlockTimeIterator is returned from FilterSetEstimatedBlockTime and is used to iterate over the raw logs and unpacked data for SetEstimatedBlockTime events raised by the Bridge contract.
+type BridgeSetEstimatedBlockTimeIterator struct {
+	Event *BridgeSetEstimatedBlockTime // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BridgeSetEstimatedBlockTimeIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BridgeSetEstimatedBlockTime)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BridgeSetEstimatedBlockTime)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BridgeSetEstimatedBlockTimeIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BridgeSetEstimatedBlockTimeIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BridgeSetEstimatedBlockTime represents a SetEstimatedBlockTime event raised by the Bridge contract.
+type BridgeSetEstimatedBlockTime struct {
+	Arg0 uint64
+	Raw  types.Log // Blockchain specific contextual infos
+}
+
+// FilterSetEstimatedBlockTime is a free log retrieval operation binding the contract event 0xf1ab3333803d2c9783b7929c6c99bd8b15ede77294566a9c8d97471dec21b90a.
+//
+// Solidity: event SetEstimatedBlockTime(uint64 arg0)
+func (_Bridge *BridgeFilterer) FilterSetEstimatedBlockTime(opts *bind.FilterOpts) (*BridgeSetEstimatedBlockTimeIterator, error) {
+
+	logs, sub, err := _Bridge.contract.FilterLogs(opts, "SetEstimatedBlockTime")
+	if err != nil {
+		return nil, err
+	}
+	return &BridgeSetEstimatedBlockTimeIterator{contract: _Bridge.contract, event: "SetEstimatedBlockTime", logs: logs, sub: sub}, nil
+}
+
+// WatchSetEstimatedBlockTime is a free log subscription operation binding the contract event 0xf1ab3333803d2c9783b7929c6c99bd8b15ede77294566a9c8d97471dec21b90a.
+//
+// Solidity: event SetEstimatedBlockTime(uint64 arg0)
+func (_Bridge *BridgeFilterer) WatchSetEstimatedBlockTime(opts *bind.WatchOpts, sink chan<- *BridgeSetEstimatedBlockTime) (event.Subscription, error) {
+
+	logs, sub, err := _Bridge.contract.WatchLogs(opts, "SetEstimatedBlockTime")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BridgeSetEstimatedBlockTime)
+				if err := _Bridge.contract.UnpackLog(event, "SetEstimatedBlockTime", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSetEstimatedBlockTime is a log parse operation binding the contract event 0xf1ab3333803d2c9783b7929c6c99bd8b15ede77294566a9c8d97471dec21b90a.
+//
+// Solidity: event SetEstimatedBlockTime(uint64 arg0)
+func (_Bridge *BridgeFilterer) ParseSetEstimatedBlockTime(log types.Log) (*BridgeSetEstimatedBlockTime, error) {
+	event := new(BridgeSetEstimatedBlockTime)
+	if err := _Bridge.contract.UnpackLog(event, "SetEstimatedBlockTime", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
 // BridgeSetGuardiansIterator is returned from FilterSetGuardians and is used to iterate over the raw logs and unpacked data for SetGuardians events raised by the Bridge contract.
 type BridgeSetGuardiansIterator struct {
 	Event *BridgeSetGuardians // Event containing the contract specifics and raw log
@@ -2582,6 +3252,284 @@ func (_Bridge *BridgeFilterer) WatchSetGuardians(opts *bind.WatchOpts, sink chan
 func (_Bridge *BridgeFilterer) ParseSetGuardians(log types.Log) (*BridgeSetGuardians, error) {
 	event := new(BridgeSetGuardians)
 	if err := _Bridge.contract.UnpackLog(event, "SetGuardians", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BridgeSetSoftDelayIterator is returned from FilterSetSoftDelay and is used to iterate over the raw logs and unpacked data for SetSoftDelay events raised by the Bridge contract.
+type BridgeSetSoftDelayIterator struct {
+	Event *BridgeSetSoftDelay // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BridgeSetSoftDelayIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BridgeSetSoftDelay)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BridgeSetSoftDelay)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BridgeSetSoftDelayIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BridgeSetSoftDelayIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BridgeSetSoftDelay represents a SetSoftDelay event raised by the Bridge contract.
+type BridgeSetSoftDelay struct {
+	Arg0 *big.Int
+	Raw  types.Log // Blockchain specific contextual infos
+}
+
+// FilterSetSoftDelay is a free log retrieval operation binding the contract event 0xbccdc80e0b9b1548ca651855b773882ed962ad44b1af12d3021605254b7160f1.
+//
+// Solidity: event SetSoftDelay(uint256 arg0)
+func (_Bridge *BridgeFilterer) FilterSetSoftDelay(opts *bind.FilterOpts) (*BridgeSetSoftDelayIterator, error) {
+
+	logs, sub, err := _Bridge.contract.FilterLogs(opts, "SetSoftDelay")
+	if err != nil {
+		return nil, err
+	}
+	return &BridgeSetSoftDelayIterator{contract: _Bridge.contract, event: "SetSoftDelay", logs: logs, sub: sub}, nil
+}
+
+// WatchSetSoftDelay is a free log subscription operation binding the contract event 0xbccdc80e0b9b1548ca651855b773882ed962ad44b1af12d3021605254b7160f1.
+//
+// Solidity: event SetSoftDelay(uint256 arg0)
+func (_Bridge *BridgeFilterer) WatchSetSoftDelay(opts *bind.WatchOpts, sink chan<- *BridgeSetSoftDelay) (event.Subscription, error) {
+
+	logs, sub, err := _Bridge.contract.WatchLogs(opts, "SetSoftDelay")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BridgeSetSoftDelay)
+				if err := _Bridge.contract.UnpackLog(event, "SetSoftDelay", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSetSoftDelay is a log parse operation binding the contract event 0xbccdc80e0b9b1548ca651855b773882ed962ad44b1af12d3021605254b7160f1.
+//
+// Solidity: event SetSoftDelay(uint256 arg0)
+func (_Bridge *BridgeFilterer) ParseSetSoftDelay(log types.Log) (*BridgeSetSoftDelay, error) {
+	event := new(BridgeSetSoftDelay)
+	if err := _Bridge.contract.UnpackLog(event, "SetSoftDelay", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BridgeSetTokenInfoIterator is returned from FilterSetTokenInfo and is used to iterate over the raw logs and unpacked data for SetTokenInfo events raised by the Bridge contract.
+type BridgeSetTokenInfoIterator struct {
+	Event *BridgeSetTokenInfo // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BridgeSetTokenInfoIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BridgeSetTokenInfo)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BridgeSetTokenInfo)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BridgeSetTokenInfoIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BridgeSetTokenInfoIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BridgeSetTokenInfo represents a SetTokenInfo event raised by the Bridge contract.
+type BridgeSetTokenInfo struct {
+	Token common.Address
+	Raw   types.Log // Blockchain specific contextual infos
+}
+
+// FilterSetTokenInfo is a free log retrieval operation binding the contract event 0x629fbdbc83c9e7e03a2983bce587b9da5a1c320cddc61f714f9dc81c10a66233.
+//
+// Solidity: event SetTokenInfo(address indexed token)
+func (_Bridge *BridgeFilterer) FilterSetTokenInfo(opts *bind.FilterOpts, token []common.Address) (*BridgeSetTokenInfoIterator, error) {
+
+	var tokenRule []interface{}
+	for _, tokenItem := range token {
+		tokenRule = append(tokenRule, tokenItem)
+	}
+
+	logs, sub, err := _Bridge.contract.FilterLogs(opts, "SetTokenInfo", tokenRule)
+	if err != nil {
+		return nil, err
+	}
+	return &BridgeSetTokenInfoIterator{contract: _Bridge.contract, event: "SetTokenInfo", logs: logs, sub: sub}, nil
+}
+
+// WatchSetTokenInfo is a free log subscription operation binding the contract event 0x629fbdbc83c9e7e03a2983bce587b9da5a1c320cddc61f714f9dc81c10a66233.
+//
+// Solidity: event SetTokenInfo(address indexed token)
+func (_Bridge *BridgeFilterer) WatchSetTokenInfo(opts *bind.WatchOpts, sink chan<- *BridgeSetTokenInfo, token []common.Address) (event.Subscription, error) {
+
+	var tokenRule []interface{}
+	for _, tokenItem := range token {
+		tokenRule = append(tokenRule, tokenItem)
+	}
+
+	logs, sub, err := _Bridge.contract.WatchLogs(opts, "SetTokenInfo", tokenRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BridgeSetTokenInfo)
+				if err := _Bridge.contract.UnpackLog(event, "SetTokenInfo", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSetTokenInfo is a log parse operation binding the contract event 0x629fbdbc83c9e7e03a2983bce587b9da5a1c320cddc61f714f9dc81c10a66233.
+//
+// Solidity: event SetTokenInfo(address indexed token)
+func (_Bridge *BridgeFilterer) ParseSetTokenInfo(log types.Log) (*BridgeSetTokenInfo, error) {
+	event := new(BridgeSetTokenInfo)
+	if err := _Bridge.contract.UnpackLog(event, "SetTokenInfo", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -2727,6 +3675,140 @@ func (_Bridge *BridgeFilterer) WatchSetTss(opts *bind.WatchOpts, sink chan<- *Br
 func (_Bridge *BridgeFilterer) ParseSetTss(log types.Log) (*BridgeSetTss, error) {
 	event := new(BridgeSetTss)
 	if err := _Bridge.contract.UnpackLog(event, "SetTss", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// BridgeSetUnhaltDurationIterator is returned from FilterSetUnhaltDuration and is used to iterate over the raw logs and unpacked data for SetUnhaltDuration events raised by the Bridge contract.
+type BridgeSetUnhaltDurationIterator struct {
+	Event *BridgeSetUnhaltDuration // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *BridgeSetUnhaltDurationIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(BridgeSetUnhaltDuration)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(BridgeSetUnhaltDuration)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *BridgeSetUnhaltDurationIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *BridgeSetUnhaltDurationIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// BridgeSetUnhaltDuration represents a SetUnhaltDuration event raised by the Bridge contract.
+type BridgeSetUnhaltDuration struct {
+	Arg0 *big.Int
+	Raw  types.Log // Blockchain specific contextual infos
+}
+
+// FilterSetUnhaltDuration is a free log retrieval operation binding the contract event 0x2af629b5e397edd1e130c83e04770e3f5d9dd22424ecdbc204359406bbd3c7fa.
+//
+// Solidity: event SetUnhaltDuration(uint256 arg0)
+func (_Bridge *BridgeFilterer) FilterSetUnhaltDuration(opts *bind.FilterOpts) (*BridgeSetUnhaltDurationIterator, error) {
+
+	logs, sub, err := _Bridge.contract.FilterLogs(opts, "SetUnhaltDuration")
+	if err != nil {
+		return nil, err
+	}
+	return &BridgeSetUnhaltDurationIterator{contract: _Bridge.contract, event: "SetUnhaltDuration", logs: logs, sub: sub}, nil
+}
+
+// WatchSetUnhaltDuration is a free log subscription operation binding the contract event 0x2af629b5e397edd1e130c83e04770e3f5d9dd22424ecdbc204359406bbd3c7fa.
+//
+// Solidity: event SetUnhaltDuration(uint256 arg0)
+func (_Bridge *BridgeFilterer) WatchSetUnhaltDuration(opts *bind.WatchOpts, sink chan<- *BridgeSetUnhaltDuration) (event.Subscription, error) {
+
+	logs, sub, err := _Bridge.contract.WatchLogs(opts, "SetUnhaltDuration")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(BridgeSetUnhaltDuration)
+				if err := _Bridge.contract.UnpackLog(event, "SetUnhaltDuration", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSetUnhaltDuration is a log parse operation binding the contract event 0x2af629b5e397edd1e130c83e04770e3f5d9dd22424ecdbc204359406bbd3c7fa.
+//
+// Solidity: event SetUnhaltDuration(uint256 arg0)
+func (_Bridge *BridgeFilterer) ParseSetUnhaltDuration(log types.Log) (*BridgeSetUnhaltDuration, error) {
+	event := new(BridgeSetUnhaltDuration)
+	if err := _Bridge.contract.UnpackLog(event, "SetUnhaltDuration", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

@@ -147,6 +147,10 @@ func (m *NetworksManager) RpcManager() *rpc.Manager {
 	return m.Znn().rpcManager
 }
 
+func (m *NetworksManager) NetworksLength() int {
+	return len(m.evmNetworks)
+}
+
 ///////// state
 
 func (m *NetworksManager) CountNetworksHaltState() (int, int, error) {
@@ -400,6 +404,36 @@ func (m *NetworksManager) GetHaltEvmTxs(signatures [][]byte, tss ecommon.Address
 		txs = append(txs, tx)
 	}
 	return txs, nil
+}
+
+// SendHaltEvmAdministrator return value represent if the network is halted or not
+func (m *NetworksManager) SendHaltEvmAdministrator(idx int, ecdsaPrivateKey *ecdsa.PrivateKey, evmAddress ecommon.Address) (bool, error) {
+	if idx > len(m.evmNetworks) {
+		return false, errors.New("network index non existent")
+	}
+	network := m.evmNetworks[idx]
+	halted, err := network.IsHalted()
+	if err != nil {
+		return false, err
+	}
+	if halted {
+		m.logger.Infof("network with chainId %d already halted\n", network.ChainId())
+		return true, nil
+	}
+
+	tx, err := network.GetHaltEvmTx([]byte{}, evmAddress)
+	if err != nil {
+		return false, err
+	}
+	tx, err = network.SignTx(tx, ecdsaPrivateKey, network.ChainId())
+	if err != nil {
+		return false, err
+	}
+	if err = network.SendTransaction(tx); err != nil {
+		return false, err
+	}
+
+	return false, nil
 }
 
 func (m *NetworksManager) GetSigners() []etypes.Signer {

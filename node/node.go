@@ -113,23 +113,36 @@ func NewNode(config *oconfig.Config, logger *zap.Logger) (*Node, error) {
 		return nil, err
 	}
 
+	// Administrator module
+	bridgeInfo, err := node.networksManager.GetBridgeInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	node.logger.Infof("administrator: %s", bridgeInfo.Administrator.String())
+	node.logger.Infof("producer: %s", node.producerKeyPair.Address.String())
+	if bridgeInfo.Administrator.String() == node.producerKeyPair.Address.String() {
+		node.state.SetIsAdministratorActive(true)
+	}
+
 	if err := oconfig.WriteConfig(*node.config); err != nil {
 		node.logger.Info(err.Error())
 	}
 	return node, nil
 }
 
-// Utils
-
 func (node *Node) Start() error {
 	node.lock.Lock()
 	defer node.lock.Unlock()
 
-	// todo create it after the networks start
-	var tssErr error
-	node.tssManager, tssErr = tss.NewTssManager(node.config.TssConfig, base64.StdEncoding.EncodeToString(node.producerKeyPair.Private))
-	if tssErr != nil {
-		return tssErr
+	//  Don't start tss if the administrator runs the orchestrator
+	if !node.state.GetIsAdministratorActive() {
+		var tssErr error
+		// todo create it after the networks start
+		node.tssManager, tssErr = tss.NewTssManager(node.config.TssConfig, base64.StdEncoding.EncodeToString(node.producerKeyPair.Private))
+		if tssErr != nil {
+			return tssErr
+		}
 	}
 
 	if frMomRpc, err := node.networksManager.Znn().ZnnRpc().GetFrontierMomentum(); err != nil {
@@ -189,183 +202,8 @@ func (node *Node) Wait() {
 	node.logger.Info("signal from wait: ", signalReceived)
 }
 
-func (node *Node) openDataDir() error {
-	if node.config.DataPath == "" {
-		return nil
-	}
-
-	if err := os.MkdirAll(node.config.DataPath, 0700); err != nil {
-		return err
-	}
-	node.logger.Info("successfully ensured DataPath exists", zap.String("data-path", node.config.DataPath))
-
-	// Lock the instance directory to prevent concurrent use by another instance as well as
-	// accidental use of the instance directory as a database.
-	if fileLock, _, err := fileutil.Flock(filepath.Join(node.config.DataPath, ".lock")); err != nil {
-		node.logger.Info("unable to acquire file-lock", zap.String("reason", err.Error()))
-		return convertFileLockError(err)
-	} else {
-		node.dataDirLock = fileLock
-	}
-
-	node.logger.Info("successfully locked dataDir")
-	return nil
-}
-
-func (node *Node) closeDataDir() {
-	node.logger.Info("releasing dataDir lock ... ")
-	// Release instance directory lock.
-	if node.dataDirLock != nil {
-		if err := node.dataDirLock.Release(); err != nil {
-			node.logger.Error("can't release dataDir lock", zap.String("reason", err.Error()))
-		}
-		node.dataDirLock = nil
-	}
-}
-
-func (node *Node) configurePubKey() error {
-	node.config.TssConfig.LocalPubKeys = make([]string, 0)
-	node.config.TssConfig.PubKeyWhitelist = make(map[string]bool)
-	bridgeInfo, err := node.networksManager.GetBridgeInfo()
-	if err != nil {
-		return err
-	}
-
-	// just try to load the path of the pub key coming from the rpc
-	pubKeyPath, err := common.GetPublicKeyFilePath(node.config.TssConfig.BaseDir, bridgeInfo.CompressedTssECDSAPubKey)
-	if err != nil {
-		return err
-	}
-	if _, err := os.Stat(pubKeyPath); os.IsNotExist(err) {
-		// 1. we had a hard reset, in this case we can no longer sign be cause we don't have the pubKey files
-		// 2. we have not participated yet in a keyGen ceremony
-		// 3. there was no key gen (bootstrap), in this case participatingPubKeys will be empty
-		// pub key file does not exist, we can only wait for a new key gen
-		node.logger.Info(err.Error())
-		node.config.TssConfig.PublicKey = ""
-		node.config.TssConfig.DecompressedPublicKey = ""
-	} else {
-		node.config.TssConfig.PublicKey = bridgeInfo.CompressedTssECDSAPubKey
-		node.config.TssConfig.DecompressedPublicKey = bridgeInfo.DecompressedTssECDSAPubKey
-		jsonFile, err := os.Open(pubKeyPath)
-		if err != nil {
-			return err
-		}
-
-		bytesValue, _ := io.ReadAll(jsonFile)
-		if err := jsonFile.Close(); err != nil {
-			return err
-		}
-
-		var result map[string]interface{}
-		if err := json.Unmarshal(bytesValue, &result); err != nil {
-			return err
-		}
-
-		for _, publicKey := range result["participant_keys"].([]interface{}) {
-			node.logger.Info(publicKey.(string))
-			publicKeyBytes, err := base64.StdEncoding.DecodeString(publicKey.(string))
-			if err != nil {
-				return err
-			}
-			pub, err := ic.UnmarshalEd25519PublicKey(publicKeyBytes)
-			if err != nil {
-				return err
-			}
-			peerId, err := peer.IDFromPublicKey(pub)
-			if err != nil {
-				return err
-			}
-
-			node.config.TssConfig.PubKeyWhitelist[peerId.String()] = true
-			node.config.TssConfig.LocalPubKeys = append(node.config.TssConfig.LocalPubKeys, publicKey.(string))
-		}
-	}
-	sort.Strings(node.config.TssConfig.LocalPubKeys)
-
-	return nil
-}
-
-// Setters
-
-func (node *Node) SetKeySignTimeouts(windowSize uint64) {
-	node.logger.Info("in SetKeySignTimeouts\nold:")
-	node.logger.Info("node.config.TssConfig.BaseConfig.", zap.Duration("KeySignTimeout: ", node.config.TssConfig.BaseConfig.KeySignTimeout))
-	node.logger.Info("node.config.TssConfig.BaseConfig", zap.Duration("PartyTimeout: ", node.config.TssConfig.BaseConfig.PartyTimeout))
-	node.logger.Info("node.tssManager.Config", zap.Duration("KeySignTimeout: ", node.tssManager.Config().KeySignTimeout))
-	node.logger.Info("node.tssManager.Config()", zap.Duration("PartyTimeout: ", node.tssManager.Config().PartyTimeout))
-	keySignTimeout := time.Duration(windowSize * 10 * 1e9)
-	partyTimeout := keySignTimeout * 2 / 3
-	node.config.TssConfig.BaseConfig.KeySignTimeout = keySignTimeout
-	node.config.TssConfig.BaseConfig.PartyTimeout = partyTimeout
-	node.tssManager.SetKeySignTimeouts(keySignTimeout, partyTimeout)
-	node.logger.Info("new: ")
-	node.logger.Info("node.config.TssConfig.BaseConfig.", zap.Duration("KeySignTimeout: ", node.config.TssConfig.BaseConfig.KeySignTimeout))
-	node.logger.Info("node.config.TssConfig.BaseConfig", zap.Duration("PartyTimeout: ", node.config.TssConfig.BaseConfig.PartyTimeout))
-	node.logger.Info("node.tssManager.Config", zap.Duration("KeySignTimeout: ", node.tssManager.Config().KeySignTimeout))
-	node.logger.Info("node.tssManager.Config()", zap.Duration("PartyTimeout: ", node.tssManager.Config().PartyTimeout))
-}
-
-// Getters
-
-func (node *Node) GetConfig() *oconfig.Config {
-	return node.config
-}
-
-func (node *Node) GetParticipantsLength() uint32 {
-	// we know for sure that these pubKeys were in our keyGen, or we don't have the keyGen at all
-	return uint32(len(node.config.TssConfig.LocalPubKeys))
-}
-
-func (node *Node) GetParticipant(index uint32) string {
-	return node.config.TssConfig.LocalPubKeys[index]
-}
-
-//
-
-func (node *Node) AllowNewParticipants(pubKeysMap map[string]string) {
-	localPubKeysMap := make(map[string]bool)
-	for _, pubKey := range node.config.TssConfig.LocalPubKeys {
-		localPubKeysMap[pubKey] = true
-	}
-
-	// we add the new producing pub keys to the whitelist
-	currentWhitelist := node.tssManager.GetWhitelist()
-	for k, v := range pubKeysMap {
-		// eddsa pubKey
-		localPubKeysMap[k] = true
-		// peer id
-		currentWhitelist[v] = true
-		// peer id
-		node.config.TssConfig.PubKeyWhitelist[v] = true
-	}
-
-	// reset them
-	node.config.TssConfig.LocalPubKeys = make([]string, 0)
-	for k, _ := range localPubKeysMap {
-		node.config.TssConfig.LocalPubKeys = append(node.config.TssConfig.LocalPubKeys, k)
-	}
-	sort.Strings(node.config.TssConfig.LocalPubKeys)
-	node.tssManager.SetNewLocalPubKeys(node.config.TssConfig.LocalPubKeys)
-	node.logger.Info("node.config.TssConfig.LocalPubKeys: ", node.config.TssConfig.LocalPubKeys)
-	node.logger.Info("node.config.TssConfig.WhiteList: ", node.config.TssConfig.PubKeyWhitelist)
-	node.logger.Info("node.config.TssConfig.LocalPubKeys len: ", len(node.config.TssConfig.LocalPubKeys))
-	node.logger.Info("node.tssManager.GetLocalPubKeys(): ", node.tssManager.GetLocalPubKeys())
-	node.logger.Info("node.tssManager.GetWhitelist: ", node.tssManager.GetWhitelist())
-}
-
-func (node *Node) RemoveParticipant(pubKey string) {
-	for idx, localPubKey := range node.config.TssConfig.LocalPubKeys {
-		if localPubKey == pubKey {
-			node.config.TssConfig.LocalPubKeys = append(node.config.TssConfig.LocalPubKeys[:idx], node.config.TssConfig.LocalPubKeys[idx+1:]...)
-		}
-	}
-	delete(node.config.TssConfig.PubKeyWhitelist, pubKey)
-	node.tssManager.DeleteLocalPubKey(pubKey)
-	node.tssManager.DeleteWhitelistEntry(pubKey)
-}
-
 // Sign messages methods
+
 func (node *Node) processSignatures() {
 	node.logger.Info("in node processSignatures")
 	for {
@@ -376,6 +214,13 @@ func (node *Node) processSignatures() {
 			node.logger.Debug(err.Error())
 			time.Sleep(5 * time.Second)
 			continue
+		}
+
+		if node.state.GetIsAdministratorActive() {
+			if currentState != common.EmergencyState {
+				continue
+			}
+			node.haltNetworksAdministrator()
 		}
 		switch currentState {
 		case common.KeyGenState:
@@ -391,18 +236,18 @@ func (node *Node) processSignatures() {
 			}
 
 			// we create a join of the old pub keys list and the new ones
-			node.AllowNewParticipants(participatingPubKeys)
+			node.allowNewParticipants(participatingPubKeys)
 
 			// each round of keyGen will remove nodes that do not participate
 			// we try to keygen until we have min parties threshold
 			var keyGenResponse *keygen.Response
 
-			node.logger.Debug("node.GetParticipantsLength(): ", node.GetParticipantsLength())
-			for node.networksManager.Znn().KeyGenThreshold() <= node.GetParticipantsLength() {
+			node.logger.Debug("node.getParticipantsLength(): ", node.getParticipantsLength())
+			for node.networksManager.Znn().KeyGenThreshold() <= node.getParticipantsLength() {
 				keyGenThreshold := node.networksManager.Znn().KeyGenThreshold()
 				node.logger.Debug("keyGenThreshold: ", keyGenThreshold)
 				node.logger.Info("Started ECDSA Keygen")
-				node.logger.Debug("len(node.participatingPubKeys): ", node.GetParticipantsLength())
+				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
 				// start the key gen
 				start := time.Now()
 				keyGenResponse, err = node.tssManager.KeyGen(messages.ECDSAKEYGEN)
@@ -414,11 +259,11 @@ func (node *Node) processSignatures() {
 				}
 
 				blamedNodes := uint32(len(keyGenResponse.Blame.BlameNodes))
-				if keyGenThreshold > node.GetParticipantsLength()-blamedNodes {
+				if keyGenThreshold > node.getParticipantsLength()-blamedNodes {
 					// if no error was received, we iterate through the blamed node and remove them from the participating pubKeys list
 					for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
 						node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
-						//node.RemoveParticipant(blamedNode.Pubkey)
+						//node.removeParticipant(blamedNode.Pubkey)
 					}
 
 					if keyGenResponse.Status == tcommon.Success {
@@ -435,7 +280,7 @@ func (node *Node) processSignatures() {
 					node.logger.Infof("Generated key: %s", keyGenResponse.PubKey)
 					for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
 						node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
-						node.RemoveParticipant(blamedNode.Pubkey)
+						node.removeParticipant(blamedNode.Pubkey)
 					}
 					break
 				}
@@ -555,9 +400,9 @@ func (node *Node) processSignatures() {
 				go func() {
 					defer senders.Done()
 					// we take the first base64 char of the signature and transform it to its ascii value
-					index := uint32(int(znnOldKeySignature[0])) % node.GetParticipantsLength()
+					index := uint32(int(znnOldKeySignature[0])) % node.getParticipantsLength()
 					for {
-						index = (index + 1) % node.GetParticipantsLength()
+						index = (index + 1) % node.getParticipantsLength()
 						producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
 						bridgeInfo, err := node.networksManager.GetBridgeInfo()
 						if err != nil {
@@ -568,7 +413,7 @@ func (node *Node) processSignatures() {
 						if bridgeInfo.CompressedTssECDSAPubKey == keyGenResponse.PubKey {
 							break
 						}
-						if producerPubKey == node.GetParticipant(index) {
+						if producerPubKey == node.getParticipant(index) {
 							node.logger.Debug("[sendZnnTx PubKey] this is me")
 							err = node.networksManager.ChangeTssEcdsaPubKeyZnn(keyGenResponse.PubKey, znnOldKeySignature, znnNewKeySignature, node.producerKeyPair)
 							if err != nil {
@@ -587,11 +432,11 @@ func (node *Node) processSignatures() {
 
 				go func() {
 					defer senders.Done()
-					index := uint32(int(znnOldKeySignature[0])) % node.GetParticipantsLength()
+					index := uint32(int(znnOldKeySignature[0])) % node.getParticipantsLength()
 					for {
-						index = (index + 1) % node.GetParticipantsLength()
+						index = (index + 1) % node.getParticipantsLength()
 						producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
-						if producerPubKey == node.GetParticipant(index) {
+						if producerPubKey == node.getParticipant(index) {
 							node.logger.Debug("[send set tss ecdsa pub key evm tx] this is me")
 							if changed, err := node.networksManager.SetTssEcdsaPubKeyEvm(oldKeyFullSignatures, newKeyFullSignatures, keyGenResponse.PubKey, node.ecdsaPrivateKey, node.evmAddress); err != nil {
 								node.logger.Debug(err)
@@ -612,6 +457,7 @@ func (node *Node) processSignatures() {
 			node.resetSignatures()
 
 			node.logger.Infof("ECDSA KeyGen Response here: %v", keyGenResponse)
+
 			node.config.TssConfig.PublicKey = keyGenResponse.PubKey
 			node.config.TssConfig.DecompressedPublicKey = decompressedKeyGenPubKey
 			node.tssManager.SetPubKey(keyGenResponse.PubKey)
@@ -744,15 +590,15 @@ func (node *Node) processSignatures() {
 			senders.Add(2)
 			go func() {
 				defer senders.Done()
-				index := uint32(int(znnSignature[0])) % node.GetParticipantsLength()
+				index := uint32(int(znnSignature[0])) % node.getParticipantsLength()
 				if !node.networksManager.Znn().IsHalted() {
 					for {
-						index = (index + 1) % node.GetParticipantsLength()
+						index = (index + 1) % node.getParticipantsLength()
 						if node.networksManager.Znn().IsHalted() {
 							break
 						}
 						producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
-						if producerPubKey == node.GetParticipant(index) {
+						if producerPubKey == node.getParticipant(index) {
 							node.logger.Debug("[send Halt Znn Tx] this is me")
 							err = node.networksManager.HaltZnn(znnSignature, node.producerKeyPair)
 							if err != nil {
@@ -771,11 +617,11 @@ func (node *Node) processSignatures() {
 
 			go func() {
 				defer senders.Done()
-				index := uint32(int(znnSignature[0])) % node.GetParticipantsLength()
+				index := uint32(int(znnSignature[0])) % node.getParticipantsLength()
 				for {
-					index = (index + 1) % node.GetParticipantsLength()
+					index = (index + 1) % node.getParticipantsLength()
 					producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
-					if producerPubKey == node.GetParticipant(index) {
+					if producerPubKey == node.getParticipant(index) {
 						node.logger.Debug("[send halt evm tx] this is me")
 						// todo discuss using concurrent send for different networks with different senders
 						if changed, err := node.networksManager.SendHaltEvm(evmFullSignatures, node.ecdsaPrivateKey, node.evmAddress); err != nil {
@@ -822,45 +668,6 @@ func (node *Node) processSignatures() {
 						}
 					}
 				}
-			}
-		}
-	}
-}
-
-// Some signed events will not work anymore so we need to resign them
-func (node *Node) resetSignatures() {
-	// 1. Unwrap events that were signed but not send
-	if requests, err := node.networksManager.GetUnsentSignedUnwrapRequests(); err != nil {
-		node.logger.Debug(err)
-	} else {
-		for _, request := range requests {
-			if err := node.networksManager.SetUnsentUnwrapRequestAsUnsigned(*request); err != nil {
-				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.TransactionHash.String())
-				continue
-			}
-		}
-	}
-
-	// 2. Wrap requests that were signed but the signature was not sent
-	if requests, err := node.networksManager.GetUnsentSignedWrapRequests(); err != nil {
-		node.logger.Debug(err)
-	} else {
-		for _, request := range requests {
-			if err := node.networksManager.SetWrapEventSignature(request.Id, ""); err != nil {
-				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.Id.String())
-				continue
-			}
-		}
-	}
-
-	// 3. Signed wrap request that were not redeemed even once
-	if requests, err := node.networksManager.Znn().GetUnredeemedWrapRequests(); err != nil {
-		node.logger.Debug(err)
-	} else {
-		for _, request := range requests {
-			if err := node.networksManager.SetWrapEventSignature(request.Id, ""); err != nil {
-				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.Id.String())
-				continue
 			}
 		}
 	}
@@ -1038,6 +845,238 @@ func (node *Node) processSignaturesUnwrap() (error, bool) {
 	return nil, true
 }
 
+// Send signatures methods
+
+func (node *Node) sendSignatures() {
+	// Early return
+	if node.state.GetIsAdministratorActive() {
+		return
+	}
+
+	seenEventsCount := make(map[string]uint32)
+	for {
+		currentState, err := node.state.GetState()
+		if err != nil {
+			node.logger.Debug("currentState error in processSig")
+			node.logger.Debug(err.Error())
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		switch currentState {
+		case common.LiveState:
+			if len(node.tssManager.GetPubKey()) != 0 {
+				var senders sync.WaitGroup
+				senders.Add(2)
+				go func() {
+					defer senders.Done()
+					node.sendSignaturesWrap(seenEventsCount)
+				}()
+				go func() {
+					defer senders.Done()
+					node.sendUnwrapRequests(seenEventsCount)
+				}()
+				senders.Wait()
+			}
+		}
+		// todo use constant for momentum duration
+		time.Sleep(10 * time.Second)
+	}
+}
+
+func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
+	requests, err := node.networksManager.GetUnsentSignedWrapRequests()
+	if err != nil {
+		node.logger.Debug(err)
+		return
+	}
+
+	for _, req := range requests {
+		rpcRequest, err := node.networksManager.GetWrapRequestByIdRPC(req.Id)
+		if err != nil {
+			node.logger.Debug(err)
+			continue
+		} else if len(rpcRequest.Signature) != 0 {
+			delete(seenEventsCount, req.Id.String())
+			continue
+		}
+
+		index := uint32(req.Id.Bytes()[31]) % node.getParticipantsLength()
+		if seenEventsCount[req.Id.String()] > 2 {
+			index = (index + seenEventsCount[req.Id.String()]) % node.getParticipantsLength()
+		}
+		seenEventsCount[req.Id.String()] += 1
+		producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
+		if producerPubKey == node.getParticipant(index) {
+			node.logger.Info("[sendSignaturesWrap] this is me")
+			err = node.networksManager.UpdateWrapRequest(req.Id, req.Signature, node.producerKeyPair)
+			if err != nil {
+				node.logger.Debug(err)
+				continue
+			}
+			delete(seenEventsCount, req.Id.String())
+			node.logger.Info("[sendSignaturesWrap] sent request")
+		}
+		// todo how much to wait between sends?
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func (node *Node) sendUnwrapRequests(seenEventsCount map[string]uint32) {
+	requests, err := node.networksManager.GetUnsentSignedUnwrapRequests()
+	if err != nil {
+		node.logger.Debug(err)
+		return
+	}
+	for _, req := range requests {
+		rpcReq, err := node.networksManager.GetEvmUnwrapRequestByHashAndLogFromRPC(types.Hash(req.TransactionHash), req.LogIndex)
+		if rpcReq != nil {
+			node.logger.Debug("event exists, set it as sent locally")
+			if err := node.networksManager.SetEvmUnwrapRequestAsSent(req); err != nil {
+				node.logger.Debug(err)
+			}
+			delete(seenEventsCount, req.TransactionHash.String())
+			continue
+		}
+
+		index := uint32(req.TransactionHash.Bytes()[31]) % node.getParticipantsLength()
+		if seenEventsCount[req.TransactionHash.String()] > 2 {
+			index = (index + seenEventsCount[req.TransactionHash.String()]) % node.getParticipantsLength()
+		}
+		seenEventsCount[req.TransactionHash.String()] += 1
+		producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
+		if producerPubKey == node.getParticipant(index) {
+			node.logger.Info("[sendUnwrapRequests] this is me")
+			if len(req.Signature) == 0 {
+				node.logger.Debug("signature missing")
+				continue
+			}
+			err = node.networksManager.SendUnwrapRequest(req, node.producerKeyPair)
+			if err != nil {
+				node.logger.Debug(err)
+			}
+		}
+		// todo how much to wait between sends?
+		time.Sleep(5 * time.Second)
+	}
+}
+
+// Administrator methods
+
+func (node *Node) haltNetworksAdministrator() {
+	var senders sync.WaitGroup
+	senders.Add(1)
+
+	go func() {
+		defer senders.Done()
+		for {
+			errZnn := node.networksManager.HaltZnn("", node.producerKeyPair)
+			if errZnn != nil {
+				node.logger.Info(errZnn.Error())
+			}
+			time.Sleep(20 * time.Second)
+			if node.networksManager.Znn().IsHalted() {
+				break
+			}
+		}
+	}()
+
+	l := node.networksManager.NetworksLength()
+	senders.Add(l)
+
+	for idx := 0; idx < l; idx++ {
+		go func(index int) {
+			defer senders.Done()
+			for {
+				halted, err := node.networksManager.SendHaltEvmAdministrator(index, node.ecdsaPrivateKey, node.evmAddress)
+				if err != nil {
+					node.logger.Error(err)
+				} else if halted {
+					break
+				}
+				// todo use network block time
+				time.Sleep(12 * time.Second)
+			}
+		}(idx)
+	}
+	senders.Wait()
+}
+
+// Getters
+
+func (node *Node) GetConfig() *oconfig.Config {
+	return node.config
+}
+
+func (node *Node) getParticipantsLength() uint32 {
+	// we know for sure that these pubKeys were in our keyGen, or we don't have the keyGen at all
+	return uint32(len(node.config.TssConfig.LocalPubKeys))
+}
+
+func (node *Node) getParticipant(index uint32) string {
+	return node.config.TssConfig.LocalPubKeys[index]
+}
+
+// Setters
+
+func (node *Node) SetKeySignTimeouts(windowSize uint64) {
+	node.logger.Info("in SetKeySignTimeouts\nold:")
+	node.logger.Info("node.config.TssConfig.BaseConfig.", zap.Duration("KeySignTimeout: ", node.config.TssConfig.BaseConfig.KeySignTimeout))
+	node.logger.Info("node.config.TssConfig.BaseConfig", zap.Duration("PartyTimeout: ", node.config.TssConfig.BaseConfig.PartyTimeout))
+	node.logger.Info("node.tssManager.Config", zap.Duration("KeySignTimeout: ", node.tssManager.Config().KeySignTimeout))
+	node.logger.Info("node.tssManager.Config()", zap.Duration("PartyTimeout: ", node.tssManager.Config().PartyTimeout))
+	keySignTimeout := time.Duration(windowSize * 10 * 1e9)
+	partyTimeout := keySignTimeout * 2 / 3
+	node.config.TssConfig.BaseConfig.KeySignTimeout = keySignTimeout
+	node.config.TssConfig.BaseConfig.PartyTimeout = partyTimeout
+	node.tssManager.SetKeySignTimeouts(keySignTimeout, partyTimeout)
+	node.logger.Info("new: ")
+	node.logger.Info("node.config.TssConfig.BaseConfig.", zap.Duration("KeySignTimeout: ", node.config.TssConfig.BaseConfig.KeySignTimeout))
+	node.logger.Info("node.config.TssConfig.BaseConfig", zap.Duration("PartyTimeout: ", node.config.TssConfig.BaseConfig.PartyTimeout))
+	node.logger.Info("node.tssManager.Config", zap.Duration("KeySignTimeout: ", node.tssManager.Config().KeySignTimeout))
+	node.logger.Info("node.tssManager.Config()", zap.Duration("PartyTimeout: ", node.tssManager.Config().PartyTimeout))
+}
+
+// Utils
+
+// Some signed events will not work anymore so we need to resign them
+func (node *Node) resetSignatures() {
+	// 1. Unwrap events that were signed but not send
+	if requests, err := node.networksManager.GetUnsentSignedUnwrapRequests(); err != nil {
+		node.logger.Debug(err)
+	} else {
+		for _, request := range requests {
+			if err := node.networksManager.SetUnsentUnwrapRequestAsUnsigned(*request); err != nil {
+				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.TransactionHash.String())
+				continue
+			}
+		}
+	}
+
+	// 2. Wrap requests that were signed but the signature was not sent
+	if requests, err := node.networksManager.GetUnsentSignedWrapRequests(); err != nil {
+		node.logger.Debug(err)
+	} else {
+		for _, request := range requests {
+			if err := node.networksManager.SetWrapEventSignature(request.Id, ""); err != nil {
+				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.Id.String())
+				continue
+			}
+		}
+	}
+
+	// 3. Signed wrap request that were not redeemed even once
+	if requests, err := node.networksManager.Znn().GetUnredeemedWrapRequests(); err != nil {
+		node.logger.Debug(err)
+	} else {
+		for _, request := range requests {
+			if err := node.networksManager.SetWrapEventSignature(request.Id, ""); err != nil {
+				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.Id.String())
+				continue
+			}
+		}
+	}
+}
+
 func (node *Node) signMessages(messagesToSign [][]byte, msgsIndexes map[string]int) (*keysign.Response, error) {
 	start := time.Now()
 	response, err := node.tssManager.BulkSign(messagesToSign, messages.ECDSAKEYSIGN)
@@ -1088,112 +1127,141 @@ func (node *Node) validateSignatures(response *keysign.Response, pubKey string, 
 	return znnSignature, evmFullSignatures, nil
 }
 
-// Send signatures methods
+func (node *Node) removeParticipant(pubKey string) {
+	for idx, localPubKey := range node.config.TssConfig.LocalPubKeys {
+		if localPubKey == pubKey {
+			node.config.TssConfig.LocalPubKeys = append(node.config.TssConfig.LocalPubKeys[:idx], node.config.TssConfig.LocalPubKeys[idx+1:]...)
+		}
+	}
+	delete(node.config.TssConfig.PubKeyWhitelist, pubKey)
+	node.tssManager.DeleteLocalPubKey(pubKey)
+	node.tssManager.DeleteWhitelistEntry(pubKey)
+}
 
-func (node *Node) sendSignatures() {
-	seenEventsCount := make(map[string]uint32)
-	for {
-		currentState, err := node.state.GetState()
-		if err != nil {
-			node.logger.Debug("currentState error in processSig")
-			node.logger.Debug(err.Error())
-			time.Sleep(5 * time.Second)
-			continue
+func (node *Node) allowNewParticipants(pubKeysMap map[string]string) {
+	localPubKeysMap := make(map[string]bool)
+	for _, pubKey := range node.config.TssConfig.LocalPubKeys {
+		localPubKeysMap[pubKey] = true
+	}
+
+	// we add the new producing pub keys to the whitelist
+	currentWhitelist := node.tssManager.GetWhitelist()
+	for k, v := range pubKeysMap {
+		// eddsa pubKey
+		localPubKeysMap[k] = true
+		// peer id
+		currentWhitelist[v] = true
+		// peer id
+		node.config.TssConfig.PubKeyWhitelist[v] = true
+	}
+
+	// reset them
+	node.config.TssConfig.LocalPubKeys = make([]string, 0)
+	for k, _ := range localPubKeysMap {
+		node.config.TssConfig.LocalPubKeys = append(node.config.TssConfig.LocalPubKeys, k)
+	}
+	sort.Strings(node.config.TssConfig.LocalPubKeys)
+	node.tssManager.SetNewLocalPubKeys(node.config.TssConfig.LocalPubKeys)
+	node.logger.Info("node.config.TssConfig.LocalPubKeys: ", node.config.TssConfig.LocalPubKeys)
+	node.logger.Info("node.config.TssConfig.WhiteList: ", node.config.TssConfig.PubKeyWhitelist)
+	node.logger.Info("node.config.TssConfig.LocalPubKeys len: ", len(node.config.TssConfig.LocalPubKeys))
+	node.logger.Info("node.tssManager.GetLocalPubKeys(): ", node.tssManager.GetLocalPubKeys())
+	node.logger.Info("node.tssManager.GetWhitelist: ", node.tssManager.GetWhitelist())
+}
+
+func (node *Node) openDataDir() error {
+	if node.config.DataPath == "" {
+		return nil
+	}
+
+	if err := os.MkdirAll(node.config.DataPath, 0700); err != nil {
+		return err
+	}
+	node.logger.Info("successfully ensured DataPath exists", zap.String("data-path", node.config.DataPath))
+
+	// Lock the instance directory to prevent concurrent use by another instance as well as
+	// accidental use of the instance directory as a database.
+	if fileLock, _, err := fileutil.Flock(filepath.Join(node.config.DataPath, ".lock")); err != nil {
+		node.logger.Info("unable to acquire file-lock", zap.String("reason", err.Error()))
+		return convertFileLockError(err)
+	} else {
+		node.dataDirLock = fileLock
+	}
+
+	node.logger.Info("successfully locked dataDir")
+	return nil
+}
+
+func (node *Node) closeDataDir() {
+	node.logger.Info("releasing dataDir lock ... ")
+	// Release instance directory lock.
+	if node.dataDirLock != nil {
+		if err := node.dataDirLock.Release(); err != nil {
+			node.logger.Error("can't release dataDir lock", zap.String("reason", err.Error()))
 		}
-		switch currentState {
-		case common.LiveState:
-			if len(node.tssManager.GetPubKey()) != 0 {
-				var senders sync.WaitGroup
-				senders.Add(2)
-				go func() {
-					defer senders.Done()
-					node.sendSignaturesWrap(seenEventsCount)
-				}()
-				go func() {
-					defer senders.Done()
-					node.sendUnwrapRequests(seenEventsCount)
-				}()
-				senders.Wait()
-			}
-		}
-		// todo use constant for momentum duration
-		time.Sleep(10 * time.Second)
+		node.dataDirLock = nil
 	}
 }
 
-func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
-	requests, err := node.networksManager.GetUnsentSignedWrapRequests()
+func (node *Node) configurePubKey() error {
+	node.config.TssConfig.LocalPubKeys = make([]string, 0)
+	node.config.TssConfig.PubKeyWhitelist = make(map[string]bool)
+	bridgeInfo, err := node.networksManager.GetBridgeInfo()
 	if err != nil {
-		node.logger.Debug(err)
-		return
+		return err
 	}
 
-	for _, req := range requests {
-		rpcRequest, err := node.networksManager.GetWrapRequestByIdRPC(req.Id)
+	// just try to load the path of the pub key coming from the rpc
+	pubKeyPath, err := common.GetPublicKeyFilePath(node.config.TssConfig.BaseDir, bridgeInfo.CompressedTssECDSAPubKey)
+	if err != nil {
+		return err
+	}
+	if _, err := os.Stat(pubKeyPath); os.IsNotExist(err) {
+		// 1. we had a hard reset, in this case we can no longer sign be cause we don't have the pubKey files
+		// 2. we have not participated yet in a keyGen ceremony
+		// 3. there was no key gen (bootstrap), in this case participatingPubKeys will be empty
+		// pub key file does not exist, we can only wait for a new key gen
+		node.logger.Info(err.Error())
+		node.config.TssConfig.PublicKey = ""
+		node.config.TssConfig.DecompressedPublicKey = ""
+	} else {
+		node.config.TssConfig.PublicKey = bridgeInfo.CompressedTssECDSAPubKey
+		node.config.TssConfig.DecompressedPublicKey = bridgeInfo.DecompressedTssECDSAPubKey
+		jsonFile, err := os.Open(pubKeyPath)
 		if err != nil {
-			node.logger.Debug(err)
-			continue
-		} else if len(rpcRequest.Signature) != 0 {
-			delete(seenEventsCount, req.Id.String())
-			continue
+			return err
 		}
 
-		index := uint32(req.Id.Bytes()[31]) % node.GetParticipantsLength()
-		if seenEventsCount[req.Id.String()] > 2 {
-			index = (index + seenEventsCount[req.Id.String()]) % node.GetParticipantsLength()
+		bytesValue, _ := io.ReadAll(jsonFile)
+		if err := jsonFile.Close(); err != nil {
+			return err
 		}
-		seenEventsCount[req.Id.String()] += 1
-		producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
-		if producerPubKey == node.GetParticipant(index) {
-			node.logger.Info("[sendSignaturesWrap] this is me")
-			err = node.networksManager.UpdateWrapRequest(req.Id, req.Signature, node.producerKeyPair)
+
+		var result map[string]interface{}
+		if err := json.Unmarshal(bytesValue, &result); err != nil {
+			return err
+		}
+
+		for _, publicKey := range result["participant_keys"].([]interface{}) {
+			node.logger.Info(publicKey.(string))
+			publicKeyBytes, err := base64.StdEncoding.DecodeString(publicKey.(string))
 			if err != nil {
-				node.logger.Debug(err)
-				continue
+				return err
 			}
-			delete(seenEventsCount, req.Id.String())
-			node.logger.Info("[sendSignaturesWrap] sent request")
-		}
-		// todo how much to wait between sends?
-		time.Sleep(5 * time.Second)
-	}
-}
-
-func (node *Node) sendUnwrapRequests(seenEventsCount map[string]uint32) {
-	requests, err := node.networksManager.GetUnsentSignedUnwrapRequests()
-	if err != nil {
-		node.logger.Debug(err)
-		return
-	}
-	for _, req := range requests {
-		rpcReq, err := node.networksManager.GetEvmUnwrapRequestByHashAndLogFromRPC(types.Hash(req.TransactionHash), req.LogIndex)
-		if rpcReq != nil {
-			node.logger.Debug("event exists, set it as sent locally")
-			if err := node.networksManager.SetEvmUnwrapRequestAsSent(req); err != nil {
-				node.logger.Debug(err)
-			}
-			delete(seenEventsCount, req.TransactionHash.String())
-			continue
-		}
-
-		index := uint32(req.TransactionHash.Bytes()[31]) % node.GetParticipantsLength()
-		if seenEventsCount[req.TransactionHash.String()] > 2 {
-			index = (index + seenEventsCount[req.TransactionHash.String()]) % node.GetParticipantsLength()
-		}
-		seenEventsCount[req.TransactionHash.String()] += 1
-		producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
-		if producerPubKey == node.GetParticipant(index) {
-			node.logger.Info("[sendUnwrapRequests] this is me")
-			if len(req.Signature) == 0 {
-				node.logger.Debug("signature missing")
-				continue
-			}
-			err = node.networksManager.SendUnwrapRequest(req, node.producerKeyPair)
+			pub, err := ic.UnmarshalEd25519PublicKey(publicKeyBytes)
 			if err != nil {
-				node.logger.Debug(err)
+				return err
 			}
+			peerId, err := peer.IDFromPublicKey(pub)
+			if err != nil {
+				return err
+			}
+
+			node.config.TssConfig.PubKeyWhitelist[peerId.String()] = true
+			node.config.TssConfig.LocalPubKeys = append(node.config.TssConfig.LocalPubKeys, publicKey.(string))
 		}
-		// todo how much to wait between sends?
-		time.Sleep(5 * time.Second)
 	}
+	sort.Strings(node.config.TssConfig.LocalPubKeys)
+
+	return nil
 }

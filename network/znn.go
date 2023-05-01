@@ -247,6 +247,43 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 				}
 			}
 		}
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.RedeemUnwrapMethodName].Id()):
+		rC.logger.Info("found RedeemUnwrapMethodName")
+		param := new(definition.RedeemParam)
+		if err := definition.ABIBridge.UnpackMethod(param, definition.RedeemUnwrapMethodName, sendBlock.Data); err != nil {
+			return constants.ErrUnpackError
+		}
+
+		rC.logger.Debugf("redeem for tx: %s and log index: %d", param.TransactionHash.String(), param.LogIndex)
+		if rpcEvent, rpcErr := rC.GetUnwrapTokenRequestByHashAndLog(param.TransactionHash, param.LogIndex); rpcErr != nil {
+			if rpcErr == constants.ErrDataNonExistent {
+				rC.logger.Debug(rpcErr)
+				return nil
+			}
+			return rpcErr
+		} else if rpcEvent == nil {
+			// someone is trying to redeem a non existent event
+			rC.logger.Info("there is a redeem attempt for a non existing unwrap event")
+			return nil
+		} else {
+			if localEvent, err := rC.dbManager.EvmStorage(rpcEvent.ChainId).GetUnwrapRequestByHashAndLog(ecommon.Hash(rpcEvent.TransactionHash), rpcEvent.LogIndex); err != nil {
+				return err
+			} else if localEvent == nil {
+				if storageErr := rC.dbManager.EvmStorage(rpcEvent.ChainId).AddUnwrapRequest(common.ZnnUnwrapToOrchestatorUnwrap(rpcEvent)); storageErr != nil {
+					return storageErr
+				}
+			}
+			// if the event was redeemed we also set it locally
+			if rpcEvent.Redeemed == 1 {
+				if storageErr := rC.dbManager.EvmStorage(rpcEvent.ChainId).SetUnwrapRequestStatus(ecommon.Hash(rpcEvent.TransactionHash), rpcEvent.LogIndex, common.RedeemedStatus); storageErr != nil {
+					return storageErr
+				}
+			} else {
+				if storageErr := rC.dbManager.EvmStorage(rpcEvent.ChainId).SetUnwrapRequestStatus(ecommon.Hash(rpcEvent.TransactionHash), rpcEvent.LogIndex, common.PendingRedeemStatus); storageErr != nil {
+					return storageErr
+				}
+			}
+		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.UnwrapTokenMethodName].Id()):
 		rC.logger.Debug("found UnwrapTokenMethodName")
 		param := new(definition.UnwrapTokenParam)
@@ -329,49 +366,12 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 				}
 			}
 		}
-	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.RedeemUnwrapMethodName].Id()):
-		rC.logger.Info("found RedeemUnwrapMethodName")
-		param := new(definition.RedeemParam)
-		if err := definition.ABIBridge.UnpackMethod(param, definition.RedeemUnwrapMethodName, sendBlock.Data); err != nil {
-			return constants.ErrUnpackError
-		}
-
-		rC.logger.Debugf("redeem for tx: %s and log index: %d", param.TransactionHash.String(), param.LogIndex)
-		if rpcEvent, rpcErr := rC.GetUnwrapTokenRequestByHashAndLog(param.TransactionHash, param.LogIndex); rpcErr != nil {
-			if rpcErr == constants.ErrDataNonExistent {
-				rC.logger.Debug(rpcErr)
-				return nil
-			}
-			return rpcErr
-		} else if rpcEvent == nil {
-			// someone is trying to redeem a non existent event
-			rC.logger.Info("there is a redeem attempt for a non existing unwrap event")
-			return nil
-		} else {
-			if localEvent, err := rC.dbManager.EvmStorage(rpcEvent.ChainId).GetUnwrapRequestByHashAndLog(ecommon.Hash(rpcEvent.TransactionHash), rpcEvent.LogIndex); err != nil {
-				return err
-			} else if localEvent == nil {
-				if storageErr := rC.dbManager.EvmStorage(rpcEvent.ChainId).AddUnwrapRequest(common.ZnnUnwrapToOrchestatorUnwrap(rpcEvent)); storageErr != nil {
-					return storageErr
-				}
-			}
-			// if the event was redeemed we also set it locally
-			if rpcEvent.Redeemed == 1 {
-				if storageErr := rC.dbManager.EvmStorage(rpcEvent.ChainId).SetUnwrapRequestStatus(ecommon.Hash(rpcEvent.TransactionHash), rpcEvent.LogIndex, common.RedeemedStatus); storageErr != nil {
-					return storageErr
-				}
-			} else {
-				if storageErr := rC.dbManager.EvmStorage(rpcEvent.ChainId).SetUnwrapRequestStatus(ecommon.Hash(rpcEvent.TransactionHash), rpcEvent.LogIndex, common.PendingRedeemStatus); storageErr != nil {
-					return storageErr
-				}
-			}
-		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.RevokeUnwrapRequestMethodName].Id()):
-		rC.logger.Debug("found RevokeUnwrapRequestMethodName")
 		param := new(definition.RevokeUnwrapParam)
 		if err := definition.ABIBridge.UnpackMethod(param, definition.RevokeUnwrapRequestMethodName, sendBlock.Data); err != nil {
 			return constants.ErrUnpackError
 		}
+		common.AdministratorLogger.Info("RevokeUnwrapRequestMethodName TxHash: %s, LogIndex: %d", param.TransactionHash.String(), param.LogIndex)
 		if rpcEvent, rpcErr := rC.GetUnwrapTokenRequestByHashAndLog(param.TransactionHash, param.LogIndex); rpcErr != nil {
 			if rpcErr == constants.ErrDataNonExistent {
 				rC.logger.Debug(rpcErr)
@@ -399,109 +399,219 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			}
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetNetworkMethodName].Id()):
-		rC.logger.Debug("found AddNetworkMethodName")
-		if live {
-			param := new(definition.NetworkInfoParam)
-			if err := definition.ABIBridge.UnpackMethod(param, definition.SetNetworkMethodName, sendBlock.Data); err != nil {
-				return constants.ErrUnpackError
+		if !live {
+			break
+		}
+		param := new(definition.NetworkInfoParam)
+		if err := definition.ABIBridge.UnpackMethod(param, definition.SetNetworkMethodName, sendBlock.Data); err != nil {
+			return constants.ErrUnpackError
+		}
+		common.AdministratorLogger.Info("SetNetworkMethodName NetworkClass: %d, ChainId: %d, Name: %s, ContractAddress: %s, Metadata: %s",
+			param.NetworkClass, param.ChainId, param.Name, param.ContractAddress, param.Metadata)
+		network, err := rC.ZnnRpc().GetNetworkByClassAndId(param.NetworkClass, param.ChainId)
+		if err != nil {
+			return err
+		} else if network == nil {
+			// we don't do anything
+			rC.logger.Info("network not added")
+			return nil
+		}
+		rC.logger.Debugf("network found in go-zeonon: %s, %d, %d", network.Name, network.NetworkClass, network.Id)
+		// check locally that the network is added
+		switch param.NetworkClass {
+		case definition.EvmClass:
+			existent := rC.rpcManager.HasEvmNetwork(param.ChainId)
+			if existent {
+				rC.logger.Info("network already existent")
+				break
 			}
-			network, err := rC.ZnnRpc().GetNetworkByClassAndId(param.NetworkClass, param.ChainId)
+			rC.logger.Debug("network non existent")
+			configData, ok := rC.networksInfo[network.Name]
+			if ok == false {
+				rC.logger.Infof("network url non existent for network: %s chainId: %d", network.Name, network.Id)
+				rC.stopChan <- syscall.SIGKILL
+				return errors.New("network url non existent")
+			}
+			rC.logger.Info("configData: ", configData)
+			newEvmNetwork, err := NewEvmNetwork(network, rC.dbManager, rC.rpcManager, rC.state, rC.stopChan)
 			if err != nil {
+				rC.logger.Error(err)
+				rC.stopChan <- syscall.SIGKILL
 				return err
-			} else if network == nil {
-				// we don't do anything
-				rC.logger.Info("network not added")
-				return nil
 			}
-			rC.logger.Debugf("network found in go-zeonon: %s, %d, %d", network.Name, network.NetworkClass, network.Id)
-			// check locally that the network is added
+			err = rC.rpcManager.AddEvmClient(configData, network.Id, newEvmNetwork.NetworkName(), *newEvmNetwork.ContractAddress())
+			if err != nil {
+				rC.logger.Error(err)
+				rC.stopChan <- syscall.SIGKILL
+				return err
+			}
+			rC.logger.Debug("add evm client ok")
+			if err := newEvmNetwork.Start(); err != nil {
+				rC.logger.Error(err)
+				rC.stopChan <- syscall.SIGKILL
+				return err
+			}
+			rC.logger.Debug("network start ok")
+			rC.networkManager.AddEvmNetwork(newEvmNetwork)
+		}
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.RemoveNetworkMethodName].Id()):
+		if !live {
+			break
+		}
+		param := new(definition.NetworkInfoParam)
+		if err := definition.ABIBridge.UnpackMethod(param, definition.RemoveNetworkMethodName, sendBlock.Data); err != nil {
+			return constants.ErrUnpackError
+		}
+		common.AdministratorLogger.Info("RemoveNetworkMethodName NetworkClass: %d, ChainId: %d, Name: %s, ContractAddress: %s, Metadata: %s",
+			param.NetworkClass, param.ChainId, param.Name, param.ContractAddress, param.Metadata)
+		network, err := rC.ZnnRpc().GetNetworkByClassAndId(param.NetworkClass, param.ChainId)
+		if err != nil {
+			return err
+		} else if network == nil {
 			switch param.NetworkClass {
 			case definition.EvmClass:
 				existent := rC.rpcManager.HasEvmNetwork(param.ChainId)
-				if existent {
-					rC.logger.Info("network already existent")
+				if !existent {
+					rC.logger.Info("network already deleted")
 					break
 				}
-				rC.logger.Debug("network non existent")
-				configData, ok := rC.networksInfo[network.Name]
-				if ok == false {
-					rC.logger.Infof("network url non existent for network: %s chainId: %d", network.Name, network.Id)
-					rC.stopChan <- syscall.SIGKILL
-					return errors.New("network url non existent")
-				}
-				rC.logger.Info("configData: ", configData)
-				newEvmNetwork, err := NewEvmNetwork(network, rC.dbManager, rC.rpcManager, rC.state, rC.stopChan)
-				if err != nil {
-					rC.logger.Error(err)
-					rC.stopChan <- syscall.SIGKILL
-					return err
-				}
-				err = rC.rpcManager.AddEvmClient(configData, network.Id, newEvmNetwork.NetworkName(), *newEvmNetwork.ContractAddress())
-				if err != nil {
-					rC.logger.Error(err)
-					rC.stopChan <- syscall.SIGKILL
-					return err
-				}
-				rC.logger.Debug("add evm client ok")
-				if err := newEvmNetwork.Start(); err != nil {
-					rC.logger.Error(err)
-					rC.stopChan <- syscall.SIGKILL
-					return err
-				}
-				rC.logger.Debug("network start ok")
-				rC.networkManager.AddEvmNetwork(newEvmNetwork)
+				// todo integrate these two
+				rC.rpcManager.RemoveEvmClient(param.ChainId)
+				rC.networkManager.RemoveEvmNetwork(param.ChainId)
 			}
 		}
-	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.RemoveNetworkMethodName].Id()):
-		rC.logger.Debug("found RemoveNetworkMethodName")
-		if live {
-			param := new(definition.NetworkInfoParam)
-			if err := definition.ABIBridge.UnpackMethod(param, definition.RemoveNetworkMethodName, sendBlock.Data); err != nil {
-				return constants.ErrUnpackError
-			}
-			network, err := rC.ZnnRpc().GetNetworkByClassAndId(param.NetworkClass, param.ChainId)
-			if err != nil {
-				return err
-			} else if network == nil {
-				switch param.NetworkClass {
-				case definition.EvmClass:
-					existent := rC.rpcManager.HasEvmNetwork(param.ChainId)
-					if !existent {
-						rC.logger.Info("network already deleted")
-						break
-					}
-					// todo integrate these two
-					rC.rpcManager.RemoveEvmClient(param.ChainId)
-					rC.networkManager.RemoveEvmNetwork(param.ChainId)
-				}
-			}
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetTokenPairMethod].Id()):
+		if !live {
+			break
 		}
-	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetOrchestratorInfoMethodName].Id()):
-		rC.logger.Debug("found SetOrchestratorInfoMethodName")
-		if live {
-			orchestratorInfo, err := rC.GetOrchestratorInfo()
-			if err != nil {
-				rC.logger.Error(err)
-				return err
-			}
-			rC.windowSizeFallBack(orchestratorInfo.WindowSize)
-			rC.SetWindowSize(orchestratorInfo.WindowSize)
-			rC.SetKeyGenThreshold(orchestratorInfo.KeyGenThreshold)
-			rC.SetConfirmationsToFinality(orchestratorInfo.ConfirmationsToFinality)
-			rC.SetEstimatedMomentumTime(orchestratorInfo.EstimatedMomentumTime)
+		param := new(definition.TokenPairParam)
+		if err := definition.ABIBridge.UnpackMethod(param, definition.SetTokenPairMethod, sendBlock.Data); err != nil {
+			return constants.ErrUnpackError
 		}
+		common.AdministratorLogger.Infof("SetTokenPairMethod NetworkClass: %d, ChainId: %d, TokenStandard: %s, TokenAddress: %s, Bridgeable: %t, "+
+			"Redeemable: %t, Owned: %t, MinAmount: %s, FeePercentage: %d, RedeemDelay: %d, Metadata: %s",
+			param.NetworkClass, param.ChainId, param.TokenStandard.String(), param.TokenAddress, param.Bridgeable, param.Redeemable, param.Owned, param.MinAmount.String(),
+			param.FeePercentage, param.RedeemDelay, param.Metadata)
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.RemoveTokenPairMethodName].Id()):
+		if !live {
+			break
+		}
+		param := new(definition.TokenPairParam)
+		if err := definition.ABIBridge.UnpackMethod(param, definition.RemoveTokenPairMethodName, sendBlock.Data); err != nil {
+			return constants.ErrUnpackError
+		}
+		common.AdministratorLogger.Infof("RemoveTokenPairMethodName NetworkClass: %d, ChainId: %d, TokenStandard: %s, TokenAddress: %s",
+			param.NetworkClass, param.ChainId, param.TokenStandard.String(), param.TokenAddress)
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.HaltMethodName].Id()):
-		rC.logger.Debug("found HaltMethodName")
-		if live {
-			halted := rC.IsHalted()
-			if halted {
-				if err := rC.state.SetState(common.HaltedState); err != nil {
-					rC.logger.Error(err)
-					rC.stopChan <- syscall.SIGKILL
-					return err
-				}
+		if !live {
+			break
+		}
+		common.AdministratorLogger.Info("HaltMethodName")
+		halted := rC.IsHalted()
+		if halted {
+			if err := rC.state.SetState(common.HaltedState); err != nil {
+				rC.logger.Error(err)
+				rC.stopChan <- syscall.SIGKILL
+				return err
 			}
 		}
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.NominateGuardiansMethodName].Id()):
+		if !live {
+			break
+		}
+		guardians := new([]types.Address)
+		if err := definition.ABIBridge.UnpackMethod(guardians, definition.NominateGuardiansMethodName, sendBlock.Data); err != nil {
+			return constants.ErrUnpackError
+		}
+		for idx, guardian := range *guardians {
+			common.AdministratorLogger.Infof("NominateGuardiansMethodName Idx: %d, Guardian: %s", idx, guardian.String())
+		}
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.UnhaltMethodName].Id()):
+		if !live {
+			break
+		}
+		common.AdministratorLogger.Info("UnhaltMethodName")
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.ProposeAdministratorMethodName].Id()):
+		if !live {
+			break
+		}
+		address := new(types.Address)
+		if err := definition.ABIBridge.UnpackMethod(address, definition.ProposeAdministratorMethodName, sendBlock.Data); err != nil {
+			return constants.ErrUnpackError
+		}
+		common.AdministratorLogger.Infof("ProposeAdministratorMethodName %s", address.String())
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.EmergencyMethodName].Id()):
+		if !live {
+			break
+		}
+		common.AdministratorLogger.Info("EmergencyMethodName")
+		if err := rC.state.SetState(common.EmergencyState); err != nil {
+			rC.logger.Error(err)
+			rC.stopChan <- syscall.SIGKILL
+			return err
+		}
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.ChangeTssECDSAPubKeyMethodName].Id()):
+		if !live {
+			break
+		}
+		param := new(definition.ChangeECDSAPubKeyParam)
+		if err := definition.ABIBridge.UnpackMethod(param, definition.ChangeTssECDSAPubKeyMethodName, sendBlock.Data); err != nil {
+			return constants.ErrUnpackError
+		}
+		common.AdministratorLogger.Infof("ChangeTssECDSAPubKeyMethodName PubKey: %s, OldSig: %s, NewSig: %s", param.PubKey, param.OldPubKeySignature, param.NewPubKeySignature)
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.ChangeAdministratorMethodName].Id()):
+		if !live {
+			break
+		}
+		address := new(types.Address)
+		if err := definition.ABIBridge.UnpackMethod(address, definition.ChangeAdministratorMethodName, sendBlock.Data); err != nil {
+			return constants.ErrUnpackError
+		}
+		common.AdministratorLogger.Infof("ChangeAdministratorMethodName %s", address.String())
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetAllowKeygenMethodName].Id()):
+		if !live {
+			break
+		}
+		var value bool
+		if err := definition.ABIBridge.UnpackMethod(&value, definition.SetAllowKeygenMethodName, sendBlock.Data); err != nil {
+			return constants.ErrUnpackError
+		}
+		common.AdministratorLogger.Infof("SetAllowKeygenMethodName %t", value)
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetOrchestratorInfoMethodName].Id()):
+		if !live {
+			break
+		}
+		common.AdministratorLogger.Info("SetOrchestratorInfoMethodName")
+		rC.logger.Debug("found SetOrchestratorInfoMethodName")
+		orchestratorInfo, err := rC.GetOrchestratorInfo()
+		if err != nil {
+			rC.logger.Error(err)
+			return err
+		}
+		rC.windowSizeFallBack(orchestratorInfo.WindowSize)
+		rC.SetWindowSize(orchestratorInfo.WindowSize)
+		rC.SetKeyGenThreshold(orchestratorInfo.KeyGenThreshold)
+		rC.SetConfirmationsToFinality(orchestratorInfo.ConfirmationsToFinality)
+		rC.SetEstimatedMomentumTime(orchestratorInfo.EstimatedMomentumTime)
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetBridgeMetadataMethodName].Id()):
+		if !live {
+			break
+		}
+		var param string
+		if err := definition.ABIBridge.UnpackMethod(&param, definition.SetBridgeMetadataMethodName, sendBlock.Data); err != nil {
+			return constants.ErrUnpackError
+		}
+		common.AdministratorLogger.Infof("SetBridgeMetadataMethodName %s", param)
+	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetNetworkMetadataMethodName].Id()):
+		if !live {
+			break
+		}
+		param := new(definition.SetNetworkMetadataParam)
+		if err := definition.ABIBridge.UnpackMethod(param, definition.SetNetworkMetadataMethodName, sendBlock.Data); err != nil {
+			return constants.ErrUnpackError
+		}
+		common.AdministratorLogger.Infof("SetNetworkMetadataMethodName NetworkClass: %d, ChainId: %d, Metadata: %s",
+			param.NetworkClass, param.ChainId, param.Metadata)
 	}
 
 	return rC.eventsStore().SetLastUpdateHeight(receiveBlockHeight)

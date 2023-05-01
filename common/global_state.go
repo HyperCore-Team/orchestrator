@@ -18,6 +18,7 @@ type GlobalState struct {
 	frontierMomentumHeight uint64
 	frontierMomSemaphore   *semaphore.Weighted
 	lastCeremony           uint64
+	isAdministratorActive  bool
 }
 
 func NewGlobalState(state *uint8) *GlobalState {
@@ -27,6 +28,7 @@ func NewGlobalState(state *uint8) *GlobalState {
 		frontierMomentumHeight: 0,
 		stateSemaphore:         semaphore.NewWeighted(1),
 		frontierMomSemaphore:   semaphore.NewWeighted(1),
+		isAdministratorActive:  false,
 	}
 }
 
@@ -75,4 +77,13 @@ func (gs *GlobalState) SetLastCeremony(ceremony uint64) {
 
 func (gs *GlobalState) GetLastCeremony() uint64 {
 	return gs.lastCeremony
+}
+
+func (gs *GlobalState) SetIsAdministratorActive(value bool) {
+	gs.isAdministratorActive = value
+	GlobalLogger.Infof("SetAdministratorActive to : %t", value)
+}
+
+func (gs *GlobalState) GetIsAdministratorActive() bool {
+	return gs.isAdministratorActive
 }

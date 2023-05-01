@@ -3,8 +3,8 @@ package config
 import (
 	"encoding/json"
 	gotss "gitlab.com/thorchain/tss/go-tss/common"
-	"io/ioutil"
 	"orchestrator/common"
+	"os"
 	"path/filepath"
 )
 
@@ -64,7 +64,7 @@ func WriteConfig(cfg Config) error {
 	if err != nil {
 		return err
 	}
-	if err = ioutil.WriteFile(configPath, configBytes, 0644); err != nil {
+	if err = os.WriteFile(configPath, configBytes, 0644); err != nil {
 		return err
 	}
 	return nil

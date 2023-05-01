@@ -301,9 +301,12 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			}
 		}
 	case common.RevokedRedeemSigHash.Hex():
-		redeem, errParse := eN.EvmRpc().Bridge().ParseRedeemed(log)
+		redeem, errParse := eN.EvmRpc().Bridge().ParseRevokedRedeem(log)
 		if errParse != nil {
 			return errParse
+		}
+		if live {
+			common.AdministratorLogger.Infof("RevokedRedeemSigHash %s", redeem.Nonce.String())
 		}
 		id, err := types.BytesToHash(redeem.Nonce.Bytes())
 		if err != nil {
@@ -320,11 +323,130 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 		}
 	case common.HaltedSigHash.Hex():
 		if live {
+			common.AdministratorLogger.Info("HaltedSigHash")
 			if err := eN.state.SetState(common.HaltedState); err != nil {
 				eN.logger.Debug(err)
 				eN.stopChan <- syscall.SIGKILL
 				return err
 			}
+		}
+	case common.UnhaltedSigHash.Hex():
+		if live {
+			common.AdministratorLogger.Info("UnhaltedSigHash")
+		}
+	case common.PendingTokenInfoSigHash.Hex():
+		if live {
+			pendingTokenInfo, errParse := eN.EvmRpc().Bridge().ParsePendingTokenInfo(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Infof("PendingTokenInfoSigHash %s", pendingTokenInfo.Token.String())
+		}
+	case common.SetTokenInfoSigHash.Hex():
+		if live {
+			setTokenInfo, errParse := eN.EvmRpc().Bridge().ParseSetTokenInfo(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Infof("SetTokenInfoSigHash %s", setTokenInfo.Token.String())
+		}
+	case common.PendingAdministratorSigHash.Hex():
+		if live {
+			pendingAdministrator, errParse := eN.EvmRpc().Bridge().ParsePendingAdministrator(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Infof("PendingAdministratorSigHash %s", pendingAdministrator.NewAdministrator.String())
+		}
+	case common.SetAdministratorSigHash.Hex():
+		if live {
+			setAdministrator, errParse := eN.EvmRpc().Bridge().ParseSetAdministrator(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Infof("SetAdministratorSigHash NewAdministrator: %s, OldAdministrator: %s",
+				setAdministrator.NewAdministrator.String(), setAdministrator.OldAdministrator.String())
+		}
+	case common.PendingTssSigHash.Hex():
+		if live {
+			pendingTss, errParse := eN.EvmRpc().Bridge().ParsePendingTss(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Infof("PendingTssSigHash %s", pendingTss.NewTss.String())
+		}
+	case common.SetTssSigHash.Hex():
+		if live {
+			setTss, errParse := eN.EvmRpc().Bridge().ParseSetTss(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Infof("SetTssSigHash %s", setTss.NewTss.String())
+		}
+	case common.PendingGuardiansSigHash.Hex():
+		if live {
+			_, errParse := eN.EvmRpc().Bridge().ParsePendingGuardians(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Info("PendingGuardiansSigHash")
+		}
+	case common.SetGuardiansSigHash.Hex():
+		if live {
+			_, errParse := eN.EvmRpc().Bridge().ParseSetGuardians(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Info("SetGuardiansSigHash")
+		}
+
+	case common.SetAdministratorDelaySigHash.Hex():
+		if live {
+			delay, errParse := eN.EvmRpc().Bridge().ParseSetAdministratorDelay(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Infof("SetAdministratorDelay %s", delay.Arg0.String())
+		}
+	case common.SetSoftDelaySigHash.Hex():
+		if live {
+			delay, errParse := eN.EvmRpc().Bridge().ParseSetSoftDelay(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Info("SetSoftDelay %s", delay.Arg0.String())
+		}
+	case common.SetUnhaltDurationSigHash.Hex():
+		if live {
+			duration, errParse := eN.EvmRpc().Bridge().ParseSetUnhaltDuration(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Infof("SetUnhaltDuration %s", duration.Arg0.String())
+		}
+	case common.SetEstimatedBlockTimeSigHash.Hex():
+		if live {
+			blockTime, errParse := eN.EvmRpc().Bridge().ParseSetEstimatedBlockTime(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Infof("SetEstimatedBlockTime %d", blockTime.Arg0)
+		}
+	case common.SetAllowKeyGenSigHash.Hex():
+		if live {
+			allowKeyGen, errParse := eN.EvmRpc().Bridge().ParseSetAllowKeyGen(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Infof("SetAllowKeyGen %t", allowKeyGen.Arg0)
+		}
+	case common.SetConfirmationsToFinalitySigHash.Hex():
+		if live {
+			confirmations, errParse := eN.EvmRpc().Bridge().ParseSetConfirmationsToFinality(log)
+			if errParse != nil {
+				return errParse
+			}
+			common.AdministratorLogger.Infof("SetConfirmationsToFinality %d", confirmations.Arg0)
 		}
 	}
 	if err := eN.eventsStore().SetLastUpdateHeight(log.BlockNumber); err != nil {
