@@ -421,7 +421,7 @@ func (m *NetworksManager) SendHaltEvmAdministrator(idx int, ecdsaPrivateKey *ecd
 		return true, nil
 	}
 
-	tx, err := network.GetHaltEvmTx([]byte{}, evmAddress)
+	tx, err := network.GetHaltEvmTx([]byte("0x"), evmAddress)
 	if err != nil {
 		return false, err
 	}

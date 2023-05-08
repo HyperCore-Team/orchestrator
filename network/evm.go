@@ -324,10 +324,19 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 	case common.HaltedSigHash.Hex():
 		if live {
 			common.AdministratorLogger.Info("HaltedSigHash")
-			if err := eN.state.SetState(common.HaltedState); err != nil {
+			currentState, err := eN.state.GetState()
+			if err != nil {
 				eN.logger.Debug(err)
 				eN.stopChan <- syscall.SIGKILL
 				return err
+			}
+			// if the node is in emergency, it will set the state to halted after all txs, we don't need to do it after we see one
+			if currentState != common.EmergencyState {
+				if err := eN.state.SetState(common.HaltedState); err != nil {
+					eN.logger.Debug(err)
+					eN.stopChan <- syscall.SIGKILL
+					return err
+				}
 			}
 		}
 	case common.UnhaltedSigHash.Hex():

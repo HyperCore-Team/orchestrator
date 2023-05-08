@@ -143,19 +143,17 @@ func (rC *znnNetwork) Sync() error {
 				if accBlock.BlockType == nom.BlockTypeContractReceive {
 					rC.logger.Debug("found receive block")
 					for {
-						rC.logger.Debugf("confDetail is nil: %v", accBlock.ConfirmationDetail == nil)
+						rC.logger.Debugf("confDetail is nil: %v for %s", accBlock.ConfirmationDetail == nil, accBlock.Hash.String())
 						accBlock, errRpc = rC.ZnnRpc().GetAccountBlockByHash(accBlock.Hash)
 						if errRpc != nil {
 							rC.logger.Debug(err)
-							time.Sleep(5 * time.Second)
-							continue
 						} else if accBlock == nil {
-							time.Sleep(5 * time.Second)
-							continue
-						}
-						if accBlock.ConfirmationDetail != nil {
+
+						} else if accBlock.ConfirmationDetail != nil {
 							break
 						}
+						time.Sleep(5 * time.Second)
+						continue
 					}
 
 					if sendBlock, errRpc := rC.ZnnRpc().GetAccountBlockByHash(accBlock.FromBlockHash); err != nil {
@@ -507,12 +505,21 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			break
 		}
 		common.AdministratorLogger.Info("HaltMethodName")
-		halted := rC.IsHalted()
-		if halted {
-			if err := rC.state.SetState(common.HaltedState); err != nil {
-				rC.logger.Error(err)
-				rC.stopChan <- syscall.SIGKILL
-				return err
+		currentState, err := rC.state.GetState()
+		if err != nil {
+			rC.logger.Debug(err)
+			rC.stopChan <- syscall.SIGKILL
+			return err
+		}
+		// if the node is in emergency, it will set the state to halted after all txs, we don't need to do it after we see one
+		if currentState != common.EmergencyState {
+			halted := rC.IsHalted()
+			if halted {
+				if err := rC.state.SetState(common.HaltedState); err != nil {
+					rC.logger.Error(err)
+					rC.stopChan <- syscall.SIGKILL
+					return err
+				}
 			}
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.NominateGuardiansMethodName].Id()):

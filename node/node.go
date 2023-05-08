@@ -221,6 +221,8 @@ func (node *Node) processSignatures() {
 				continue
 			}
 			node.haltNetworksAdministrator()
+			time.Sleep(5 * time.Second)
+			continue
 		}
 		switch currentState {
 		case common.KeyGenState:
@@ -533,6 +535,11 @@ func (node *Node) processSignatures() {
 				}
 			}
 		case common.EmergencyState:
+			if node.state.GetIsAdministratorActive() {
+				node.haltNetworksAdministrator()
+				continue
+			}
+
 			// todo when to exit this state in case we don't halt the network after some time
 			node.logger.Debug("Process in emergency state")
 			time.Sleep(5 * time.Second)
@@ -969,14 +976,16 @@ func (node *Node) haltNetworksAdministrator() {
 	go func() {
 		defer senders.Done()
 		for {
+			if node.networksManager.Znn().IsHalted() {
+				node.logger.Info("ZNN Network is halted")
+				break
+			}
+
 			errZnn := node.networksManager.HaltZnn("", node.producerKeyPair)
 			if errZnn != nil {
 				node.logger.Info(errZnn.Error())
 			}
 			time.Sleep(20 * time.Second)
-			if node.networksManager.Znn().IsHalted() {
-				break
-			}
 		}
 	}()
 
@@ -999,6 +1008,9 @@ func (node *Node) haltNetworksAdministrator() {
 		}(idx)
 	}
 	senders.Wait()
+	if err := node.state.SetState(common.HaltedState); err != nil {
+		node.logger.Debug(err)
+	}
 }
 
 // Getters
