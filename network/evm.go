@@ -232,7 +232,7 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 
 		if rpcEvent, rpcErr := eN.rpcManager.Znn().GetWrapTokenRequestById(id); rpcErr != nil {
 			eN.logger.Debugf("call: eN.rpcManager.Znn().GetWrapTokenRequestById(id) error: %s", rpcErr.Error())
-			if rpcErr == constants.ErrDataNonExistent {
+			if rpcErr.Error() == constants.ErrDataNonExistent.Error() {
 				if live {
 					if stateErr := eN.state.SetState(common.EmergencyState); stateErr != nil {
 						eN.logger.Info("sent sigkill from here 4")

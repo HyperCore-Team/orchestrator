@@ -61,7 +61,7 @@ func DefaultDataDir() string {
 }
 
 func ZnnWrapToOrchestratorWrap(rpcEvent *definition.WrapTokenRequest) events.WrapRequestZnn {
-	return events.WrapRequestZnn{
+	ans := events.WrapRequestZnn{
 		NetworkClass:  rpcEvent.NetworkClass,
 		ChainId:       rpcEvent.ChainId,
 		Id:            rpcEvent.Id,
@@ -73,6 +73,10 @@ func ZnnWrapToOrchestratorWrap(rpcEvent *definition.WrapTokenRequest) events.Wra
 		RedeemStatus:  UnredeemedStatus,
 		SentSignature: false,
 	}
+	if len(rpcEvent.Signature) > 0 {
+		ans.SentSignature = true
+	}
+	return ans
 }
 
 func ZnnUnwrapToOrchestatorUnwrap(event *definition.UnwrapTokenRequest) events.UnwrapRequestEvm {

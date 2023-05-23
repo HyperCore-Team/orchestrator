@@ -142,9 +142,10 @@ func (rC *znnNetwork) Sync() error {
 			for _, accBlock := range accountBlockList.List {
 				if accBlock.BlockType == nom.BlockTypeContractReceive {
 					rC.logger.Debug("found receive block")
+					hash := accBlock.Hash
 					for {
-						rC.logger.Debugf("confDetail is nil: %v for %s", accBlock.ConfirmationDetail == nil, accBlock.Hash.String())
-						accBlock, errRpc = rC.ZnnRpc().GetAccountBlockByHash(accBlock.Hash)
+						rC.logger.Debugf("confDetail is nil: %v for %s", accBlock.ConfirmationDetail == nil, hash.String())
+						accBlock, errRpc = rC.ZnnRpc().GetAccountBlockByHash(hash)
 						if errRpc != nil {
 							rC.logger.Debug(err)
 						} else if accBlock == nil {
@@ -234,7 +235,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			if localRequest, err := rC.eventsStore().GetWrapRequestById(param.Id); err != nil {
 				return err
 			} else if localRequest == nil {
-				rC.logger.Info("request does not exists online, will add it")
+				rC.logger.Info("request does not exist locally, will add it")
 				if err := rC.AddWrapEvent(request); err != nil {
 					return err
 				}
@@ -254,7 +255,8 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 
 		rC.logger.Debugf("redeem for tx: %s and log index: %d", param.TransactionHash.String(), param.LogIndex)
 		if rpcEvent, rpcErr := rC.GetUnwrapTokenRequestByHashAndLog(param.TransactionHash, param.LogIndex); rpcErr != nil {
-			if rpcErr == constants.ErrDataNonExistent {
+			if rpcErr.Error() == constants.ErrDataNonExistent.Error() {
+				rC.logger.Info("there is a redeem attempt for a non existing unwrap event")
 				rC.logger.Debug(rpcErr)
 				return nil
 			}
@@ -300,7 +302,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		rC.logger.Info("param.Signature: ", param.Signature)
 
 		if rpcZnnEvent, rpcZnnErr := rC.GetUnwrapTokenRequestByHashAndLog(param.TransactionHash, param.LogIndex); rpcZnnErr != nil {
-			if rpcZnnErr == constants.ErrDataNonExistent {
+			if rpcZnnErr.Error() == constants.ErrDataNonExistent.Error() {
 				rC.logger.Debug(constants.ErrDataNonExistent)
 				return nil
 			}
@@ -371,7 +373,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		}
 		common.AdministratorLogger.Info("RevokeUnwrapRequestMethodName TxHash: %s, LogIndex: %d", param.TransactionHash.String(), param.LogIndex)
 		if rpcEvent, rpcErr := rC.GetUnwrapTokenRequestByHashAndLog(param.TransactionHash, param.LogIndex); rpcErr != nil {
-			if rpcErr == constants.ErrDataNonExistent {
+			if rpcErr.Error() == constants.ErrDataNonExistent.Error() {
 				rC.logger.Debug(rpcErr)
 				return nil
 			}
