@@ -585,7 +585,23 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		if err := definition.ABIBridge.UnpackMethod(&value, definition.SetAllowKeygenMethodName, sendBlock.Data); err != nil {
 			return constants.ErrUnpackError
 		}
+
 		common.AdministratorLogger.Infof("SetAllowKeygenMethodName %t", value)
+		if value == false {
+			currentState, err := rC.state.GetState()
+			if err != nil {
+				rC.logger.Debug(err)
+				rC.stopChan <- syscall.SIGKILL
+				return err
+			}
+			if currentState == common.KeyGenState {
+				if err := rC.state.SetState(common.LiveState); err != nil {
+					rC.logger.Error(err)
+					rC.stopChan <- syscall.SIGKILL
+					return err
+				}
+			}
+		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetOrchestratorInfoMethodName].Id()):
 		if !live {
 			break
