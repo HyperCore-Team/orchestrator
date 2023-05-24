@@ -55,7 +55,7 @@ func NewTssManager(conf config.TssManagerConfig, privateKey string) (*TssManager
 		return nil, err
 	}
 	privB, _ := priv.Raw()
-	common.GlobalLogger.Infof("ic.priv: %s\b", base64.StdEncoding.EncodeToString(privB))
+	//common.GlobalLogger.Infof("ic.priv: %s\b", base64.StdEncoding.EncodeToString(privB))
 	pub, err := ic.UnmarshalEd25519PublicKey(priKey.PubKey().Bytes())
 	if err != nil {
 		return nil, err
