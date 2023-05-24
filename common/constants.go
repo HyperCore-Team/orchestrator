@@ -30,7 +30,7 @@ const (
 	RevokedStatus uint32 = 3
 
 	// ZNN
-	ZenonNetworkName         = "znn"
+	ZenonNetworkName         = "Zenon"
 	EstimatedBlockTimeZnn    = 10 * time.Second
 	ConfirmationsRequiredZnn = 2
 	WrapRequestsProcessSize  = 30 // sign 30 events at most

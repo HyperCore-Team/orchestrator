@@ -13,7 +13,7 @@ var DefaultNodeConfig = config.Config{
 		common.ZenonNetworkName: {
 			Urls: []string{"ws://127.0.0.1:35998"},
 		},
-		"bsc": {
+		"BSC": {
 			Urls:            []string{"ws://127.0.0.1:8545"},
 			FilterQuerySize: 2000,
 		},
