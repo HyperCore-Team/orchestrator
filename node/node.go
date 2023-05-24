@@ -286,13 +286,9 @@ func (node *Node) processSignatures() {
 				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
 				blamedNodes := uint32(len(keyGenResponse.Blame.BlameNodes))
 				node.logger.Infof("Blamed nodes value: %d", blamedNodes)
-				if keyGenThreshold > node.getParticipantsLength()-blamedNodes {
-					// if no error was received, we iterate through the blamed node and remove them from the participating pubKeys list
-					for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
-						node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
-						node.removeParticipant(blamedNode.Pubkey)
-					}
 
+				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
+				if keyGenThreshold > node.getParticipantsLength()-blamedNodes {
 					if keyGenResponse.Status == tcommon.Success {
 						if err := common.DeletePubKeyFile(node.config.TssConfig.BaseDir, keyGenResponse.PubKey); err != nil {
 							node.logger.Error(err)
@@ -302,18 +298,21 @@ func (node *Node) processSignatures() {
 					continue
 				}
 
+				for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
+					node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
+					node.removeParticipant(blamedNode.Pubkey)
+				}
+
 				// key gen was generated
 				if keyGenResponse.Status == tcommon.Success {
 					node.logger.Infof("Generated key: %s", keyGenResponse.PubKey)
-					for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
-						node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
-						node.removeParticipant(blamedNode.Pubkey)
-					}
 					break
 				}
 			}
 			// there was en error while trying to keyGen, we retry
 			if keyGenResponse == nil {
+				continue
+			} else if keyGenResponse.Status != tcommon.Success {
 				continue
 			}
 
