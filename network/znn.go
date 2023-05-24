@@ -732,6 +732,10 @@ func (rC *znnNetwork) Halt(signature string, keyPair *wallet.KeyPair) error {
 
 /// Rpc Calls
 
+func (rC *znnNetwork) GetFrontierMomentum() (*api.Momentum, error) {
+	return rC.ZnnRpc().GetFrontierMomentum()
+}
+
 func (rC *znnNetwork) GetUnsignedWrapRequestsRpc(pageIndex, pageSize uint32) (*embedded.WrapTokenRequestList, error) {
 	return rC.ZnnRpc().GetAllUnsignedWrapTokenRequests(pageIndex, pageSize)
 }

@@ -135,26 +135,38 @@ func (node *Node) Start() error {
 	node.lock.Lock()
 	defer node.lock.Unlock()
 
-	//  Don't start tss if the administrator runs the orchestrator
-	if !node.state.GetIsAdministratorActive() {
-		var tssErr error
-		// todo create it after the networks start
-		node.tssManager, tssErr = tss.NewTssManager(node.config.TssConfig, base64.StdEncoding.EncodeToString(node.producerKeyPair.Private))
-		if tssErr != nil {
-			return tssErr
-		}
-	}
-
-	if frMomRpc, err := node.networksManager.Znn().ZnnRpc().GetFrontierMomentum(); err != nil {
-		return err
+	frMom, frMomErr := node.networksManager.Znn().GetFrontierMomentum()
+	if frMomErr != nil {
+		return frMomErr
+	} else if frMom == nil {
+		return errors.New("frontier momentum is nil")
 	} else {
-		if errState := node.state.SetFrontierMomentum(frMomRpc.Height); errState != nil {
+		if errState := node.state.SetFrontierMomentum(frMom.Height); errState != nil {
 			return errState
 		}
 	}
 
 	if err := node.networksManager.Start(); err != nil {
 		return err
+	}
+
+	//  Don't start tss if the administrator runs the orchestrator
+	if !node.state.GetIsAdministratorActive() {
+		var tssErr error
+		node.tssManager, tssErr = tss.NewTssManager(node.config.TssConfig, base64.StdEncoding.EncodeToString(node.producerKeyPair.Private))
+		if tssErr != nil {
+			return tssErr
+		}
+	}
+
+	orchestratorInfo, err := node.networksManager.Znn().GetOrchestratorInfo()
+	if err != nil {
+		return err
+	} else if bridgeErr := network.CheckOrchestratorInfoInitialized(orchestratorInfo); bridgeErr != nil {
+		return bridgeErr
+	} else {
+		// early call to set the timeouts before we start signing
+		node.SetKeySignTimeouts(orchestratorInfo.WindowSize)
 	}
 
 	currentState, stateErr := node.state.GetState()
@@ -1031,21 +1043,23 @@ func (node *Node) getParticipant(index uint32) string {
 // Setters
 
 func (node *Node) SetKeySignTimeouts(windowSize uint64) {
-	node.logger.Info("in SetKeySignTimeouts\nold:")
-	node.logger.Info("node.config.TssConfig.BaseConfig.", zap.Duration("KeySignTimeout: ", node.config.TssConfig.BaseConfig.KeySignTimeout))
-	node.logger.Info("node.config.TssConfig.BaseConfig", zap.Duration("PartyTimeout: ", node.config.TssConfig.BaseConfig.PartyTimeout))
-	node.logger.Info("node.tssManager.Config", zap.Duration("KeySignTimeout: ", node.tssManager.Config().KeySignTimeout))
-	node.logger.Info("node.tssManager.Config()", zap.Duration("PartyTimeout: ", node.tssManager.Config().PartyTimeout))
-	keySignTimeout := time.Duration(windowSize * 10 * 1e9)
-	partyTimeout := keySignTimeout * 2 / 3
-	node.config.TssConfig.BaseConfig.KeySignTimeout = keySignTimeout
-	node.config.TssConfig.BaseConfig.PartyTimeout = partyTimeout
-	node.tssManager.SetKeySignTimeouts(keySignTimeout, partyTimeout)
-	node.logger.Info("new: ")
-	node.logger.Info("node.config.TssConfig.BaseConfig.", zap.Duration("KeySignTimeout: ", node.config.TssConfig.BaseConfig.KeySignTimeout))
-	node.logger.Info("node.config.TssConfig.BaseConfig", zap.Duration("PartyTimeout: ", node.config.TssConfig.BaseConfig.PartyTimeout))
-	node.logger.Info("node.tssManager.Config", zap.Duration("KeySignTimeout: ", node.tssManager.Config().KeySignTimeout))
-	node.logger.Info("node.tssManager.Config()", zap.Duration("PartyTimeout: ", node.tssManager.Config().PartyTimeout))
+	if node.tssManager != nil {
+		node.logger.Info("in SetKeySignTimeouts:")
+		node.logger.Info("node.config.TssConfig.BaseConfig.", zap.Duration("KeySignTimeout: ", node.config.TssConfig.BaseConfig.KeySignTimeout))
+		node.logger.Info("node.config.TssConfig.BaseConfig", zap.Duration("PartyTimeout: ", node.config.TssConfig.BaseConfig.PartyTimeout))
+		node.logger.Info("node.tssManager.Config", zap.Duration("KeySignTimeout: ", node.tssManager.Config().KeySignTimeout))
+		node.logger.Info("node.tssManager.Config()", zap.Duration("PartyTimeout: ", node.tssManager.Config().PartyTimeout))
+		keySignTimeout := time.Duration(windowSize * 10 * 1e9)
+		partyTimeout := keySignTimeout * 2 / 3
+		node.config.TssConfig.BaseConfig.KeySignTimeout = keySignTimeout
+		node.config.TssConfig.BaseConfig.PartyTimeout = partyTimeout
+		node.tssManager.SetKeySignTimeouts(keySignTimeout, partyTimeout)
+		node.logger.Info("new: ")
+		node.logger.Info("node.config.TssConfig.BaseConfig.", zap.Duration("KeySignTimeout: ", node.config.TssConfig.BaseConfig.KeySignTimeout))
+		node.logger.Info("node.config.TssConfig.BaseConfig", zap.Duration("PartyTimeout: ", node.config.TssConfig.BaseConfig.PartyTimeout))
+		node.logger.Info("node.tssManager.Config", zap.Duration("KeySignTimeout: ", node.tssManager.Config().KeySignTimeout))
+		node.logger.Info("node.tssManager.Config()", zap.Duration("PartyTimeout: ", node.tssManager.Config().PartyTimeout))
+	}
 }
 
 // Utils
