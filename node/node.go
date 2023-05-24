@@ -258,6 +258,17 @@ func (node *Node) processSignatures() {
 
 			node.logger.Debug("node.getParticipantsLength(): ", node.getParticipantsLength())
 			for node.networksManager.Znn().KeyGenThreshold() <= node.getParticipantsLength() {
+				state, err := node.state.GetState()
+				if err != nil {
+					node.logger.Debug("currentState error in processSig")
+					node.logger.Debug(err.Error())
+					time.Sleep(5 * time.Second)
+					continue
+				}
+				if state != common.KeyGenState {
+					keyGenResponse = nil
+					break
+				}
 				keyGenThreshold := node.networksManager.Znn().KeyGenThreshold()
 				node.logger.Debug("keyGenThreshold: ", keyGenThreshold)
 				node.logger.Info("Started ECDSA Keygen")
