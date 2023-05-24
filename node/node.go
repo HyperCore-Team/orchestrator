@@ -279,7 +279,7 @@ func (node *Node) processSignatures() {
 					// if no error was received, we iterate through the blamed node and remove them from the participating pubKeys list
 					for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
 						node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
-						//node.removeParticipant(blamedNode.Pubkey)
+						node.removeParticipant(blamedNode.Pubkey)
 					}
 
 					if keyGenResponse.Status == tcommon.Success {
