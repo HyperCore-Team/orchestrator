@@ -346,7 +346,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 						}
 					}
 				}
-				rC.logger.Info("found: %b", found)
+				rC.logger.Infof("found: %b", found)
 				if !found && live {
 					if stateErr := rC.state.SetState(common.EmergencyState); stateErr != nil {
 						rC.logger.Info(stateErr)

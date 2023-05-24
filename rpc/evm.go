@@ -132,7 +132,7 @@ func (r *EvmRpc) SubscribeToLogs() (ethereum.Subscription, chan etypes.Log, erro
 	var err error
 	r.logSub, err = r.rpcClient.SubscribeFilterLogs(context.Background(), r.filterQuery, r.logChan)
 	if err != nil {
-		r.logger.Error("Error after subscribe: %s", err.Error())
+		r.logger.Errorf("Error after subscribe: %s", err.Error())
 		return nil, nil, err
 	}
 	return r.logSub, r.logChan, nil

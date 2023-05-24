@@ -770,11 +770,11 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 			continue
 		}
 
-		if err = node.networksManager.SetWrapEventSignature(wrapRequestsIds[idx].Id, fullSignatureStr); err != nil {
+		if err = node.networksManager.SetWrapEventSignature(wrapRequestsIds[msgsIndexes[sig.Msg]].Id, fullSignatureStr); err != nil {
 			node.logger.Debug(err)
 			continue
 		}
-		node.logger.Infof("%d. msg: %s sig: %s\n", idx, base64.StdEncoding.EncodeToString(messagesToSign[idx]), sig.Signature)
+		node.logger.Infof("%d. msg: %s sig: %s\n", msgsIndexes[sig.Msg], base64.StdEncoding.EncodeToString(messagesToSign[idx]), sig.Signature)
 	}
 	return nil, true
 }
@@ -831,9 +831,9 @@ func (node *Node) processSignaturesUnwrap() (error, bool) {
 		}
 		recoverID, err := base64.StdEncoding.DecodeString(sig.RecoveryID)
 		fullSignature := append(signature, recoverID...)
-		requests[idx].Signature = base64.StdEncoding.EncodeToString(fullSignature)
+		requests[msgsIndexes[sig.Msg]].Signature = base64.StdEncoding.EncodeToString(fullSignature)
 
-		ok, err := implementation.CheckECDSASignature(messagesToSign[idx], node.config.TssConfig.DecompressedPublicKey, requests[idx].Signature)
+		ok, err := implementation.CheckECDSASignature(messagesToSign[idx], node.config.TssConfig.DecompressedPublicKey, requests[msgsIndexes[sig.Msg]].Signature)
 		if err != nil {
 			node.logger.Debug("Error checking ecdsa signature for unwrap: %s", err.Error())
 			continue
@@ -842,12 +842,12 @@ func (node *Node) processSignaturesUnwrap() (error, bool) {
 			continue
 		}
 
-		if err = node.networksManager.AddEvmUnwrapRequest(*requests[idx]); err != nil {
+		if err = node.networksManager.AddEvmUnwrapRequest(*requests[msgsIndexes[sig.Msg]]); err != nil {
 			node.logger.Debug(err.Error())
 			continue
 		}
 		node.logger.Debugf("\n%d. msg: %s\n\n", idx, base64.StdEncoding.EncodeToString(messagesToSign[idx]))
-		node.logger.Debugf("\n%d. sig: %s, recoveryID: %s, FinalSig: %s \n", idx, sig.Signature, sig.RecoveryID, requests[idx].Signature)
+		node.logger.Debugf("\n%d. sig: %s, recoveryID: %s, FinalSig: %s \n", msgsIndexes[sig.Msg], sig.Signature, sig.RecoveryID, requests[msgsIndexes[sig.Msg]].Signature)
 	}
 	return nil, true
 }
