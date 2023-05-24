@@ -272,7 +272,9 @@ func (node *Node) processSignatures() {
 					continue
 				}
 
+				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
 				blamedNodes := uint32(len(keyGenResponse.Blame.BlameNodes))
+				node.logger.Infof("Blamed nodes value: %d", blamedNodes)
 				if keyGenThreshold > node.getParticipantsLength()-blamedNodes {
 					// if no error was received, we iterate through the blamed node and remove them from the participating pubKeys list
 					for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
