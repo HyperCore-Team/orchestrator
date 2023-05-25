@@ -31,11 +31,11 @@ var DefaultNodeConfig = config.Config{
 		PubKeyWhitelist: map[string]bool{},
 		BaseDir:         path.Join(common.DefaultDataDir(), common.DefaultTssDir),
 		BaseConfig: gotss.TssConfig{
-			PartyTimeout:      60000000000,  // 1 minute
+			PartyTimeout:      90000000000,  // 1.5 minute
 			KeyGenTimeout:     900000000000, // 15 minutes
-			KeySignTimeout:    60000000000,  // 1 minute
-			KeyRegroupTimeout: 60,
-			PreParamTimeout:   600000000000, // 10 minutes
+			KeySignTimeout:    90000000000,  // 1.5 minute
+			KeyRegroupTimeout: 60,           // regroup not used
+			PreParamTimeout:   900000000000, // 15 minutes
 			EnableMonitor:     false,
 		},
 	},

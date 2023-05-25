@@ -25,8 +25,8 @@ github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3
 github.com/DataDog/zstd v1.4.1/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
 github.com/DataDog/zstd v1.4.5 h1:EndNeuB0l9syBZhut0wns3gV1hL8zX8LIu6ZiVHWLIQ=
 github.com/DataDog/zstd v1.4.5/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
-github.com/HyperCore-Team/go-tss v1.5.1-0.20230216123113-cfe30a0f397e h1:8C0Bd0WJjiTl/hSvc6RhBolDEwyCilV0V5+O2l/4vvY=
-github.com/HyperCore-Team/go-tss v1.5.1-0.20230216123113-cfe30a0f397e/go.mod h1:Wgoi0fD81A6FpKBbfpsYZjQIaVVFfiGm7VwzlcM2eo8=
+github.com/HyperCore-Team/go-tss v1.5.1-0.20230525091628-ec0d870ebeb0 h1:a3nXrkUosYKYl51Uzj97Xxyw7FSlIYHxuln1zJNUGes=
+github.com/HyperCore-Team/go-tss v1.5.1-0.20230525091628-ec0d870ebeb0/go.mod h1:Wgoi0fD81A6FpKBbfpsYZjQIaVVFfiGm7VwzlcM2eo8=
 github.com/HyperCore-Team/tss-lib v1.3.3-thorchain h1:l2NUYA2HzlHx6glOPlqx/oAuCbK/K4TFmm6sUd9bJ28=
 github.com/HyperCore-Team/tss-lib v1.3.3-thorchain/go.mod h1:xfM6gCPA61WIV5q5tK9Acdv46n1QJLhXnZ4eD17hJpI=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=

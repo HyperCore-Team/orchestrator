@@ -273,11 +273,19 @@ func (node *Node) processSignatures() {
 				node.logger.Debug("keyGenThreshold: ", keyGenThreshold)
 				node.logger.Info("Started ECDSA Keygen")
 				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
+
+				duration := time.Duration(15 * 60 * 1e9) // 15 minutes
+				node.tssManager.SetPartyTimeout(duration)
+
 				// start the key gen
 				start := time.Now()
 				keyGenResponse, err = node.tssManager.KeyGen(messages.ECDSAKEYGEN)
 				elapsed := time.Since(start)
 				node.logger.Infof("keyGen took %f", elapsed.Seconds())
+
+				// Set the old party timeout
+				node.tssManager.SetPartyTimeout(node.tssManager.Config().PartyTimeout)
+
 				if err != nil {
 					node.logger.Debug(err)
 					continue
@@ -287,7 +295,6 @@ func (node *Node) processSignatures() {
 				blamedNodes := uint32(len(keyGenResponse.Blame.BlameNodes))
 				node.logger.Infof("Blamed nodes value: %d", blamedNodes)
 
-				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
 				if keyGenThreshold > node.getParticipantsLength()-blamedNodes {
 					if keyGenResponse.Status == tcommon.Success {
 						if err := common.DeletePubKeyFile(node.config.TssConfig.BaseDir, keyGenResponse.PubKey); err != nil {
@@ -302,6 +309,7 @@ func (node *Node) processSignatures() {
 					node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
 					node.removeParticipant(blamedNode.Pubkey)
 				}
+				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
 
 				// key gen was generated
 				if keyGenResponse.Status == tcommon.Success {

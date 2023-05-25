@@ -162,6 +162,10 @@ func (m *TssManager) SetKeySignTimeouts(keySignTimeout, partyTimeout time.Durati
 	m.server.SetKeySignTimeouts(keySignTimeout, partyTimeout)
 }
 
+func (m *TssManager) SetPartyTimeout(partyTimeout time.Duration) {
+	m.server.SetPartyTimeout(partyTimeout)
+}
+
 func (m *TssManager) SetPubKey(pubKey string) {
 	m.publicKey = pubKey
 }
