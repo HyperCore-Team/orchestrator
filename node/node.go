@@ -274,7 +274,7 @@ func (node *Node) processSignatures() {
 				node.logger.Info("Started ECDSA Keygen")
 				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
 
-				duration := time.Duration(15 * 60 * 1e9) // 15 minutes
+				duration := time.Duration(5 * 60 * 1e9) // 5 minutes
 				node.tssManager.SetPartyTimeout(duration)
 
 				// start the key gen
