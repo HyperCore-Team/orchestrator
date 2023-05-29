@@ -296,12 +296,15 @@ func (node *Node) processSignatures() {
 				node.logger.Infof("Blamed nodes value: %d", blamedNodes)
 
 				if keyGenThreshold > node.getParticipantsLength()-blamedNodes {
+					node.logger.Info("KeyGen threshold was not met")
 					if keyGenResponse.Status == tcommon.Success {
 						if err := common.DeletePubKeyFile(node.config.TssConfig.BaseDir, keyGenResponse.PubKey); err != nil {
 							node.logger.Error(err)
 						}
 					}
 					node.logger.Info("We had some nodes that could not participate so we retry the keyGen")
+					// Sleep so we can close current connections
+					time.Sleep(15 * time.Second)
 					continue
 				}
 
@@ -309,13 +312,15 @@ func (node *Node) processSignatures() {
 					node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
 					node.removeParticipant(blamedNode.Pubkey)
 				}
-				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
+				node.logger.Debug("len(node.participatingPubKeys) after removing blamed nodes: ", node.getParticipantsLength())
 
 				// key gen was generated
 				if keyGenResponse.Status == tcommon.Success {
 					node.logger.Infof("Generated key: %s", keyGenResponse.PubKey)
 					break
 				}
+				// Sleep so we can close current connections
+				time.Sleep(15 * time.Second)
 			}
 			// there was en error while trying to keyGen, we retry
 			if keyGenResponse == nil {
