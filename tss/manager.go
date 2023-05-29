@@ -146,7 +146,11 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 	common.GlobalLogger.Infof("preParams took %f", elapsed.Seconds())
 
 	// We decrease the preParams elapsed time from timeoutParty so all nodes start the keyGen in the same time
-	newTimeout := m.server.Config().PartyTimeout - elapsed
+	newTimeout := m.server.Config().PartyTimeout
+	if newTimeout > (elapsed + elapsed/5) {
+		newTimeout = newTimeout - elapsed
+	}
+
 	m.server.SetPartyTimeout(newTimeout)
 	common.GlobalLogger.Infof("Set party timeout to value: %f minutes", newTimeout.Minutes())
 
