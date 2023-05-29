@@ -276,6 +276,9 @@ func (node *Node) processSignatures() {
 
 				duration := time.Duration(5 * 60 * 1e9) // 5 minutes
 				node.tssManager.SetPartyTimeout(duration)
+				node.logger.Infof("Old party timeout value: %f minutes", node.tssManager.Config().PartyTimeout.Minutes())
+				node.logger.Infof("Set party timeout to value: %f minutes", duration.Minutes())
+				node.logger.Infof("New party timeout value: %f minutes", node.tssManager.Config().PartyTimeout.Minutes())
 
 				// start the key gen
 				start := time.Now()
@@ -284,7 +287,8 @@ func (node *Node) processSignatures() {
 				node.logger.Infof("keyGen took %f", elapsed.Seconds())
 
 				// Set the old party timeout
-				node.tssManager.SetPartyTimeout(node.tssManager.Config().PartyTimeout)
+				node.tssManager.SetPartyTimeout(node.config.TssConfig.BaseConfig.PartyTimeout)
+				node.logger.Infof("Set party timeout to old value: %f minutes", node.config.TssConfig.BaseConfig.PartyTimeout.Minutes())
 
 				if err != nil {
 					node.logger.Debug(err)
