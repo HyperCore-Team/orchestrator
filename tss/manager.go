@@ -144,6 +144,12 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 	}
 	elapsed := time.Since(start)
 	common.GlobalLogger.Infof("preParams took %f", elapsed.Seconds())
+
+	// We decrease the preParams elapsed time from timeoutParty so all nodes start the keyGen in the same time
+	newTimeout := m.server.Config().PartyTimeout - elapsed
+	m.server.SetPartyTimeout(newTimeout)
+	common.GlobalLogger.Infof("Set party timeout to value: %f minutes", newTimeout.Minutes())
+
 	var req keygen.Request
 	if algo == messages.ECDSAKEYGEN {
 		req = keygen.NewRequest(m.localPubKeys, 10, "0.13.0", algorithm)
