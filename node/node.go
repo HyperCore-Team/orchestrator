@@ -1078,8 +1078,8 @@ func (node *Node) SetKeySignTimeouts(windowSize uint64) {
 		node.logger.Info("node.config.TssConfig.BaseConfig", zap.Duration("PartyTimeout: ", node.config.TssConfig.BaseConfig.PartyTimeout))
 		node.logger.Info("node.tssManager.Config", zap.Duration("KeySignTimeout: ", node.tssManager.Config().KeySignTimeout))
 		node.logger.Info("node.tssManager.Config()", zap.Duration("PartyTimeout: ", node.tssManager.Config().PartyTimeout))
-		keySignTimeout := time.Duration(windowSize * 10 * 1e9)
-		partyTimeout := keySignTimeout * 2 / 3
+		keySignTimeout := time.Duration(windowSize + (windowSize/3)*10*1e9)
+		partyTimeout := keySignTimeout + (keySignTimeout / 3)
 		node.config.TssConfig.BaseConfig.KeySignTimeout = keySignTimeout
 		node.config.TssConfig.BaseConfig.PartyTimeout = partyTimeout
 		node.tssManager.SetKeySignTimeouts(keySignTimeout, partyTimeout)
