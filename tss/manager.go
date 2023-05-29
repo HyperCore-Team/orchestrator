@@ -137,6 +137,7 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 	} else {
 		return nil, errors.New("invalid algorithm")
 	}
+
 	start := time.Now()
 	// we reset pre params so we always generate it before a keyGen
 	if errPrecompute := m.server.GeneratePreParams(); errPrecompute != nil {
@@ -145,14 +146,11 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 	elapsed := time.Since(start)
 	common.GlobalLogger.Infof("preParams took %f", elapsed.Seconds())
 
-	// We decrease the preParams elapsed time from timeoutParty so all nodes start the keyGen in the same time
-	newTimeout := m.server.Config().PartyTimeout
-	if newTimeout > (elapsed + elapsed/5) {
-		newTimeout = newTimeout - elapsed
+	sleepDuration := 7 * time.Minute
+	if sleepDuration > elapsed {
+		sleepDuration = sleepDuration - elapsed
+		time.Sleep(sleepDuration)
 	}
-
-	m.server.SetPartyTimeout(newTimeout)
-	common.GlobalLogger.Infof("Set party timeout to value: %f minutes", newTimeout.Minutes())
 
 	var req keygen.Request
 	if algo == messages.ECDSAKEYGEN {
