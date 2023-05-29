@@ -287,10 +287,16 @@ func (node *Node) processSignatures() {
 				keyGenResponse, err = node.tssManager.KeyGen(messages.ECDSAKEYGEN)
 				elapsed := time.Since(start)
 				node.logger.Infof("keyGen took %f", elapsed.Seconds())
+				if keyGenResponse != nil {
+					node.logger.Infof("keyGen threshold %d", keyGenResponse.Threshold)
+					node.logger.Infof("KeyGen status: %d (0 NA, 1 Success, 2 Fail)", keyGenResponse.Status)
+
+				}
 
 				// Set the old party timeout
 				node.tssManager.SetPartyTimeout(node.config.TssConfig.BaseConfig.PartyTimeout)
 				node.logger.Infof("Set party timeout to old value: %f minutes", node.config.TssConfig.BaseConfig.PartyTimeout.Minutes())
+
 				if err != nil {
 					node.logger.Debug(err)
 					continue

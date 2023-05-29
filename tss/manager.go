@@ -150,6 +150,7 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 	if sleepDuration > elapsed {
 		sleepDuration = sleepDuration - elapsed
 		time.Sleep(sleepDuration)
+		common.GlobalLogger.Infof("finished sleep after preParams")
 	}
 
 	var req keygen.Request
