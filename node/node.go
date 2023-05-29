@@ -256,7 +256,9 @@ func (node *Node) processSignatures() {
 			// we try to keygen until we have min parties threshold
 			var keyGenResponse *keygen.Response
 
-			node.logger.Debug("node.getParticipantsLength(): ", node.getParticipantsLength())
+			initialParticipantsLength := node.getParticipantsLength()
+			node.logger.Debug("node.getParticipantsLength(): ", initialParticipantsLength)
+
 			for node.networksManager.Znn().KeyGenThreshold() <= node.getParticipantsLength() {
 				state, err := node.state.GetState()
 				if err != nil {
@@ -289,7 +291,6 @@ func (node *Node) processSignatures() {
 				// Set the old party timeout
 				node.tssManager.SetPartyTimeout(node.config.TssConfig.BaseConfig.PartyTimeout)
 				node.logger.Infof("Set party timeout to old value: %f minutes", node.config.TssConfig.BaseConfig.PartyTimeout.Minutes())
-
 				if err != nil {
 					node.logger.Debug(err)
 					continue
@@ -306,25 +307,26 @@ func (node *Node) processSignatures() {
 							node.logger.Error(err)
 						}
 					}
-					node.logger.Info("We had some nodes that could not participate so we retry the keyGen")
-					// Sleep so we can close current connections
-					time.Sleep(15 * time.Second)
 					continue
 				}
 
-				for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
-					node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
-					node.removeParticipant(blamedNode.Pubkey)
+				currentParticipantsLength := node.getParticipantsLength()
+				if currentParticipantsLength == initialParticipantsLength {
+					for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
+						node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
+						node.removeParticipant(blamedNode.Pubkey)
+					}
+					node.logger.Debug("len(node.participatingPubKeys) after removing blamed nodes: ", node.getParticipantsLength())
 				}
-				node.logger.Debug("len(node.participatingPubKeys) after removing blamed nodes: ", node.getParticipantsLength())
 
 				// key gen was generated
 				if keyGenResponse.Status == tcommon.Success {
 					node.logger.Infof("Generated key: %s", keyGenResponse.PubKey)
 					break
+				} else {
+					// Sleep so we can close current connections
+					time.Sleep(15 * time.Second)
 				}
-				// Sleep so we can close current connections
-				time.Sleep(15 * time.Second)
 			}
 			// there was en error while trying to keyGen, we retry
 			if keyGenResponse == nil {
