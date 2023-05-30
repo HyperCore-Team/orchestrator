@@ -155,7 +155,7 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 
 	var req keygen.Request
 	if algo == messages.ECDSAKEYGEN {
-		req = keygen.NewRequest(m.localPubKeys, 10, "0.13.0", algorithm)
+		req = keygen.NewRequest(m.localPubKeys, 10, "0.14.0", algorithm)
 		response, err := m.server.Keygen(req)
 		if err != nil {
 			return nil, err
