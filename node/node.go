@@ -290,7 +290,6 @@ func (node *Node) processSignatures() {
 				if keyGenResponse != nil {
 					node.logger.Infof("keyGen threshold %d", keyGenResponse.Threshold)
 					node.logger.Infof("KeyGen status: %d (0 NA, 1 Success, 2 Fail)", keyGenResponse.Status)
-
 				}
 
 				// Set the old party timeout
