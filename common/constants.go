@@ -61,6 +61,11 @@ const (
 	setEstimatedBlockTimeSignatureString      = "SetEstimatedBlockTime(uint64)"
 	setAllowKeyGenSignatureString             = "SetAllowKeyGen(bool)"
 	setConfirmationsToFinalitySignatureString = "SetConfirmationsToFinality(uint64)"
+
+	// Tss
+
+	DefaultKeyGenVersion     = "0.13.0"
+	DefaultLeaderBlockHeight = 100
 )
 
 var (

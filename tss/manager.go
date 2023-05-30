@@ -20,11 +20,13 @@ import (
 )
 
 type TssManager struct {
-	server       *tss.TssServer
-	port         int
-	privateKey   string
-	publicKey    string
-	localPubKeys []string
+	server            *tss.TssServer
+	port              int
+	privateKey        string
+	publicKey         string
+	localPubKeys      []string
+	keyGenVersion     string
+	leaderBlockHeight int64
 }
 
 func NewTssManager(conf config.TssManagerConfig, privateKey string) (*TssManager, error) {
@@ -95,11 +97,13 @@ func NewTssManager(conf config.TssManagerConfig, privateKey string) (*TssManager
 	}
 
 	return &TssManager{
-		port:         conf.Port,
-		server:       server,
-		privateKey:   privateKey,
-		publicKey:    conf.PublicKey,
-		localPubKeys: conf.LocalPubKeys,
+		port:              conf.Port,
+		server:            server,
+		privateKey:        privateKey,
+		publicKey:         conf.PublicKey,
+		localPubKeys:      conf.LocalPubKeys,
+		keyGenVersion:     common.DefaultKeyGenVersion,
+		leaderBlockHeight: common.DefaultLeaderBlockHeight,
 	}, nil
 }
 
@@ -155,7 +159,7 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 
 	var req keygen.Request
 	if algo == messages.ECDSAKEYGEN {
-		req = keygen.NewRequest(m.localPubKeys, 10, "0.14.0", algorithm)
+		req = keygen.NewRequest(m.localPubKeys, m.leaderBlockHeight, m.keyGenVersion, algorithm)
 		response, err := m.server.Keygen(req)
 		if err != nil {
 			return nil, err
@@ -181,6 +185,14 @@ func (m *TssManager) SetKeySignTimeout(keySignTimeout time.Duration) {
 
 func (m *TssManager) SetPreParamsTimeout(preParamsTimeout time.Duration) {
 	m.server.SetPreParamsTimeout(preParamsTimeout)
+}
+
+func (m *TssManager) SetKeyGenVersion(version string) {
+	m.keyGenVersion = version
+}
+
+func (m *TssManager) SetLeaderBlockHeight(height int64) {
+	m.leaderBlockHeight = height
 }
 
 func (m *TssManager) SetPubKey(pubKey string) {

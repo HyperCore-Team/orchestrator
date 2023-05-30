@@ -31,14 +31,14 @@ import (
 
 type znnNetwork struct {
 	config.ZnnParams
-	dbManager      *manager.Manager
-	rpcManager     *rpc.Manager
-	networkManager *NetworksManager
-	networksInfo   map[string]config.BaseNetworkConfig
-	state          *common.GlobalState
-	stopChan       chan os.Signal
-	setTimeouts    func(uint64, uint64, uint64, uint64)
-	logger         *zap.SugaredLogger
+	dbManager         *manager.Manager
+	rpcManager        *rpc.Manager
+	networkManager    *NetworksManager
+	networksInfo      map[string]config.BaseNetworkConfig
+	state             *common.GlobalState
+	stopChan          chan os.Signal
+	setBridgeMetadata func(metadata *common.BridgeMetadata)
+	logger            *zap.SugaredLogger
 }
 
 // CheckOrchestratorInfoInitialized this method should have the same checks as in go-zenon
@@ -59,7 +59,7 @@ func CheckSecurityInfoInitialized(securityInfo *definition.SecurityInfoVariable)
 	return nil
 }
 
-func NewZnnNetwork(rpcManager *rpc.Manager, dbManager *manager.Manager, networkManager *NetworksManager, state *common.GlobalState, networksInfo map[string]config.BaseNetworkConfig, stopChan chan os.Signal, setTimeouts func(uint64, uint64, uint64, uint64)) (*znnNetwork, error) {
+func NewZnnNetwork(rpcManager *rpc.Manager, dbManager *manager.Manager, networkManager *NetworksManager, state *common.GlobalState, networksInfo map[string]config.BaseNetworkConfig, stopChan chan os.Signal, setBridgeMetadata func(metadata *common.BridgeMetadata)) (*znnNetwork, error) {
 	bridgeInfo, err := rpcManager.Znn().GetBridgeInfo()
 	if err != nil {
 		return nil, err
@@ -92,15 +92,15 @@ func NewZnnNetwork(rpcManager *rpc.Manager, dbManager *manager.Manager, networkM
 	}
 
 	newZnnNetwork := &znnNetwork{
-		ZnnParams:      *newZnnParams,
-		rpcManager:     rpcManager,
-		dbManager:      dbManager,
-		networkManager: networkManager,
-		networksInfo:   networksInfo,
-		state:          state,
-		setTimeouts:    setTimeouts,
-		stopChan:       stopChan,
-		logger:         newLogger,
+		ZnnParams:         *newZnnParams,
+		rpcManager:        rpcManager,
+		dbManager:         dbManager,
+		networkManager:    networkManager,
+		networksInfo:      networksInfo,
+		state:             state,
+		setBridgeMetadata: setBridgeMetadata,
+		stopChan:          stopChan,
+		logger:            newLogger,
 	}
 	return newZnnNetwork, nil
 }
@@ -628,22 +628,12 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		}
 		common.AdministratorLogger.Infof("SetBridgeMetadataMethodName %s", param)
 
-		timeouts := &struct {
-			PartyTimeout    uint64 `json:"partyTimeout"`
-			KeyGenTimeout   uint64 `json:"keyGenTimeout"`
-			KeySignTimeout  uint64 `json:"keySignTimeout"`
-			PreParamTimeout uint64 `json:"preParamTimeout"`
-		}{
-			PartyTimeout:    0,
-			KeyGenTimeout:   0,
-			KeySignTimeout:  0,
-			PreParamTimeout: 0,
-		}
+		metadata := &common.BridgeMetadata{}
 
-		if err := json.Unmarshal([]byte(param), timeouts); err != nil {
+		if err := json.Unmarshal([]byte(param), metadata); err != nil {
 			return err
 		} else {
-			rC.setTimeouts(timeouts.PartyTimeout, timeouts.KeyGenTimeout, timeouts.KeySignTimeout, timeouts.PreParamTimeout)
+			rC.setBridgeMetadata(metadata)
 		}
 
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetNetworkMetadataMethodName].Id()):

@@ -80,7 +80,7 @@ func NewNode(config *oconfig.Config, logger *zap.Logger) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	if errInit := node.networksManager.Init(config.Networks, node.dbManager, node.state, node.SetTimeouts); errInit != nil {
+	if errInit := node.networksManager.Init(config.Networks, node.dbManager, node.state, node.SetBridgeMetadata); errInit != nil {
 		return nil, errInit
 	}
 	node.logger.Info("netMan")
@@ -159,26 +159,16 @@ func (node *Node) Start() error {
 		}
 	}
 
-	orchestratorInfo, err := node.networksManager.Znn().GetOrchestratorInfo()
+	bridgeInfo, err := node.networksManager.Znn().GetBridgeInfo()
 	if err != nil {
 		return err
-	} else if bridgeErr := network.CheckOrchestratorInfoInitialized(orchestratorInfo); bridgeErr != nil {
-		return bridgeErr
 	} else {
-		// set network timeouts
-
-		timeouts := &struct {
-			PartyTimeout    uint64 `json:"partyTimeout"`
-			KeyGenTimeout   uint64 `json:"keyGenTimeout"`
-			KeySignTimeout  uint64 `json:"keySignTimeout"`
-			PreParamTimeout uint64 `json:"preParamTimeout"`
-		}{
-			PartyTimeout:    0,
-			KeyGenTimeout:   0,
-			KeySignTimeout:  0,
-			PreParamTimeout: 0,
+		metadata := &common.BridgeMetadata{}
+		if err := json.Unmarshal([]byte(bridgeInfo.Metadata), metadata); err != nil {
+			return err
+		} else {
+			node.SetBridgeMetadata(metadata)
 		}
-		node.SetTimeouts(timeouts.PartyTimeout, timeouts.KeyGenTimeout, timeouts.KeySignTimeout, timeouts.PreParamTimeout)
 	}
 
 	currentState, stateErr := node.state.GetState()
@@ -280,6 +270,7 @@ func (node *Node) processSignatures() {
 					continue
 				}
 				if state != common.KeyGenState {
+					node.logger.Info("State no longer keyGen so will exit key generation")
 					keyGenResponse = nil
 					break
 				}
@@ -1092,35 +1083,40 @@ func (node *Node) getParticipant(index uint32) string {
 
 // Setters
 
-func (node *Node) SetTimeouts(partyTimeout, keyGenTimeout, keySignTimeout, preParamsTimeout uint64) {
-	node.logger.Info("In SetTimeouts:")
-	if node.tssManager != nil {
-		if partyTimeout != 0 {
-			duration := time.Duration(partyTimeout) * time.Second
-			node.logger.Infof("PartyTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.PartyTimeout.Seconds(), partyTimeout)
+func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
+	node.logger.Info("In SetBridgeMetadata:")
+	if node.tssManager != nil && metadata != nil {
+		if metadata.PartyTimeout != 0 {
+			duration := time.Duration(metadata.PartyTimeout) * time.Second
+			node.logger.Infof("PartyTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.PartyTimeout.Seconds(), metadata.PartyTimeout)
 			node.tssManager.SetPartyTimeout(duration)
 			node.config.TssConfig.BaseConfig.PartyTimeout = duration
 		}
 
-		if keyGenTimeout != 0 {
-			duration := time.Duration(keyGenTimeout) * time.Second
-			node.logger.Infof("KeyGenTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.KeyGenTimeout.Seconds(), keyGenTimeout)
-			node.tssManager.SetPartyTimeout(duration)
+		if metadata.KeyGenTimeout != 0 {
+			duration := time.Duration(metadata.KeyGenTimeout) * time.Second
+			node.logger.Infof("KeyGenTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.KeyGenTimeout.Seconds(), metadata.KeyGenTimeout)
 			node.config.TssConfig.BaseConfig.KeyGenTimeout = duration
 		}
 
-		if keySignTimeout != 0 {
-			duration := time.Duration(keySignTimeout) * time.Second
-			node.logger.Infof("KeySignTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.KeySignTimeout.Seconds(), keySignTimeout)
-			node.tssManager.SetPartyTimeout(duration)
+		if metadata.KeySignTimeout != 0 {
+			duration := time.Duration(metadata.KeySignTimeout) * time.Second
+			node.logger.Infof("KeySignTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.KeySignTimeout.Seconds(), metadata.KeySignTimeout)
 			node.config.TssConfig.BaseConfig.KeySignTimeout = duration
 		}
 
-		if preParamsTimeout != 0 {
-			duration := time.Duration(preParamsTimeout) * time.Second
-			node.logger.Infof("PreParamsTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.PreParamTimeout.Seconds(), preParamsTimeout)
-			node.tssManager.SetPartyTimeout(duration)
+		if metadata.PreParamTimeout != 0 {
+			duration := time.Duration(metadata.PreParamTimeout) * time.Second
+			node.logger.Infof("PreParamsTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.PreParamTimeout.Seconds(), metadata.PreParamTimeout)
 			node.config.TssConfig.BaseConfig.PreParamTimeout = duration
+		}
+
+		if len(metadata.Version) > 0 {
+			node.tssManager.SetKeyGenVersion(metadata.Version)
+		}
+
+		if metadata.LeaderBlockHeight != 0 {
+			node.tssManager.SetLeaderBlockHeight(metadata.LeaderBlockHeight)
 		}
 	}
 }

@@ -43,7 +43,7 @@ func NewNetworksManager(stopChan chan os.Signal) (*NetworksManager, error) {
 	return newNetworkManager, nil
 }
 
-func (m *NetworksManager) Init(networksInfo map[string]config.BaseNetworkConfig, dbManager *manager.Manager, state *common.GlobalState, setTimeouts func(uint64, uint64, uint64, uint64)) error {
+func (m *NetworksManager) Init(networksInfo map[string]config.BaseNetworkConfig, dbManager *manager.Manager, state *common.GlobalState, setBridgeMetadata func(metadata *common.BridgeMetadata)) error {
 	if len(networksInfo) < 2 {
 		return errors.New("wrong network initializers 1")
 	}
@@ -58,7 +58,7 @@ func (m *NetworksManager) Init(networksInfo map[string]config.BaseNetworkConfig,
 		return err
 	}
 
-	newZnnNetwork, err := NewZnnNetwork(newRpcManager, dbManager, m, state, networksInfo, m.stopChan, setTimeouts)
+	newZnnNetwork, err := NewZnnNetwork(newRpcManager, dbManager, m, state, networksInfo, m.stopChan, setBridgeMetadata)
 	if err != nil {
 		return err
 	}
