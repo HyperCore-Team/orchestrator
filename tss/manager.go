@@ -146,7 +146,7 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 	elapsed := time.Since(start)
 	common.GlobalLogger.Infof("preParams took %f", elapsed.Seconds())
 
-	sleepDuration := 7 * time.Minute
+	sleepDuration := 3*time.Minute + 30*time.Second
 	if sleepDuration > elapsed {
 		sleepDuration = sleepDuration - elapsed
 		time.Sleep(sleepDuration)
@@ -167,12 +167,20 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 	}
 }
 
-func (m *TssManager) SetKeySignTimeouts(keySignTimeout, partyTimeout time.Duration) {
-	m.server.SetKeySignTimeouts(keySignTimeout, partyTimeout)
-}
-
 func (m *TssManager) SetPartyTimeout(partyTimeout time.Duration) {
 	m.server.SetPartyTimeout(partyTimeout)
+}
+
+func (m *TssManager) SetKeyGenTimeout(keyGenTimeout time.Duration) {
+	m.server.SetKeyGenTimeout(keyGenTimeout)
+}
+
+func (m *TssManager) SetKeySignTimeout(keySignTimeout time.Duration) {
+	m.server.SetKeySignTimeout(keySignTimeout)
+}
+
+func (m *TssManager) SetPreParamsTimeout(preParamsTimeout time.Duration) {
+	m.server.SetPreParamsTimeout(preParamsTimeout)
 }
 
 func (m *TssManager) SetPubKey(pubKey string) {

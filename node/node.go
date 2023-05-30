@@ -80,7 +80,7 @@ func NewNode(config *oconfig.Config, logger *zap.Logger) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	if errInit := node.networksManager.Init(config.Networks, node.dbManager, node.state, node.SetKeySignTimeouts); errInit != nil {
+	if errInit := node.networksManager.Init(config.Networks, node.dbManager, node.state, node.SetTimeouts); errInit != nil {
 		return nil, errInit
 	}
 	node.logger.Info("netMan")
@@ -165,8 +165,20 @@ func (node *Node) Start() error {
 	} else if bridgeErr := network.CheckOrchestratorInfoInitialized(orchestratorInfo); bridgeErr != nil {
 		return bridgeErr
 	} else {
-		// early call to set the timeouts before we start signing
-		node.SetKeySignTimeouts(orchestratorInfo.WindowSize)
+		// set network timeouts
+
+		timeouts := &struct {
+			PartyTimeout    uint64 `json:"partyTimeout"`
+			KeyGenTimeout   uint64 `json:"keyGenTimeout"`
+			KeySignTimeout  uint64 `json:"keySignTimeout"`
+			PreParamTimeout uint64 `json:"preParamTimeout"`
+		}{
+			PartyTimeout:    0,
+			KeyGenTimeout:   0,
+			KeySignTimeout:  0,
+			PreParamTimeout: 0,
+		}
+		node.SetTimeouts(timeouts.PartyTimeout, timeouts.KeyGenTimeout, timeouts.KeySignTimeout, timeouts.PreParamTimeout)
 	}
 
 	currentState, stateErr := node.state.GetState()
@@ -1078,23 +1090,36 @@ func (node *Node) getParticipant(index uint32) string {
 
 // Setters
 
-func (node *Node) SetKeySignTimeouts(windowSize uint64) {
+func (node *Node) SetTimeouts(partyTimeout, keyGenTimeout, keySignTimeout, preParamsTimeout uint64) {
+	node.logger.Info("In SetTimeouts:")
 	if node.tssManager != nil {
-		node.logger.Info("in SetKeySignTimeouts:")
-		node.logger.Info("node.config.TssConfig.BaseConfig.", zap.Duration("KeySignTimeout: ", node.config.TssConfig.BaseConfig.KeySignTimeout))
-		node.logger.Info("node.config.TssConfig.BaseConfig", zap.Duration("PartyTimeout: ", node.config.TssConfig.BaseConfig.PartyTimeout))
-		node.logger.Info("node.tssManager.Config", zap.Duration("KeySignTimeout: ", node.tssManager.Config().KeySignTimeout))
-		node.logger.Info("node.tssManager.Config()", zap.Duration("PartyTimeout: ", node.tssManager.Config().PartyTimeout))
-		keySignTimeout := time.Duration((windowSize + (windowSize / 3)) * 10 * 1e9)
-		partyTimeout := keySignTimeout + (keySignTimeout / 3)
-		node.config.TssConfig.BaseConfig.KeySignTimeout = keySignTimeout
-		node.config.TssConfig.BaseConfig.PartyTimeout = partyTimeout
-		node.tssManager.SetKeySignTimeouts(keySignTimeout, partyTimeout)
-		node.logger.Info("new: ")
-		node.logger.Info("node.config.TssConfig.BaseConfig.", zap.Duration("KeySignTimeout: ", node.config.TssConfig.BaseConfig.KeySignTimeout))
-		node.logger.Info("node.config.TssConfig.BaseConfig", zap.Duration("PartyTimeout: ", node.config.TssConfig.BaseConfig.PartyTimeout))
-		node.logger.Info("node.tssManager.Config", zap.Duration("KeySignTimeout: ", node.tssManager.Config().KeySignTimeout))
-		node.logger.Info("node.tssManager.Config()", zap.Duration("PartyTimeout: ", node.tssManager.Config().PartyTimeout))
+		if partyTimeout != 0 {
+			duration := time.Duration(partyTimeout) * time.Second
+			node.logger.Infof("PartyTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.PartyTimeout.Seconds(), partyTimeout)
+			node.tssManager.SetPartyTimeout(duration)
+			node.config.TssConfig.BaseConfig.PartyTimeout = duration
+		}
+
+		if keyGenTimeout != 0 {
+			duration := time.Duration(keyGenTimeout) * time.Second
+			node.logger.Infof("KeyGenTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.KeyGenTimeout.Seconds(), keyGenTimeout)
+			node.tssManager.SetPartyTimeout(duration)
+			node.config.TssConfig.BaseConfig.KeyGenTimeout = duration
+		}
+
+		if keySignTimeout != 0 {
+			duration := time.Duration(keySignTimeout) * time.Second
+			node.logger.Infof("KeySignTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.KeySignTimeout.Seconds(), keySignTimeout)
+			node.tssManager.SetPartyTimeout(duration)
+			node.config.TssConfig.BaseConfig.KeySignTimeout = duration
+		}
+
+		if preParamsTimeout != 0 {
+			duration := time.Duration(preParamsTimeout) * time.Second
+			node.logger.Infof("PreParamsTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.PreParamTimeout.Seconds(), preParamsTimeout)
+			node.tssManager.SetPartyTimeout(duration)
+			node.config.TssConfig.BaseConfig.PreParamTimeout = duration
+		}
 	}
 }
 
