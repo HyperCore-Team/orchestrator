@@ -191,8 +191,16 @@ func (m *TssManager) SetKeyGenVersion(version string) {
 	m.keyGenVersion = version
 }
 
+func (m *TssManager) GetKeyGenVersion() string {
+	return m.keyGenVersion
+}
+
 func (m *TssManager) SetLeaderBlockHeight(height int64) {
 	m.leaderBlockHeight = height
+}
+
+func (m *TssManager) GetLeaderBlockHeight() int64 {
+	return m.leaderBlockHeight
 }
 
 func (m *TssManager) SetPubKey(pubKey string) {

@@ -1096,26 +1096,31 @@ func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
 		if metadata.KeyGenTimeout != 0 {
 			duration := time.Duration(metadata.KeyGenTimeout) * time.Second
 			node.logger.Infof("KeyGenTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.KeyGenTimeout.Seconds(), metadata.KeyGenTimeout)
+			node.tssManager.SetKeyGenTimeout(duration)
 			node.config.TssConfig.BaseConfig.KeyGenTimeout = duration
 		}
 
 		if metadata.KeySignTimeout != 0 {
 			duration := time.Duration(metadata.KeySignTimeout) * time.Second
 			node.logger.Infof("KeySignTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.KeySignTimeout.Seconds(), metadata.KeySignTimeout)
+			node.tssManager.SetKeySignTimeout(duration)
 			node.config.TssConfig.BaseConfig.KeySignTimeout = duration
 		}
 
 		if metadata.PreParamTimeout != 0 {
 			duration := time.Duration(metadata.PreParamTimeout) * time.Second
 			node.logger.Infof("PreParamsTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.PreParamTimeout.Seconds(), metadata.PreParamTimeout)
+			node.tssManager.SetPreParamsTimeout(duration)
 			node.config.TssConfig.BaseConfig.PreParamTimeout = duration
 		}
 
-		if len(metadata.Version) > 0 {
-			node.tssManager.SetKeyGenVersion(metadata.Version)
+		if len(metadata.KeyGenVersion) > 0 {
+			node.logger.Infof("KeyGenVersion - old: %s, new: %s", node.tssManager.GetKeyGenVersion(), metadata.KeyGenVersion)
+			node.tssManager.SetKeyGenVersion(metadata.KeyGenVersion)
 		}
 
 		if metadata.LeaderBlockHeight != 0 {
+			node.logger.Infof("LeaderBlockHeight - old: %d, new: %d", node.tssManager.GetLeaderBlockHeight(), metadata.LeaderBlockHeight)
 			node.tssManager.SetLeaderBlockHeight(metadata.LeaderBlockHeight)
 		}
 	}
