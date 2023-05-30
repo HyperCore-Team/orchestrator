@@ -315,6 +315,9 @@ func (node *Node) processSignatures() {
 
 				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
 				blamedNodes := uint32(len(keyGenResponse.Blame.BlameNodes))
+				for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
+					node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
+				}
 				node.logger.Infof("Blamed nodes value: %d", blamedNodes)
 
 				if keyGenThreshold > node.getParticipantsLength()-blamedNodes {
@@ -330,7 +333,6 @@ func (node *Node) processSignatures() {
 				currentParticipantsLength := node.getParticipantsLength()
 				if currentParticipantsLength == initialParticipantsLength {
 					for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
-						node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
 						node.removeParticipant(blamedNode.Pubkey)
 					}
 					node.logger.Debug("len(node.participatingPubKeys) after removing blamed nodes: ", node.getParticipantsLength())
