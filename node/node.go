@@ -312,7 +312,7 @@ func (node *Node) processSignatures() {
 				}
 				node.logger.Debug("len(node.participatingPubKeys) after removing blamed nodes: ", node.getParticipantsLength())
 
-				if keyGenThreshold > node.getParticipantsLength()-blamedNodes {
+				if keyGenThreshold > node.getParticipantsLength() {
 					node.logger.Info("KeyGen threshold was not met")
 					if keyGenResponse.Status == tcommon.Success {
 						if err := common.DeletePubKeyFile(node.config.TssConfig.BaseDir, keyGenResponse.PubKey); err != nil {
