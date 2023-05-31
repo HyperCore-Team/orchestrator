@@ -305,7 +305,6 @@ func (node *Node) processSignatures() {
 				}
 
 				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
-				blamedNodes := uint32(len(keyGenResponse.Blame.BlameNodes))
 				for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
 					node.removeParticipant(blamedNode.Pubkey)
 					node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
