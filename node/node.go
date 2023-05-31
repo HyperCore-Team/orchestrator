@@ -307,9 +307,10 @@ func (node *Node) processSignatures() {
 				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
 				blamedNodes := uint32(len(keyGenResponse.Blame.BlameNodes))
 				for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
+					node.removeParticipant(blamedNode.Pubkey)
 					node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
 				}
-				node.logger.Infof("Blamed nodes value: %d", blamedNodes)
+				node.logger.Debug("len(node.participatingPubKeys) after removing blamed nodes: ", node.getParticipantsLength())
 
 				if keyGenThreshold > node.getParticipantsLength()-blamedNodes {
 					node.logger.Info("KeyGen threshold was not met")
@@ -318,15 +319,8 @@ func (node *Node) processSignatures() {
 							node.logger.Error(err)
 						}
 					}
-					continue
-				}
-
-				currentParticipantsLength := node.getParticipantsLength()
-				if currentParticipantsLength == initialParticipantsLength {
-					for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
-						node.removeParticipant(blamedNode.Pubkey)
-					}
-					node.logger.Debug("len(node.participatingPubKeys) after removing blamed nodes: ", node.getParticipantsLength())
+					keyGenResponse = nil
+					break
 				}
 
 				// key gen was generated
