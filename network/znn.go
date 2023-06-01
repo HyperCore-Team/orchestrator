@@ -569,6 +569,26 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			return constants.ErrUnpackError
 		}
 		common.AdministratorLogger.Infof("ChangeTssECDSAPubKeyMethodName PubKey: %s, OldSig: %s, NewSig: %s", param.PubKey, param.OldPubKeySignature, param.NewPubKeySignature)
+		bridgeInfo, err := rC.GetBridgeInfo()
+		if err != nil {
+			return err
+		}
+		// If the key was changed to the param, we are no longer in keyGen
+		if bridgeInfo.CompressedTssECDSAPubKey == param.PubKey {
+			currentState, err := rC.state.GetState()
+			if err != nil {
+				rC.logger.Debug(err)
+				rC.stopChan <- syscall.SIGKILL
+				return err
+			}
+			if currentState == common.KeyGenState {
+				if err := rC.state.SetState(common.LiveState); err != nil {
+					rC.logger.Error(err)
+					rC.stopChan <- syscall.SIGKILL
+					return err
+				}
+			}
+		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.ChangeAdministratorMethodName].Id()):
 		if !live {
 			break
