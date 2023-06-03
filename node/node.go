@@ -305,9 +305,30 @@ func (node *Node) processSignatures() {
 				}
 
 				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
+				p2pWhitelist, partyWhitelist, sigWhitelist := node.tssManager.GetWhitelists()
 				for _, blamedNode := range keyGenResponse.Blame.BlameNodes {
 					node.removeParticipant(blamedNode.Pubkey)
 					node.logger.Debugf("Blamed node pubKey: %s", blamedNode.Pubkey)
+
+					// remove peerId from whitelist
+					pubKeyBytes, err := base64.StdEncoding.DecodeString(blamedNode.Pubkey)
+					if err != nil {
+						node.logger.Debugf("PubKey from blamed node could not be decoded: %s", blamedNode.Pubkey)
+						continue
+					}
+					pub, err := ic.UnmarshalEd25519PublicKey(pubKeyBytes)
+					if err != nil {
+						node.logger.Debugf("PubKey from blamed node could not be unmarshaled: %s", blamedNode.Pubkey)
+						continue
+					}
+					id, err := peer.IDFromPublicKey(pub)
+					if err != nil {
+						node.logger.Debugf("PubKey from blamed node could not be transformed into peerId: %s", blamedNode.Pubkey)
+						continue
+					}
+					p2pWhitelist[id.String()] = false
+					partyWhitelist[id.String()] = false
+					sigWhitelist[id.String()] = false
 				}
 				node.logger.Debug("len(node.participatingPubKeys) after removing blamed nodes: ", node.getParticipantsLength())
 
