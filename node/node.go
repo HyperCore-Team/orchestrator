@@ -557,11 +557,14 @@ func (node *Node) processSignatures() {
 				}
 
 				// Verify all signatures
-				_, _, errValidate := node.validateSignatures(newKeySignResponse, decompressedKeyGenPubKey, messagesToSign)
+				znnNewKeySignature, newKeyFullSignatures, errValidate := node.validateSignatures(newKeySignResponse, decompressedKeyGenPubKey, messagesToSign)
 				if errValidate != nil {
 					node.logger.Info(errValidate.Error())
 					continue
 				}
+
+				node.logger.Infof("znnNewKeySignature: %s\n", znnNewKeySignature)
+				node.logger.Infof("newKeyFullSignatures: %s\n", hex.EncodeToString(newKeyFullSignatures[0]))
 			}
 
 			node.resetSignatures()
