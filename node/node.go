@@ -5,6 +5,21 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"io"
+	"orchestrator/common"
+	oconfig "orchestrator/common/config"
+	"orchestrator/db/manager"
+	"orchestrator/network"
+	"orchestrator/tss"
+	"os"
+	"path"
+	"path/filepath"
+	"sort"
+	"sync"
+	"syscall"
+	"time"
+	wallet2 "znn-sdk-go/wallet"
+
 	ecommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	ic "github.com/libp2p/go-libp2p-core/crypto"
@@ -21,20 +36,6 @@ import (
 	"gitlab.com/thorchain/tss/go-tss/messages"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/sha3"
-	"io"
-	"orchestrator/common"
-	oconfig "orchestrator/common/config"
-	"orchestrator/db/manager"
-	"orchestrator/network"
-	"orchestrator/tss"
-	"os"
-	"path"
-	"path/filepath"
-	"sort"
-	"sync"
-	"syscall"
-	"time"
-	wallet2 "znn-sdk-go/wallet"
 )
 
 type Node struct {
@@ -521,6 +522,46 @@ func (node *Node) processSignatures() {
 				}()
 
 				senders.Wait()
+			} else {
+				znnTssNonce, err := node.networksManager.GetTssNonceZnn()
+				if err != nil {
+					continue
+				}
+
+				// ZNN
+				msgsIndexes := make(map[string]int)
+				znnMessage, err := implementation.GetChangePubKeyMessage(definition.ChangeTssECDSAPubKeyMethodName, definition.NoMClass, 1, znnTssNonce, keyGenResponse.PubKey)
+				if err != nil {
+					continue
+				}
+				msgsIndexes[base64.StdEncoding.EncodeToString(znnMessage)] = 0
+				messagesToSign := make([][]byte, 0)
+				messagesToSign = append(messagesToSign, znnMessage)
+
+				// EVM messages
+				toSignMessagesEvm, err := node.networksManager.GetSetTssEcdsaPubKeysEvmMessages(keyGenResponse.PubKey)
+				if err != nil {
+					continue
+				}
+				for idx, msg := range toSignMessagesEvm {
+					messagesToSign = append(messagesToSign, msg)
+					msgsIndexes[base64.StdEncoding.EncodeToString(msg)] = idx + 1
+				}
+				// New key sign of messages
+				// we will try to generate a signature using the new key secret shares and validate it
+				node.tssManager.SetPubKey(keyGenResponse.PubKey)
+
+				newKeySignResponse, err := node.signMessages(messagesToSign, msgsIndexes)
+				if err != nil {
+					continue
+				}
+
+				// Verify all signatures
+				_, _, errValidate := node.validateSignatures(newKeySignResponse, decompressedKeyGenPubKey, messagesToSign)
+				if errValidate != nil {
+					node.logger.Info(errValidate.Error())
+					continue
+				}
 			}
 
 			node.resetSignatures()
