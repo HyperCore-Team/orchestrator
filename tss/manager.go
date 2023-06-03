@@ -238,8 +238,8 @@ func (m *TssManager) CanProcessSignatures() bool {
 	return m.publicKey != ""
 }
 
-func (m *TssManager) GetWhitelist() map[string]bool {
-	return m.server.GetWhitelist()
+func (m *TssManager) GetWhitelists() (map[string]bool, map[string]bool, map[string]bool) {
+	return m.server.GetWhitelists()
 }
 
 func (m *TssManager) DeleteWhitelistEntry(pubKey string) {

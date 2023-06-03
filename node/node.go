@@ -1228,12 +1228,17 @@ func (node *Node) allowNewParticipants(pubKeysMap map[string]string) {
 	}
 
 	// we add the new producing pub keys to the whitelist
-	currentWhitelist := node.tssManager.GetWhitelist()
+	p2pWhitelist, partyWhitelist, sigWhitelist := node.tssManager.GetWhitelists()
+	p2pWhitelist = make(map[string]bool)
+	partyWhitelist = make(map[string]bool)
+	sigWhitelist = make(map[string]bool)
 	for k, v := range pubKeysMap {
 		// eddsa pubKey
 		localPubKeysMap[k] = true
 		// peer id
-		currentWhitelist[v] = true
+		p2pWhitelist[v] = true
+		partyWhitelist[v] = true
+		sigWhitelist[v] = true
 		// peer id
 		node.config.TssConfig.PubKeyWhitelist[v] = true
 	}
@@ -1249,7 +1254,6 @@ func (node *Node) allowNewParticipants(pubKeysMap map[string]string) {
 	node.logger.Info("node.config.TssConfig.WhiteList: ", node.config.TssConfig.PubKeyWhitelist)
 	node.logger.Info("node.config.TssConfig.LocalPubKeys len: ", len(node.config.TssConfig.LocalPubKeys))
 	node.logger.Info("node.tssManager.GetLocalPubKeys(): ", node.tssManager.GetLocalPubKeys())
-	node.logger.Info("node.tssManager.GetWhitelist: ", node.tssManager.GetWhitelist())
 }
 
 func (node *Node) openDataDir() error {
