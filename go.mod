@@ -214,6 +214,6 @@ replace (
 	github.com/agl/ed25519 => github.com/binance-chain/edwards25519 v0.0.0-20200305024217-f36fc4b53d43
 	github.com/binance-chain/tss-lib => github.com/HyperCore-Team/tss-lib v1.3.4-0.20230529081246-b60fed75f5e8
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
-	gitlab.com/thorchain/tss/go-tss => github.com/HyperCore-Team/go-tss v1.5.1-0.20230603064238-f2f155360455
+	gitlab.com/thorchain/tss/go-tss => github.com/HyperCore-Team/go-tss v1.5.1-0.20230608152523-bd46316c8989
 	znn-sdk-go => github.com/MoonBaZZe/znn-sdk-go v0.0.2-0.20230503122137-829dc82840af
 )
