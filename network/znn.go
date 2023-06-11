@@ -39,6 +39,7 @@ type znnNetwork struct {
 	stopChan          chan os.Signal
 	setBridgeMetadata func(metadata *common.BridgeMetadata)
 	logger            *zap.SugaredLogger
+	administrator     string
 }
 
 // CheckOrchestratorInfoInitialized this method should have the same checks as in go-zenon
@@ -101,6 +102,7 @@ func NewZnnNetwork(rpcManager *rpc.Manager, dbManager *manager.Manager, networkM
 		setBridgeMetadata: setBridgeMetadata,
 		stopChan:          stopChan,
 		logger:            newLogger,
+		administrator:     bridgeInfo.Administrator.String(),
 	}
 	return newZnnNetwork, nil
 }
@@ -368,11 +370,15 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			}
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.RevokeUnwrapRequestMethodName].Id()):
+		if sendBlock.Address.String() != rC.administrator {
+			break
+		}
 		param := new(definition.RevokeUnwrapParam)
 		if err := definition.ABIBridge.UnpackMethod(param, definition.RevokeUnwrapRequestMethodName, sendBlock.Data); err != nil {
 			return constants.ErrUnpackError
 		}
-		common.AdministratorLogger.Info("RevokeUnwrapRequestMethodName TxHash: %s, LogIndex: %d", param.TransactionHash.String(), param.LogIndex)
+
+		common.AdministratorLogger.Infof("RevokeUnwrapRequestMethodName TxHash: %s, LogIndex: %d", param.TransactionHash.String(), param.LogIndex)
 		if rpcEvent, rpcErr := rC.GetUnwrapTokenRequestByHashAndLog(param.TransactionHash, param.LogIndex); rpcErr != nil {
 			if rpcErr.Error() == constants.ErrDataNonExistent.Error() {
 				rC.logger.Debug(rpcErr)
@@ -400,7 +406,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			}
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetNetworkMethodName].Id()):
-		if !live {
+		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
 		param := new(definition.NetworkInfoParam)
@@ -456,7 +462,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			rC.networkManager.AddEvmNetwork(newEvmNetwork)
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.RemoveNetworkMethodName].Id()):
-		if !live {
+		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
 		param := new(definition.NetworkInfoParam)
@@ -482,7 +488,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			}
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetTokenPairMethod].Id()):
-		if !live {
+		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
 		param := new(definition.TokenPairParam)
@@ -494,7 +500,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			param.NetworkClass, param.ChainId, param.TokenStandard.String(), param.TokenAddress, param.Bridgeable, param.Redeemable, param.Owned, param.MinAmount.String(),
 			param.FeePercentage, param.RedeemDelay, param.Metadata)
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.RemoveTokenPairMethodName].Id()):
-		if !live {
+		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
 		param := new(definition.TokenPairParam)
@@ -526,7 +532,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			}
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.NominateGuardiansMethodName].Id()):
-		if !live {
+		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
 		guardians := new([]types.Address)
@@ -537,7 +543,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			common.AdministratorLogger.Infof("NominateGuardiansMethodName Idx: %d, Guardian: %s", idx, guardian.String())
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.UnhaltMethodName].Id()):
-		if !live {
+		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
 		common.AdministratorLogger.Info("UnhaltMethodName")
@@ -551,15 +557,23 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		}
 		common.AdministratorLogger.Infof("ProposeAdministratorMethodName %s", address.String())
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.EmergencyMethodName].Id()):
-		if !live {
+		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
 		common.AdministratorLogger.Info("EmergencyMethodName")
-		if err := rC.state.SetState(common.EmergencyState); err != nil {
-			rC.logger.Error(err)
-			rC.stopChan <- syscall.SIGKILL
+		halted := rC.IsHalted()
+		if halted {
+			if err := rC.state.SetState(common.HaltedState); err != nil {
+				rC.logger.Error(err)
+				rC.stopChan <- syscall.SIGKILL
+				return err
+			}
+		}
+		bridgeInfo, err := rC.GetBridgeInfo()
+		if err != nil {
 			return err
 		}
+		rC.administrator = bridgeInfo.Administrator.String()
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.ChangeTssECDSAPubKeyMethodName].Id()):
 		if !live {
 			break
@@ -590,7 +604,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			}
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.ChangeAdministratorMethodName].Id()):
-		if !live {
+		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
 		address := new(types.Address)
@@ -598,8 +612,13 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			return constants.ErrUnpackError
 		}
 		common.AdministratorLogger.Infof("ChangeAdministratorMethodName %s", address.String())
+		bridgeInfo, err := rC.GetBridgeInfo()
+		if err != nil {
+			return err
+		}
+		rC.administrator = bridgeInfo.Administrator.String()
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetAllowKeygenMethodName].Id()):
-		if !live {
+		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
 		var value bool
@@ -624,7 +643,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			}
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetOrchestratorInfoMethodName].Id()):
-		if !live {
+		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
 		common.AdministratorLogger.Info("SetOrchestratorInfoMethodName")
@@ -639,7 +658,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		rC.SetConfirmationsToFinality(orchestratorInfo.ConfirmationsToFinality)
 		rC.SetEstimatedMomentumTime(orchestratorInfo.EstimatedMomentumTime)
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetBridgeMetadataMethodName].Id()):
-		if !live {
+		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
 		var param string
@@ -655,9 +674,8 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		} else {
 			rC.setBridgeMetadata(metadata)
 		}
-
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetNetworkMetadataMethodName].Id()):
-		if !live {
+		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
 		param := new(definition.SetNetworkMetadataParam)
