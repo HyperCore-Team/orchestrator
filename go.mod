@@ -11,7 +11,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/tsdb v0.10.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
-	github.com/zenon-network/go-zenon v0.0.5-alphanet
+	github.com/zenon-network/go-zenon v0.0.6-alphanet
 	gitlab.com/thorchain/tss/go-tss v0.0.0-00010101000000-000000000000
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.1.0
@@ -215,5 +215,5 @@ replace (
 	github.com/binance-chain/tss-lib => github.com/HyperCore-Team/tss-lib v1.3.4-0.20230529081246-b60fed75f5e8
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
 	gitlab.com/thorchain/tss/go-tss => github.com/HyperCore-Team/go-tss v1.5.1-0.20230608152523-bd46316c8989
-	znn-sdk-go => github.com/MoonBaZZe/znn-sdk-go v0.0.2-0.20230503122137-829dc82840af
+	znn-sdk-go => github.com/MoonBaZZe/znn-sdk-go v0.0.2-0.20230608064241-7879bb771cfc
 )

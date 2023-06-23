@@ -320,6 +320,13 @@ func (r *EvmRpc) FilterLogs(left, right uint64) ([]etypes.Log, error) {
 	return r.rpcClient.FilterLogs(context.Background(), r.filterQuery)
 }
 
+func (r *EvmRpc) FilterBlockLogs(blockHash ecommon.Hash) ([]etypes.Log, error) {
+	newFilterQuery := ethereum.FilterQuery{
+		BlockHash: &blockHash,
+	}
+	return r.rpcClient.FilterLogs(context.Background(), newFilterQuery)
+}
+
 func (r *EvmRpc) TransactionReceipt(txHash ecommon.Hash) (*etypes.Receipt, error) {
 	return r.rpcClient.TransactionReceipt(context.Background(), txHash)
 }
@@ -342,6 +349,10 @@ func (r *EvmRpc) BalanceAt(address ecommon.Address, blockNumber uint64) (*big.In
 
 func (r *EvmRpc) BlockNumber() (uint64, error) {
 	return r.rpcClient.BlockNumber(context.Background())
+}
+
+func (r *EvmRpc) BlockByHash(hash ecommon.Hash) (*etypes.Block, error) {
+	return r.rpcClient.BlockByHash(context.Background(), hash)
 }
 
 func (r *EvmRpc) GetCurrentTss() (ecommon.Address, error) {
