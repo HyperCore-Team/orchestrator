@@ -147,11 +147,7 @@ func (eN *evmNetwork) Sync() error {
 					// if we have confirmations then we are live, otherwise we are not
 					if err := eN.InterpretLog(log, latestBlock-log.BlockNumber < eN.ConfirmationsToFinality()); err != nil {
 						eN.logger.Error(err)
-						return err
-					} else {
-						if err := eN.eventsStore().SetLastUpdateHeight(log.BlockNumber); err != nil {
-							return err
-						}
+						continue
 					}
 				}
 			}
@@ -564,11 +560,6 @@ func (eN *evmNetwork) SubscribeToEvents() {
 		case newLog := <-logChan:
 			if errInterpret := eN.InterpretLog(newLog, true); errInterpret != nil {
 				eN.logger.Debug(errInterpret)
-			} else {
-				if errSet := eN.eventsStore().SetLastUpdateHeight(newLog.BlockNumber + 1); err != nil {
-					eN.logger.Error(errSet)
-					eN.stopChan <- syscall.SIGKILL
-				}
 			}
 		}
 	}

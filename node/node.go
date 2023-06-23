@@ -1064,7 +1064,7 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 			node.logger.Info("[sendSignaturesWrap] sent request")
 		}
 		// todo how much to wait between sends?
-		time.Sleep(5 * time.Second)
+		time.Sleep(25 * time.Second)
 	}
 }
 
@@ -1103,7 +1103,7 @@ func (node *Node) sendUnwrapRequests(seenEventsCount map[string]uint32) {
 			}
 		}
 		// todo how much to wait between sends?
-		time.Sleep(30 * time.Second)
+		time.Sleep(25 * time.Second)
 	}
 }
 

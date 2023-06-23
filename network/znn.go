@@ -327,8 +327,8 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			} else {
 				found := false
 				if logs, err := rC.rpcManager.Evm(param.ChainId).FilterBlockLogs(tx.BlockHash); err != nil {
-					// todo what?
 					rC.logger.Debug(err)
+					return err
 				} else {
 					logIndexToCheck := param.LogIndex
 					if logIndexToCheck >= common.AffiliateLogIndexAddition {
@@ -831,6 +831,11 @@ func (rC *znnNetwork) ListenForEmbeddedBridgeAccountBlocks() {
 					rC.logger.Infof("confirmationDetail is nil: %v", sendBlock.ConfirmationDetail == nil)
 					if newErr := rC.InterpretSendBlockData(sendBlock, true, accBlock.Height); newErr != nil {
 						rC.logger.Info(newErr)
+						// Try one more time
+						time.Sleep(3 * time.Second)
+						if newErr = rC.InterpretSendBlockData(sendBlock, true, accBlock.Height); newErr != nil {
+							rC.logger.Info(newErr)
+						}
 					}
 				}
 			}
