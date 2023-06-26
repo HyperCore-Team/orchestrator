@@ -233,9 +233,7 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 		}
 
 		nonceBytes := ecommon.LeftPadBytes(registeredRedeem.Nonce.Bytes(), 32)
-		registeredRedeem.Nonce.SetBytes(nonceBytes)
-
-		id, err := types.BytesToHash(registeredRedeem.Nonce.Bytes())
+		id, err := types.BytesToHash(nonceBytes)
 		if err != nil {
 			return err
 		}
@@ -297,9 +295,7 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 		}
 
 		nonceBytes := ecommon.LeftPadBytes(redeem.Nonce.Bytes(), 32)
-		redeem.Nonce.SetBytes(nonceBytes)
-
-		id, err := types.BytesToHash(redeem.Nonce.Bytes())
+		id, err := types.BytesToHash(nonceBytes)
 		if err != nil {
 			return err
 		}
@@ -320,16 +316,15 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 		}
 
 		nonceBytes := ecommon.LeftPadBytes(revokedRedeem.Nonce.Bytes(), 32)
-		revokedRedeem.Nonce.SetBytes(nonceBytes)
-
-		if live {
-			common.AdministratorLogger.Infof("RevokedRedeemSigHash %s", revokedRedeem.Nonce.String())
-		}
-
-		id, err := types.BytesToHash(revokedRedeem.Nonce.Bytes())
+		id, err := types.BytesToHash(nonceBytes)
 		if err != nil {
 			return err
 		}
+
+		if live {
+			common.AdministratorLogger.Infof("RevokedRedeemSigHash %s", id.String())
+		}
+
 		if event, storageErr := eN.dbManager.ZnnStorage().GetWrapRequestById(id); storageErr != nil {
 			return storageErr
 		} else if event == nil {
