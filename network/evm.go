@@ -227,7 +227,7 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			}
 		}
 	case common.RegisteredRedeemSigHash.Hex():
-		registeredRedeem, errParse := eN.EvmRpc().Bridge().ParseRedeemed(log)
+		registeredRedeem, errParse := eN.EvmRpc().Bridge().ParseRegisteredRedeem(log)
 		if errParse != nil {
 			return errParse
 		}
