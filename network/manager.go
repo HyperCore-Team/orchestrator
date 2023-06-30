@@ -76,6 +76,7 @@ func (m *NetworksManager) Init(networksInfo map[string]config.BaseNetworkConfig,
 		case definition.EvmClass:
 			configData, ok := networksInfo[network.Name]
 			if ok == false {
+				m.logger.Infof("Not found in config for network: %s", network.Name)
 				return errors.New("wrong network initializers 3 for network " + network.Name)
 			}
 

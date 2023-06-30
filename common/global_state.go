@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/zenon-network/go-zenon/common/types"
 	"golang.org/x/sync/semaphore"
+	"math/big"
 )
 
 const (
@@ -22,6 +23,7 @@ type GlobalState struct {
 	isAdministratorActive    bool
 	tokensMap                map[uint32]map[string]string
 	isAffiliateProgramActive map[string]bool
+	affiliateStartingHeight  *big.Int
 }
 
 func NewGlobalState(state *uint8) *GlobalState {
@@ -113,6 +115,9 @@ func (gs *GlobalState) SetIsAffiliateProgram(program AffiliateProgram) {
 	for chainId, networkValues := range program.Networks {
 		GlobalLogger.Infof("Set affiliate program values for network: %d", chainId)
 
+		gs.SetAffiliateStartingHeight(networkValues.StartingHeight)
+		GlobalLogger.Infof("SetAffiliateStartingHeight to : %d", networkValues.StartingHeight)
+
 		gs.isAffiliateProgramActive[types.ZnnTokenStandard.String()] = networkValues.ZNN
 		GlobalLogger.Infof("SetIsAffiliateProgramActive for %s to : %t", types.ZnnTokenStandard.String(), networkValues.ZNN)
 		gs.isAffiliateProgramActive[types.QsrTokenStandard.String()] = networkValues.QSR
@@ -135,6 +140,16 @@ func (gs *GlobalState) GetIsAffiliateProgramActive(token string) bool {
 	if value, found := gs.isAffiliateProgramActive[token]; found {
 		return value
 	}
-
 	return false
+}
+
+func (gs *GlobalState) SetAffiliateStartingHeight(value uint64) {
+	gs.affiliateStartingHeight = big.NewInt(0).SetUint64(value)
+}
+
+func (gs *GlobalState) GetAffiliateStartingHeight() *big.Int {
+	if gs.affiliateStartingHeight == nil {
+		gs.affiliateStartingHeight = big.NewInt(0)
+	}
+	return gs.affiliateStartingHeight
 }

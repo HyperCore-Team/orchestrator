@@ -15,6 +15,8 @@ type AffiliateProgram struct {
 }
 
 type AffiliateNetwork struct {
+	StartingHeight uint64 `json:"startingHeight"`
+
 	// Used on unwrap verification on NoM
 	ZNN bool `json:"ZNN"`
 	QSR bool `json:"QSR"`

@@ -376,31 +376,37 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 											found = true
 										}
 									} else {
-										addressToCheck := addresses[0]
-										amountToCheck := big.NewInt(0).Set(unwrapRequest.Amount)
-										fee := big.NewInt(0).Div(amountToCheck, big.NewInt(100)) // 1%
-										amountToCheck.Add(amountToCheck, fee)                    // 101%
-
-										// we check the affiliate tx
-										if param.LogIndex >= common.AffiliateLogIndexAddition {
-											affiliateAmount := big.NewInt(0).Set(unwrapRequest.Amount)
-											affiliateAmount.Mul(affiliateAmount, big.NewInt(2))
-											affiliateAmount.Div(affiliateAmount, big.NewInt(100)) // 2%
-
-											amountToCheck.Set(affiliateAmount)
-											addressToCheck = addresses[1] // we checked that we have this address
-										}
-
-										rC.logger.Infof("addressToCheck: %s", addressToCheck)
-										rC.logger.Infof("amountToCheck: %s", amountToCheck.String())
-										if addressToCheck != rpcZnnEvent.ToAddress.String() {
-											rC.logger.Debugf("Affiliate unwrap event address %s different than znn unwrap toAddress %s", addressToCheck, rpcZnnEvent.ToAddress.String())
-										} else if amountToCheck.Cmp(rpcZnnEvent.Amount) != 0 {
-											rC.logger.Debugf("Affiliate unwrap event amount %s different than znn unwrap amount %s", amountToCheck.String(), rpcZnnEvent.Amount.String())
-										} else if strings.ToLower(unwrapRequest.Token.String()) != rpcZnnEvent.TokenAddress {
-											rC.logger.Debugf("Affiliate unwrap event Token %s different than znn unwrap TokenAddress %s", unwrapRequest.Token.String(), rpcZnnEvent.TokenAddress)
+										affiliateStartingHeight := rC.state.GetAffiliateStartingHeight()
+										if tx.BlockNumber.Cmp(affiliateStartingHeight) == -1 {
+											rC.logger.Infof("Found an affiliate unwrap refferencing a tx that is contained in a block height: %d lower than affiliateStartingHeight: %d",
+												tx.BlockNumber.Uint64(), affiliateStartingHeight.Uint64())
 										} else {
-											found = true
+											addressToCheck := addresses[0]
+											amountToCheck := big.NewInt(0).Set(unwrapRequest.Amount)
+											fee := big.NewInt(0).Div(amountToCheck, big.NewInt(100)) // 1%
+											amountToCheck.Add(amountToCheck, fee)                    // 101%
+
+											// we check the affiliate tx
+											if param.LogIndex >= common.AffiliateLogIndexAddition {
+												affiliateAmount := big.NewInt(0).Set(unwrapRequest.Amount)
+												affiliateAmount.Mul(affiliateAmount, big.NewInt(2))
+												affiliateAmount.Div(affiliateAmount, big.NewInt(100)) // 2%
+
+												amountToCheck.Set(affiliateAmount)
+												addressToCheck = addresses[1] // we checked that we have this address
+											}
+
+											rC.logger.Infof("addressToCheck: %s", addressToCheck)
+											rC.logger.Infof("amountToCheck: %s", amountToCheck.String())
+											if addressToCheck != rpcZnnEvent.ToAddress.String() {
+												rC.logger.Debugf("Affiliate unwrap event address %s different than znn unwrap toAddress %s", addressToCheck, rpcZnnEvent.ToAddress.String())
+											} else if amountToCheck.Cmp(rpcZnnEvent.Amount) != 0 {
+												rC.logger.Debugf("Affiliate unwrap event amount %s different than znn unwrap amount %s", amountToCheck.String(), rpcZnnEvent.Amount.String())
+											} else if strings.ToLower(unwrapRequest.Token.String()) != rpcZnnEvent.TokenAddress {
+												rC.logger.Debugf("Affiliate unwrap event Token %s different than znn unwrap TokenAddress %s", unwrapRequest.Token.String(), rpcZnnEvent.TokenAddress)
+											} else {
+												found = true
+											}
 										}
 									}
 								}
