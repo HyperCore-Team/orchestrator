@@ -265,8 +265,18 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			}
 		}
 	case common.RegisteredRedeemSigHash.Hex():
-		id := types.Hash(log.Topics[1])
-		eN.logger.Infof("found RegisteredRedeemSigHash: %s", id.String())
+		registeredRedeem, errParse := eN.EvmRpc().Bridge().ParseRedeemed(log)
+		if errParse != nil {
+			return errParse
+		}
+
+		nonceBytes := ecommon.LeftPadBytes(registeredRedeem.Nonce.Bytes(), 32)
+		id, err := types.BytesToHash(nonceBytes)
+		if err != nil {
+			return err
+		}
+
+		eN.logger.Infof("found RegisteredRedeemSigHash for nonce: %s", id.String())
 
 		if rpcEvent, rpcErr := eN.rpcManager.Znn().GetWrapTokenRequestById(id); rpcErr != nil {
 			eN.logger.Debugf("call: eN.rpcManager.Znn().GetWrapTokenRequestById(id) error: %s", rpcErr.Error())
@@ -290,33 +300,29 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 				}
 			}
 		} else {
-			if registeredRedeem, parseErr := eN.rpcManager.Evm(eN.ChainId()).Bridge().ParseRegisteredRedeem(log); parseErr != nil {
-				eN.logger.Debug(parseErr)
-			} else {
-				deductedFeeAmount := big.NewInt(0).Set(rpcEvent.Amount)
-				deductedFeeAmount.Sub(deductedFeeAmount, rpcEvent.Fee)
+			deductedFeeAmount := big.NewInt(0).Set(rpcEvent.Amount)
+			deductedFeeAmount.Sub(deductedFeeAmount, rpcEvent.Fee)
 
-				// We have to check every field here because one that has control over tss can create a redeem and spoof the id, token, amount or destination
-				if deductedFeeAmount.Cmp(registeredRedeem.Amount) != 0 || rpcEvent.ToAddress != strings.ToLower(registeredRedeem.To.String()) ||
-					rpcEvent.TokenAddress != strings.ToLower(registeredRedeem.Token.String()) {
-					if live {
-						if stateErr := eN.state.SetState(common.EmergencyState); stateErr != nil {
-							eN.logger.Info("sent sigkill from here 8")
-							eN.stopChan <- syscall.SIGKILL
-							return stateErr
-						}
+			// We have to check every field here because one that has control over tss can create a redeem and spoof the id, token, amount or destination
+			if deductedFeeAmount.Cmp(registeredRedeem.Amount) != 0 || rpcEvent.ToAddress != strings.ToLower(registeredRedeem.To.String()) ||
+				rpcEvent.TokenAddress != strings.ToLower(registeredRedeem.Token.String()) {
+				if live {
+					if stateErr := eN.state.SetState(common.EmergencyState); stateErr != nil {
+						eN.logger.Info("sent sigkill from here 8")
+						eN.stopChan <- syscall.SIGKILL
+						return stateErr
 					}
-				} else {
-					if event, storageErr := eN.dbManager.ZnnStorage().GetWrapRequestById(id); storageErr != nil {
+				}
+			} else {
+				if event, storageErr := eN.dbManager.ZnnStorage().GetWrapRequestById(id); storageErr != nil {
+					return storageErr
+				} else if event == nil {
+					if storageErr = eN.dbManager.ZnnStorage().AddWrapRequest(common.ZnnWrapToOrchestratorWrap(rpcEvent)); storageErr != nil {
 						return storageErr
-					} else if event == nil {
-						if storageErr = eN.dbManager.ZnnStorage().AddWrapRequest(common.ZnnWrapToOrchestratorWrap(rpcEvent)); storageErr != nil {
-							return storageErr
-						}
 					}
-					if err := eN.dbManager.ZnnStorage().SetWrapRequestStatus(id, common.PendingRedeemStatus); err != nil {
-						return err
-					}
+				}
+				if err := eN.dbManager.ZnnStorage().SetWrapRequestStatus(id, common.PendingRedeemStatus); err != nil {
+					return err
 				}
 			}
 		}
@@ -325,7 +331,9 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 		if errParse != nil {
 			return errParse
 		}
-		id, err := types.BytesToHash(redeem.Nonce.Bytes())
+
+		nonceBytes := ecommon.LeftPadBytes(redeem.Nonce.Bytes(), 32)
+		id, err := types.BytesToHash(nonceBytes)
 		if err != nil {
 			return err
 		}
@@ -339,14 +347,17 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			}
 		}
 	case common.RevokedRedeemSigHash.Hex():
-		redeem, errParse := eN.EvmRpc().Bridge().ParseRevokedRedeem(log)
+		revokedRedeem, errParse := eN.EvmRpc().Bridge().ParseRevokedRedeem(log)
 		if errParse != nil {
 			return errParse
 		}
+
+		nonceBytes := ecommon.LeftPadBytes(revokedRedeem.Nonce.Bytes(), 32)
 		if live {
-			common.AdministratorLogger.Infof("RevokedRedeemSigHash %s", redeem.Nonce.String())
+			common.AdministratorLogger.Infof("RevokedRedeemSigHash %s", revokedRedeem.Nonce.String())
 		}
-		id, err := types.BytesToHash(redeem.Nonce.Bytes())
+
+		id, err := types.BytesToHash(nonceBytes)
 		if err != nil {
 			return err
 		}
