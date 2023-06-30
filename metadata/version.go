@@ -1,5 +1,5 @@
 package metadata
 
 const (
-	Version = "v0.0.3b"
+	Version = "v0.0.4"
 )

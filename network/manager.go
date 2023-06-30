@@ -66,7 +66,7 @@ func (m *NetworksManager) Init(networksInfo map[string]config.BaseNetworkConfig,
 
 	networks, err := newZnnNetwork.GetAllNetworks()
 	if err != nil {
-		return errors.New("wrong network initializers 3")
+		return err
 	}
 
 	newEvmNetworks := make([]*evmNetwork, 0)
@@ -76,17 +76,22 @@ func (m *NetworksManager) Init(networksInfo map[string]config.BaseNetworkConfig,
 		case definition.EvmClass:
 			configData, ok := networksInfo[network.Name]
 			if ok == false {
-				return errors.New("wrong network initializers 4 for network " + network.Name)
+				m.logger.Infof("Not found in config for network: %s", network.Name)
+				return errors.New("wrong network initializers 3 for network " + network.Name)
 			}
 
 			newEvmNetwork, err := NewEvmNetwork(network, dbManager, newRpcManager, state, m.stopChan)
 			if err != nil {
+				common.GlobalLogger.Infof("err: %s", err.Error())
 				return err
 			}
+
 			err = newRpcManager.AddEvmClient(configData, network.Id, newEvmNetwork.NetworkName(), *newEvmNetwork.ContractAddress())
 			if err != nil {
+				common.GlobalLogger.Infof("err: %s", err.Error())
 				return err
 			}
+
 			newEvmNetworks = append(newEvmNetworks, newEvmNetwork)
 		default:
 			if newZnnNetwork != nil {
@@ -96,7 +101,7 @@ func (m *NetworksManager) Init(networksInfo map[string]config.BaseNetworkConfig,
 			for _, eNetwork := range newEvmNetworks {
 				eNetwork.Stop()
 			}
-			return errors.New("wrong network initializers 3")
+			return errors.New("wrong network initializers 4")
 		}
 	}
 	m.evmNetworks = newEvmNetworks

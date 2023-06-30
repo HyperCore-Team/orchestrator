@@ -293,16 +293,9 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		if err := definition.ABIBridge.UnpackMethod(param, definition.UnwrapTokenMethodName, sendBlock.Data); err != nil {
 			return constants.ErrUnpackError
 		}
-		// todo one line log
-		rC.logger.Info("unpacked param")
-		rC.logger.Info("param.NetworkClass: ", param.NetworkClass)
-		rC.logger.Info("param.ChainId: ", param.ChainId)
-		rC.logger.Info("param.TransactionHash: ", param.TransactionHash)
-		rC.logger.Info("param.LogIndex: ", param.LogIndex)
-		rC.logger.Info("param.ToAddress: ", param.ToAddress.String())
-		rC.logger.Info("param.TokenAddress: ", param.TokenAddress)
-		rC.logger.Info("param.Amount: ", param.Amount)
-		rC.logger.Info("param.Signature: ", param.Signature)
+
+		rC.logger.Infof("NetworkClass: %d, ChainId: %d, TransactionHash: %s, LogIndex: %d, ToAddress: %s, TokenAddress: %s, Amount: %s, Signature: %s",
+			param.NetworkClass, param.ChainId, param.TransactionHash, param.LogIndex, param.ToAddress.String(), param.TokenAddress, param.Amount.String(), param.Signature)
 
 		if rpcZnnEvent, rpcZnnErr := rC.GetUnwrapTokenRequestByHashAndLog(param.TransactionHash, param.LogIndex); rpcZnnErr != nil {
 			if rpcZnnErr.Error() == constants.ErrDataNonExistent.Error() {
@@ -317,7 +310,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			return nil
 		} else {
 			if tx, rpcEvmErr := rC.rpcManager.Evm(param.ChainId).TransactionReceipt(ecommon.Hash(param.TransactionHash)); rpcEvmErr != nil {
-				rC.logger.Debug("error: %s", rpcEvmErr.Error())
+				rC.logger.Debugf("error: %s", rpcEvmErr.Error())
 				// todo filter errors, maybe just an rpc error
 				if rpcEvmErr.Error() == ethereum.NotFound.Error() || rpcEvmErr.Error() == "server returned transaction without signature" {
 					if live {
@@ -332,24 +325,96 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 					return rpcEvmErr
 				}
 			} else {
-				// we have to check that every field here is the same as the one in the log, otherwise it is spoofed
 				found := false
-				for _, log := range tx.Logs {
-					if strings.ToLower(log.Address.String()) != strings.ToLower(rC.rpcManager.Evm(param.ChainId).BridgeAddress().String()) {
-						continue
+				if logs, err := rC.rpcManager.Evm(param.ChainId).FilterBlockLogs(tx.BlockHash); err != nil {
+					rC.logger.Debug(err)
+					return err
+				} else {
+					logIndexToCheck := param.LogIndex
+					if logIndexToCheck >= common.AffiliateLogIndexAddition {
+						logIndexToCheck -= common.AffiliateLogIndexAddition
 					}
-					if log.Topics[0].Hex() == common.UnwrapSigHash.Hex() {
-						if unwrapRequest, parseErr := rC.rpcManager.Evm(param.ChainId).Bridge().ParseUnwrapped(*log); parseErr != nil {
-							return parseErr
+					if uint32(len(logs)) <= logIndexToCheck {
+						rC.logger.Debugf("Logs length %d is less than log index %d", len(logs), param.LogIndex)
+					} else {
+						log := logs[logIndexToCheck]
+						if strings.ToLower(log.Address.String()) != strings.ToLower(rC.rpcManager.Evm(param.ChainId).BridgeAddress().String()) {
+							rC.logger.Debugf("Address that generated this log %s is different than contract address %s",
+								strings.ToLower(log.Address.String()), strings.ToLower(rC.rpcManager.Evm(param.ChainId).BridgeAddress().String()))
+						} else if log.Topics[0].Hex() != common.UnwrapSigHash.Hex() {
+							rC.logger.Debugf("log Topic hash %s is different than unwrapSigHash %s", log.Topics[0].Hex(), common.UnwrapSigHash.Hex())
 						} else {
-							if unwrapRequest.To == rpcZnnEvent.ToAddress.String() && unwrapRequest.Amount.Cmp(rpcZnnEvent.Amount) == 0 && strings.ToLower(unwrapRequest.Token.String()) == rpcZnnEvent.TokenAddress {
-								found = true
-								break
+							if unwrapRequest, parseErr := rC.rpcManager.Evm(param.ChainId).Bridge().ParseUnwrapped(log); parseErr != nil {
+								rC.logger.Debugf("Could not parse unwrapped event with error: %s", parseErr.Error())
+							} else {
+								addresses := strings.Split(unwrapRequest.To, common.AffiliateProgramAddressSeparator)
+								if _, errParse := common.ParseAddressString(addresses[0], definition.NoMClass); errParse != nil {
+									rC.logger.Debugf("Could not parse zenon address: %s with error: %s", addresses[0], errParse.Error())
+								} else {
+									// We have to check the proper amounts for the initiator or the affiliate amount
+									var errParse error
+									if len(addresses) > 1 {
+										if _, errParse = common.ParseAddressString(addresses[1], definition.NoMClass); errParse != nil {
+											rC.logger.Debugf("Could not parse affiliate zenon address: %s with error: %s", addresses[1], errParse.Error())
+										}
+									}
+
+									// No matter if affiliate program is active, this transaction should be treated as normal
+									zts := rC.state.GetTokensMap(param.ChainId, strings.ToLower(unwrapRequest.Token.String()))
+									// Here we check the zts because the checks on evm only might not be active
+									if len(addresses) == 1 || errParse != nil || !rC.state.GetIsAffiliateProgramActive(zts) {
+										if param.LogIndex >= common.AffiliateLogIndexAddition {
+											rC.logger.Debugf("Found affiliate logIndex but this is a non affiliate unwrap - len(addresses): %d, errParse != nil: %t,"+
+												"!affiliateActive(): %t", len(addresses), errParse != nil, !rC.state.GetIsAffiliateProgramActive(zts))
+										} else if addresses[0] != rpcZnnEvent.ToAddress.String() {
+											rC.logger.Debugf("Normal unwrap event address %s different than znn unwrap toAddress %s", addresses[0], rpcZnnEvent.ToAddress.String())
+										} else if unwrapRequest.Amount.Cmp(rpcZnnEvent.Amount) != 0 {
+											rC.logger.Debugf("Normal unwrap event amount %s different than znn unwrap amount %s", unwrapRequest.Amount.String(), rpcZnnEvent.Amount.String())
+										} else if strings.ToLower(unwrapRequest.Token.String()) != rpcZnnEvent.TokenAddress {
+											rC.logger.Debugf("Normal unwrap event Token %s different than znn unwrap TokenAddress %s", unwrapRequest.Token.String(), rpcZnnEvent.TokenAddress)
+										} else {
+											found = true
+										}
+									} else {
+										affiliateStartingHeight := rC.state.GetAffiliateStartingHeight()
+										if tx.BlockNumber.Cmp(affiliateStartingHeight) == -1 {
+											rC.logger.Infof("Found an affiliate unwrap refferencing a tx that is contained in a block height: %d lower than affiliateStartingHeight: %d",
+												tx.BlockNumber.Uint64(), affiliateStartingHeight.Uint64())
+										} else {
+											addressToCheck := addresses[0]
+											amountToCheck := big.NewInt(0).Set(unwrapRequest.Amount)
+											fee := big.NewInt(0).Div(amountToCheck, big.NewInt(100)) // 1%
+											amountToCheck.Add(amountToCheck, fee)                    // 101%
+
+											// we check the affiliate tx
+											if param.LogIndex >= common.AffiliateLogIndexAddition {
+												affiliateAmount := big.NewInt(0).Set(unwrapRequest.Amount)
+												affiliateAmount.Mul(affiliateAmount, big.NewInt(2))
+												affiliateAmount.Div(affiliateAmount, big.NewInt(100)) // 2%
+
+												amountToCheck.Set(affiliateAmount)
+												addressToCheck = addresses[1] // we checked that we have this address
+											}
+
+											rC.logger.Infof("addressToCheck: %s", addressToCheck)
+											rC.logger.Infof("amountToCheck: %s", amountToCheck.String())
+											if addressToCheck != rpcZnnEvent.ToAddress.String() {
+												rC.logger.Debugf("Affiliate unwrap event address %s different than znn unwrap toAddress %s", addressToCheck, rpcZnnEvent.ToAddress.String())
+											} else if amountToCheck.Cmp(rpcZnnEvent.Amount) != 0 {
+												rC.logger.Debugf("Affiliate unwrap event amount %s different than znn unwrap amount %s", amountToCheck.String(), rpcZnnEvent.Amount.String())
+											} else if strings.ToLower(unwrapRequest.Token.String()) != rpcZnnEvent.TokenAddress {
+												rC.logger.Debugf("Affiliate unwrap event Token %s different than znn unwrap TokenAddress %s", unwrapRequest.Token.String(), rpcZnnEvent.TokenAddress)
+											} else {
+												found = true
+											}
+										}
+									}
+								}
 							}
 						}
 					}
 				}
-				rC.logger.Infof("found: %b", found)
+				rC.logger.Infof("found: %t", found)
 				if !found && live {
 					if stateErr := rC.state.SetState(common.EmergencyState); stateErr != nil {
 						rC.logger.Info(stateErr)
@@ -358,12 +423,12 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 					}
 					break
 				}
-				rC.logger.Debug("added unwrap request")
+				rC.logger.Debug("Trying to add unwrap request")
 				// we just overwrite the event and set it's status as pending redeem, we don't care about block number anymore
 				if storageErr := rC.dbManager.EvmStorage(param.ChainId).AddUnwrapRequest(common.ZnnUnwrapToOrchestatorUnwrap(rpcZnnEvent)); storageErr != nil {
 					return storageErr
 				}
-
+				rC.logger.Debug("Successfully added unwrap request")
 				if err := rC.dbManager.EvmStorage(param.ChainId).SetUnwrapRequestStatus(ecommon.Hash(param.TransactionHash), param.LogIndex, common.PendingRedeemStatus); err != nil {
 					return err
 				}
@@ -772,6 +837,11 @@ func (rC *znnNetwork) ListenForEmbeddedBridgeAccountBlocks() {
 					rC.logger.Infof("confirmationDetail is nil: %v", sendBlock.ConfirmationDetail == nil)
 					if newErr := rC.InterpretSendBlockData(sendBlock, true, accBlock.Height); newErr != nil {
 						rC.logger.Info(newErr)
+						// Try one more time
+						time.Sleep(3 * time.Second)
+						if newErr = rC.InterpretSendBlockData(sendBlock, true, accBlock.Height); newErr != nil {
+							rC.logger.Info(newErr)
+						}
 					}
 				}
 			}

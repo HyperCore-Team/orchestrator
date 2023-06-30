@@ -29,6 +29,9 @@ const (
 	// RevokedStatus this occurs when and event was revoked and the funds cannot be released anymore
 	RevokedStatus uint32 = 3
 
+	AffiliateProgramAddressSeparator string = "&"
+	AffiliateLogIndexAddition        uint32 = 4 * 1e9
+
 	// ZNN
 	ZenonNetworkName         = "Zenon"
 	EstimatedBlockTimeZnn    = 10 * time.Second

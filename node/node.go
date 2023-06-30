@@ -147,6 +147,35 @@ func (node *Node) Start() error {
 		}
 	}
 
+	bridgeInfo, err := node.networksManager.Znn().GetBridgeInfo()
+	if err != nil {
+		return err
+	} else {
+		// Set wZnn and wQsr addresses, we only have one network now so the current implementation is ok
+		if networks, err := node.networksManager.Znn().GetAllNetworks(); err != nil {
+			return err
+		} else {
+			for _, n := range networks {
+				for _, pair := range n.TokenPairs {
+					if pair.TokenStandard.String() == types.ZnnTokenStandard.String() {
+						node.state.SetTokensMap(n.Id, types.ZnnTokenStandard.String(), pair.TokenAddress)
+						node.logger.Infof("Set chainId: %d wZNN address to %s", n.Id, pair.TokenAddress)
+					} else if pair.TokenStandard.String() == types.QsrTokenStandard.String() {
+						node.state.SetTokensMap(n.Id, types.QsrTokenStandard.String(), pair.TokenAddress)
+						node.logger.Infof("Set chainId: %d wQSR address to %s", n.Id, pair.TokenAddress)
+					}
+				}
+			}
+		}
+
+		metadata := &common.BridgeMetadata{}
+		if err := json.Unmarshal([]byte(bridgeInfo.Metadata), metadata); err != nil {
+			return err
+		} else {
+			node.state.SetIsAffiliateProgram(metadata.AffiliateProgram)
+		}
+	}
+
 	if err := node.networksManager.Start(); err != nil {
 		return err
 	}
@@ -160,7 +189,7 @@ func (node *Node) Start() error {
 		}
 	}
 
-	bridgeInfo, err := node.networksManager.Znn().GetBridgeInfo()
+	bridgeInfo, err = node.networksManager.Znn().GetBridgeInfo()
 	if err != nil {
 		return err
 	} else {
@@ -1035,7 +1064,7 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 			node.logger.Info("[sendSignaturesWrap] sent request")
 		}
 		// todo how much to wait between sends?
-		time.Sleep(5 * time.Second)
+		time.Sleep(25 * time.Second)
 	}
 }
 
@@ -1074,7 +1103,7 @@ func (node *Node) sendUnwrapRequests(seenEventsCount map[string]uint32) {
 			}
 		}
 		// todo how much to wait between sends?
-		time.Sleep(5 * time.Second)
+		time.Sleep(25 * time.Second)
 	}
 }
 
@@ -1143,44 +1172,48 @@ func (node *Node) getParticipant(index uint32) string {
 
 func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
 	node.logger.Info("In SetBridgeMetadata:")
-	if node.tssManager != nil && metadata != nil {
-		if metadata.PartyTimeout != 0 {
-			duration := time.Duration(metadata.PartyTimeout) * time.Second
-			node.logger.Infof("PartyTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.PartyTimeout.Seconds(), metadata.PartyTimeout)
-			node.tssManager.SetPartyTimeout(duration)
-			node.config.TssConfig.BaseConfig.PartyTimeout = duration
+	if metadata != nil {
+		if node.tssManager != nil {
+			if metadata.PartyTimeout != 0 {
+				duration := time.Duration(metadata.PartyTimeout) * time.Second
+				node.logger.Infof("PartyTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.PartyTimeout.Seconds(), metadata.PartyTimeout)
+				node.tssManager.SetPartyTimeout(duration)
+				node.config.TssConfig.BaseConfig.PartyTimeout = duration
+			}
+
+			if metadata.KeyGenTimeout != 0 {
+				duration := time.Duration(metadata.KeyGenTimeout) * time.Second
+				node.logger.Infof("KeyGenTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.KeyGenTimeout.Seconds(), metadata.KeyGenTimeout)
+				node.tssManager.SetKeyGenTimeout(duration)
+				node.config.TssConfig.BaseConfig.KeyGenTimeout = duration
+			}
+
+			if metadata.KeySignTimeout != 0 {
+				duration := time.Duration(metadata.KeySignTimeout) * time.Second
+				node.logger.Infof("KeySignTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.KeySignTimeout.Seconds(), metadata.KeySignTimeout)
+				node.tssManager.SetKeySignTimeout(duration)
+				node.config.TssConfig.BaseConfig.KeySignTimeout = duration
+			}
+
+			if metadata.PreParamTimeout != 0 {
+				duration := time.Duration(metadata.PreParamTimeout) * time.Second
+				node.logger.Infof("PreParamsTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.PreParamTimeout.Seconds(), metadata.PreParamTimeout)
+				node.tssManager.SetPreParamsTimeout(duration)
+				node.config.TssConfig.BaseConfig.PreParamTimeout = duration
+			}
+
+			if len(metadata.KeyGenVersion) > 0 {
+				node.logger.Infof("KeyGenVersion - old: %s, new: %s", node.tssManager.GetKeyGenVersion(), metadata.KeyGenVersion)
+				node.tssManager.SetKeyGenVersion(metadata.KeyGenVersion)
+			}
+
+			if metadata.LeaderBlockHeight != 0 {
+				node.logger.Infof("LeaderBlockHeight - old: %d, new: %d", node.tssManager.GetLeaderBlockHeight(), metadata.LeaderBlockHeight)
+				node.tssManager.SetLeaderBlockHeight(metadata.LeaderBlockHeight)
+			}
 		}
 
-		if metadata.KeyGenTimeout != 0 {
-			duration := time.Duration(metadata.KeyGenTimeout) * time.Second
-			node.logger.Infof("KeyGenTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.KeyGenTimeout.Seconds(), metadata.KeyGenTimeout)
-			node.tssManager.SetKeyGenTimeout(duration)
-			node.config.TssConfig.BaseConfig.KeyGenTimeout = duration
-		}
-
-		if metadata.KeySignTimeout != 0 {
-			duration := time.Duration(metadata.KeySignTimeout) * time.Second
-			node.logger.Infof("KeySignTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.KeySignTimeout.Seconds(), metadata.KeySignTimeout)
-			node.tssManager.SetKeySignTimeout(duration)
-			node.config.TssConfig.BaseConfig.KeySignTimeout = duration
-		}
-
-		if metadata.PreParamTimeout != 0 {
-			duration := time.Duration(metadata.PreParamTimeout) * time.Second
-			node.logger.Infof("PreParamsTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.PreParamTimeout.Seconds(), metadata.PreParamTimeout)
-			node.tssManager.SetPreParamsTimeout(duration)
-			node.config.TssConfig.BaseConfig.PreParamTimeout = duration
-		}
-
-		if len(metadata.KeyGenVersion) > 0 {
-			node.logger.Infof("KeyGenVersion - old: %s, new: %s", node.tssManager.GetKeyGenVersion(), metadata.KeyGenVersion)
-			node.tssManager.SetKeyGenVersion(metadata.KeyGenVersion)
-		}
-
-		if metadata.LeaderBlockHeight != 0 {
-			node.logger.Infof("LeaderBlockHeight - old: %d, new: %d", node.tssManager.GetLeaderBlockHeight(), metadata.LeaderBlockHeight)
-			node.tssManager.SetLeaderBlockHeight(metadata.LeaderBlockHeight)
-		}
+		node.state.SetIsAffiliateProgram(metadata.AffiliateProgram)
 	}
 }
 

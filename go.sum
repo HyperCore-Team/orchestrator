@@ -30,8 +30,8 @@ github.com/HyperCore-Team/tss-lib v1.3.4-0.20230529081246-b60fed75f5e8 h1:L3ibt3
 github.com/HyperCore-Team/tss-lib v1.3.4-0.20230529081246-b60fed75f5e8/go.mod h1:3bqZ3e9Gtg4ht1bdmMu7D8acQmQEoMPNdTOFnNB1pIE=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/Kubuxu/go-os-helper v0.0.1/go.mod h1:N8B+I7vPCT80IcP58r50u4+gEEcsZETFUpAzWW2ep1Y=
-github.com/MoonBaZZe/znn-sdk-go v0.0.2-0.20230503122137-829dc82840af h1:VcG0FTzdLNn57av6lN6ga+bjslsmt1jpwbHop5cdy+U=
-github.com/MoonBaZZe/znn-sdk-go v0.0.2-0.20230503122137-829dc82840af/go.mod h1:1hTW8euQBKZUy3xWbH5bJcMusWYcnI3rjBRLT/CXhVs=
+github.com/MoonBaZZe/znn-sdk-go v0.0.2-0.20230608064241-7879bb771cfc h1:F9FLAXqxCQiM7Mr6xzAdu6sSsObzALRFglOHNHLhUUI=
+github.com/MoonBaZZe/znn-sdk-go v0.0.2-0.20230608064241-7879bb771cfc/go.mod h1:1hTW8euQBKZUy3xWbH5bJcMusWYcnI3rjBRLT/CXhVs=
 github.com/OneOfOne/xxhash v1.2.2 h1:KMrpdQIwFcEqXDklaen+P1axHaj9BSKzvpUUfnHldSE=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
@@ -1034,8 +1034,8 @@ github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:
 github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 h1:bAn7/zixMGCfxrRTfdpNzjtPYqr8smhKouy9mxVdGPU=
 github.com/yusufpapurcu/wmi v1.2.2 h1:KBNDSne4vP5mbSWnJbO+51IMOXJB67QiYCSBrubbPRg=
 github.com/yusufpapurcu/wmi v1.2.2/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQmPyzfmi0=
-github.com/zenon-network/go-zenon v0.0.5-alphanet h1:5zuWEMCim8V02whHGTz9n0DrTqaQASnbKPdUP3sIYLQ=
-github.com/zenon-network/go-zenon v0.0.5-alphanet/go.mod h1:Mzz6lt06VaHeOogCEHxbZe/pZydMHs6PDevBU9/aZSE=
+github.com/zenon-network/go-zenon v0.0.6-alphanet h1:nSTEjePBwdWUaQ25OVzQ4sreYzL3mOnDRPqMdU0e3PY=
+github.com/zenon-network/go-zenon v0.0.6-alphanet/go.mod h1:Mzz6lt06VaHeOogCEHxbZe/pZydMHs6PDevBU9/aZSE=
 github.com/zondax/hid v0.9.0 h1:eiT3P6vNxAEVxXMw66eZUAAnU2zD33JBkfG/EnfAKl8=
 github.com/zondax/hid v0.9.0/go.mod h1:l5wttcP0jwtdLjqjMMWFVEE7d1zO0jvSPA9OPZxWpEM=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=

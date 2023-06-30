@@ -47,6 +47,7 @@ func NewEvmNetwork(network *definition.NetworkInfo, dbManager *manager.Manager, 
 	if err != nil {
 		return nil, err
 	}
+
 	dbManager.AddEvmEventStore(network.Id, network.Name, newConfig.ContractDeploymentHeight())
 
 	newLogger, errLog := common.CreateSugarLogger()
@@ -115,7 +116,6 @@ func (eN *evmNetwork) Sync() error {
 		return err
 	} else {
 		eN.logger.Info("updateHeight: ", updateHeight)
-		eN.logger.Debugf("confToFin: %d", eN.ConfirmationsToFinality())
 		for {
 			latestBlock, rpcErr := eN.EvmRpc().BlockNumber()
 			if rpcErr != nil {
@@ -130,7 +130,7 @@ func (eN *evmNetwork) Sync() error {
 
 			end := false
 			filterQuerySize := eN.rpcManager.Evm(eN.ChainId()).FilterQuerySize()
-			eN.logger.Debugf("filterQuerySize: %d", filterQuerySize)
+
 			distance := latestBlock - updateHeight
 			if distance < eN.ConfirmationsToFinality() {
 				filterQuerySize = distance
@@ -138,17 +138,16 @@ func (eN *evmNetwork) Sync() error {
 			} else if distance < filterQuerySize {
 				filterQuerySize = distance
 			}
-			//eN.logger.Infof("distange: %d, left: %d, right: %d, filterQuerySize: %d\n", distance, updateHeight, updateHeight+filterQuerySize, filterQuerySize)
+			//eN.logger.Infof("distance: %d, left: %d, right: %d, filterQuerySize: %d\n", distance, updateHeight, updateHeight+filterQuerySize, filterQuerySize)
 
 			if logs, err := eN.EvmRpc().FilterLogs(updateHeight, updateHeight+filterQuerySize); err != nil {
 				return err
 			} else {
 				for _, log := range logs {
-					eN.logger.Info("log: ", log)
 					// if we have confirmations then we are live, otherwise we are not
 					if err := eN.InterpretLog(log, latestBlock-log.BlockNumber < eN.ConfirmationsToFinality()); err != nil {
 						eN.logger.Error(err)
-						return err
+						continue
 					}
 				}
 			}
@@ -172,15 +171,18 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 	case common.UnwrapSigHash.Hex():
 		unwrapped, errParse := eN.EvmRpc().Bridge().ParseUnwrapped(log)
 		if errParse != nil {
-			eN.logger.Debug(errParse)
-			return nil
+			return errParse
 		}
 		eN.logger.Debug("Found unwrap event evm")
-		// only process events that have a valid address
-		if _, errParse = common.ParseAddressString(unwrapped.To, definition.NoMClass); errParse != nil {
-			eN.logger.Debugf("Could not parse zenon address: %s with error: %s", unwrapped.To, errParse.Error())
-			return nil
+
+		addresses := strings.Split(unwrapped.To, common.AffiliateProgramAddressSeparator)
+		// only process events that have valid addresses
+		if _, errParse = common.ParseAddressString(addresses[0], definition.NoMClass); errParse != nil {
+			eN.logger.Debugf("Could not parse zenon address: %s ", addresses[0])
+			return errParse
 		}
+
+		var eventsToProcess []events.UnwrapRequestEvm
 
 		event := events.UnwrapRequestEvm{
 			NetworkClass:    eN.NetworkClass(),
@@ -190,39 +192,75 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			TransactionHash: log.TxHash,
 			LogIndex:        uint32(log.Index),
 			From:            unwrapped.From,
-			To:              unwrapped.To,
+			To:              addresses[0], // this element will always exist even if unwrapped.To is the empty string and we know that it is a valid address
 			Token:           unwrapped.Token,
 			Amount:          big.NewInt(0).Set(unwrapped.Amount),
 			Signature:       "",
 			RedeemStatus:    common.UnredeemedStatus,
 		}
-		// todo refactor all logs on a single line
-		eN.logger.Infof("chainId: %d", event.ChainId)
-		eN.logger.Infof("txHash: %s", event.TransactionHash.String())
-		eN.logger.Infof("logIndex: %d", event.LogIndex)
-		eN.logger.Infof("To: %s", event.To)
-		eN.logger.Infof("From: %s", event.From.String())
-		eN.logger.Infof("Token: %s", event.Token.String())
-		eN.logger.Infof("Amount: %d", event.Amount.Uint64())
 
-		// we enqueue the event only if we are live or we don't have confirmations
-		if live {
-			err := eN.unconfirmedQueue.Enqueue(&event)
-			if err != nil {
-				eN.logger.Error(err)
-				return err
+		eventsToProcess = append(eventsToProcess, event)
+
+		// this means we can add the affiliate event and bonus percentages to amount
+		token := strings.ToLower(unwrapped.Token.String())
+		if eN.state.GetIsAffiliateProgramActive(token) && len(addresses) > 1 {
+			// only add affiliate address if it's correct
+			if _, errParse = common.ParseAddressString(addresses[1], definition.NoMClass); errParse != nil {
+				eN.logger.Debugf("Could not parse zenon address '%s' for affiliate with error: %s", addresses[1], errParse.Error())
+			} else if log.BlockNumber < eN.state.GetAffiliateStartingHeight().Uint64() {
+				eN.logger.Infof("Found an affiliate unwrap refferencing a tx that is contained in a block height: %d older than affiliateStartingHeight %d",
+					log.BlockNumber, eN.state.GetAffiliateStartingHeight().Uint64())
+			} else {
+				initiatorAmount := big.NewInt(0).Set(unwrapped.Amount)
+				initiatorAmount.Div(initiatorAmount, big.NewInt(100))                     // 1%
+				eventsToProcess[0].Amount.Add(eventsToProcess[0].Amount, initiatorAmount) // 101%
+
+				affiliateAmount := big.NewInt(0).Set(unwrapped.Amount)
+				affiliateAmount.Mul(affiliateAmount, big.NewInt(2))
+				affiliateAmount.Div(affiliateAmount, big.NewInt(100)) // 2%
+
+				affiliateEvent := events.UnwrapRequestEvm{
+					NetworkClass:    eN.NetworkClass(),
+					ChainId:         eN.ChainId(),
+					BlockNumber:     log.BlockNumber,
+					BlockHash:       log.BlockHash,
+					TransactionHash: log.TxHash,
+					LogIndex:        uint32(log.Index) + common.AffiliateLogIndexAddition,
+					From:            unwrapped.From,
+					To:              addresses[1], // we checked this exists
+					Token:           unwrapped.Token,
+					Amount:          affiliateAmount,
+					Signature:       "",
+					RedeemStatus:    common.UnredeemedStatus,
+				}
+				eventsToProcess = append(eventsToProcess, affiliateEvent)
 			}
-		} else {
-			if localEvent, dbErr := eN.eventsStore().GetUnwrapRequestByHashAndLog(event.TransactionHash, event.LogIndex); dbErr != nil {
-				return dbErr
-			} else if localEvent == nil {
-				if err := eN.eventsStore().AddUnwrapRequest(event); err != nil {
+		}
+
+		for _, ev := range eventsToProcess {
+			// we enqueue the event only if we are live or we don't have confirmations
+			if live {
+				eN.logger.Infof("Trying to enqueue event - chainId: %d, txHash: %s, logIndex: %d, To: %s, From: %s, Token: %s, Amount: %d",
+					ev.ChainId, ev.TransactionHash.String(), ev.LogIndex, ev.To, ev.From.String(), ev.Token.String(), ev.Amount.Uint64())
+
+				err := eN.unconfirmedQueue.Enqueue(ev)
+				if err != nil {
+					eN.logger.Error(err)
 					return err
 				}
+				eN.logger.Info("Successfully enqueued event")
 			} else {
-				// the event was added by the znn sync, we update the block number
-				if err := eN.eventsStore().UpdateUnwrapRequestBlockNumber(event); err != nil {
-					return err
+				if localEvent, dbErr := eN.eventsStore().GetUnwrapRequestByHashAndLog(ev.TransactionHash, ev.LogIndex); dbErr != nil {
+					return dbErr
+				} else if localEvent == nil {
+					if err := eN.eventsStore().AddUnwrapRequest(ev); err != nil {
+						return err
+					}
+				} else {
+					// the event was added by the znn sync, we update the block number
+					if err := eN.eventsStore().UpdateUnwrapRequestBlockNumber(ev); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -316,6 +354,7 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 		}
 
 		nonceBytes := ecommon.LeftPadBytes(revokedRedeem.Nonce.Bytes(), 32)
+
 		id, err := types.BytesToHash(nonceBytes)
 		if err != nil {
 			return err
@@ -549,9 +588,9 @@ func (eN *evmNetwork) ProcessEvents() {
 	// this means we dequeued an item
 	dequeued := false
 	for {
-		var peekedEvent *events.UnwrapRequestEvm
 		var peekedInterface interface{}
 		var errQueue error
+
 		if dequeue {
 			peekedInterface, errQueue = eN.unconfirmedQueue.DequeueBlock()
 			if errQueue != nil {
@@ -571,18 +610,18 @@ func (eN *evmNetwork) ProcessEvents() {
 			dequeued = false
 		}
 		var y bool
-		peekedEvent, y = peekedInterface.(*events.UnwrapRequestEvm)
+		frontEvent, y := peekedInterface.(events.UnwrapRequestEvm)
 		if !y {
-			eN.logger.Info("Dequeued object is not an Item pointer")
+			eN.logger.Info("Dequeued object is not events.UnwrapRequestEvm")
 			if dequeued == false {
 				dequeue = true
 			}
 			continue
 		}
+		eN.logger.Debugf("Processing evm event with tx hash %s and logIndex: %d", frontEvent.TransactionHash.String(), frontEvent.LogIndex)
 
 		var txReceipt *etypes.Receipt
-		eN.logger.Debugf("processing evm event with tx hash %s and logIndex: %d", peekedEvent.TransactionHash.String(), peekedEvent.LogIndex)
-		txReceipt, err := eN.EvmRpc().TransactionReceipt(peekedEvent.TransactionHash)
+		txReceipt, err := eN.EvmRpc().TransactionReceipt(frontEvent.TransactionHash)
 		if err != nil {
 			eN.logger.Debug(err)
 			if dequeued == false {
@@ -622,7 +661,7 @@ func (eN *evmNetwork) ProcessEvents() {
 			break
 		}
 
-		txReceipt, err = eN.EvmRpc().TransactionReceipt(peekedEvent.TransactionHash)
+		txReceipt, err = eN.EvmRpc().TransactionReceipt(frontEvent.TransactionHash)
 		if err != nil {
 			eN.logger.Debug(err)
 			if dequeued == false {
@@ -637,8 +676,8 @@ func (eN *evmNetwork) ProcessEvents() {
 			continue
 		}
 
-		if !reflect.DeepEqual(txReceipt.BlockHash.Bytes(), peekedEvent.BlockHash.Bytes()) {
-			eN.logger.Info("Transaction %s has a different block hash %s, expected %s", peekedEvent.TransactionHash.String(), txReceipt.BlockHash.String(), peekedEvent.BlockHash.String())
+		if !reflect.DeepEqual(txReceipt.BlockHash.Bytes(), frontEvent.BlockHash.Bytes()) {
+			eN.logger.Info("Transaction %s has a different block hash %s, expected %s", frontEvent.TransactionHash.String(), txReceipt.BlockHash.String(), frontEvent.BlockHash.String())
 			if dequeued == false {
 				dequeue = true
 			}
@@ -646,7 +685,7 @@ func (eN *evmNetwork) ProcessEvents() {
 		}
 
 		// We double-check that this transaction exists
-		tx, _, err := eN.EvmRpc().TransactionByHash(peekedEvent.TransactionHash)
+		tx, _, err := eN.EvmRpc().TransactionByHash(frontEvent.TransactionHash)
 		if err != nil {
 			eN.logger.Debug(err)
 			if dequeued == false {
@@ -654,20 +693,21 @@ func (eN *evmNetwork) ProcessEvents() {
 			}
 			continue
 		} else if tx == nil {
-			eN.logger.Infof("Transaction %s does not exist or has not executed successfully", peekedEvent.TransactionHash.String())
+			eN.logger.Infof("Transaction %s does not exist or has not executed successfully", frontEvent.TransactionHash.String())
 			if dequeued == false {
 				dequeue = true
 			}
 			continue
 		}
 
-		eN.logger.Infof("Event with hash: %s and logIndex: %d is confirmed", peekedEvent.TransactionHash, peekedEvent.LogIndex)
+		eN.logger.Infof("Event with hash: %s and logIndex: %d is confirmed", frontEvent.TransactionHash.String(), frontEvent.LogIndex)
 
-		if err := eN.eventsStore().AddUnwrapRequest(*peekedEvent); err != nil {
+		if err := eN.eventsStore().AddUnwrapRequest(frontEvent); err != nil {
+			eN.logger.Error(errQueue)
+			eN.stopChan <- syscall.SIGKILL
 			return
 		}
-		eN.logger.Infof("Added event hash: %s logIndex: %d to persistent storage", peekedEvent.TransactionHash.String(), peekedEvent.LogIndex)
-
+		eN.logger.Infof("Added event hash: %s logIndex: %d to persistent storage", frontEvent.TransactionHash.String(), frontEvent.LogIndex)
 		if !dequeued {
 			_, errQueue = eN.unconfirmedQueue.DequeueBlock()
 			if errQueue != nil {
