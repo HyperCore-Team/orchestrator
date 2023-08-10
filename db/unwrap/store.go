@@ -24,8 +24,8 @@ func (es *evmStorage) Snapshot() db.EvmStorage {
 	return NewEvmStorage(es.DB.Snapshot(), es.stopChan, es.contractDeploymentHeight)
 }
 
-func (es *evmStorage) SendKillSignal() {
-	es.stopChan <- syscall.SIGKILL
+func (es *evmStorage) SendSigInt() {
+	es.stopChan <- syscall.SIGINT
 }
 
 func NewEvmStorage(db zdb.DB, stopChan chan os.Signal, contractDeploymentHeight uint64) db.EvmStorage {

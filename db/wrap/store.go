@@ -24,8 +24,8 @@ func (es *eventStore) Snapshot() db.ZnnStorage {
 	return NewZnnStorage(es.DB.Snapshot(), es.stopChan)
 }
 
-func (es *eventStore) SendKillSignal() {
-	es.stopChan <- syscall.SIGKILL
+func (es *eventStore) SendSigInt() {
+	es.stopChan <- syscall.SIGINT
 }
 
 func NewZnnStorage(db zdb.DB, stopChan chan os.Signal) db.ZnnStorage {

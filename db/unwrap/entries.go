@@ -21,11 +21,11 @@ func getUnwrapRequestKey(txHash ecommon.Hash, logIndex uint32) []byte {
 
 func (es *evmStorage) AddUnwrapRequest(event events.UnwrapRequestEvm) error {
 	if eventBytes, err := event.Serialize(); err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return err
 	} else {
 		if err := es.DB.Put(getUnwrapRequestKey(event.TransactionHash, event.LogIndex), eventBytes); err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return err
 		}
 	}
@@ -35,7 +35,7 @@ func (es *evmStorage) AddUnwrapRequest(event events.UnwrapRequestEvm) error {
 func (es *evmStorage) UpdateUnwrapRequestBlockNumber(event events.UnwrapRequestEvm) error {
 	localEvent, err := es.GetUnwrapRequestByHashAndLog(event.TransactionHash, event.LogIndex)
 	if err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return err
 	}
 	if localEvent == nil {
@@ -44,11 +44,11 @@ func (es *evmStorage) UpdateUnwrapRequestBlockNumber(event events.UnwrapRequestE
 	localEvent.BlockNumber = event.BlockNumber
 	localEventBytes, err := localEvent.Serialize()
 	if err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return err
 	}
 	if err := es.DB.Put(getUnwrapRequestKey(event.TransactionHash, event.LogIndex), localEventBytes); err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return err
 	}
 	return nil
@@ -61,13 +61,13 @@ func (es *evmStorage) GetUnwrapRequestByHashAndLog(txHash ecommon.Hash, logIndex
 	}
 
 	if err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return nil, err
 	}
 
 	event, err := events.DeserializeEvmUnwrapRequest(data)
 	if err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return nil, err
 	}
 	return event, nil
@@ -75,18 +75,18 @@ func (es *evmStorage) GetUnwrapRequestByHashAndLog(txHash ecommon.Hash, logIndex
 
 func (es *evmStorage) SetUnwrapRequestStatus(txHash ecommon.Hash, logIndex, status uint32) error {
 	if event, err := es.GetUnwrapRequestByHashAndLog(txHash, logIndex); err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return err
 	} else if event == nil {
 		return leveldb.ErrNotFound
 	} else {
 		event.RedeemStatus = status
 		if eventBytes, err := event.Serialize(); err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return err
 		} else {
 			if err := es.DB.Put(getUnwrapRequestKey(event.TransactionHash, event.LogIndex), eventBytes); err != nil {
-				es.SendKillSignal()
+				es.SendSigInt()
 				return err
 			}
 		}
@@ -96,18 +96,18 @@ func (es *evmStorage) SetUnwrapRequestStatus(txHash ecommon.Hash, logIndex, stat
 
 func (es *evmStorage) SetUnwrapRequestSignature(txHash ecommon.Hash, logIndex uint32, signature string) error {
 	if event, err := es.GetUnwrapRequestByHashAndLog(txHash, logIndex); err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return err
 	} else if event == nil {
 		return leveldb.ErrNotFound
 	} else {
 		event.Signature = signature
 		if eventBytes, err := event.Serialize(); err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return err
 		} else {
 			if err := es.DB.Put(getUnwrapRequestKey(event.TransactionHash, event.LogIndex), eventBytes); err != nil {
-				es.SendKillSignal()
+				es.SendSigInt()
 				return err
 			}
 		}
@@ -117,7 +117,7 @@ func (es *evmStorage) SetUnwrapRequestSignature(txHash ecommon.Hash, logIndex ui
 
 func (es *evmStorage) SetUnsentUnwrapRequestAsUnsigned(txHash ecommon.Hash, logIndex uint32) error {
 	if event, err := es.GetUnwrapRequestByHashAndLog(txHash, logIndex); err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return err
 	} else if event == nil {
 		return leveldb.ErrNotFound
@@ -125,11 +125,11 @@ func (es *evmStorage) SetUnsentUnwrapRequestAsUnsigned(txHash ecommon.Hash, logI
 		event.Signature = ""
 		event.RedeemStatus = common.UnredeemedStatus
 		if eventBytes, err := event.Serialize(); err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return err
 		} else {
 			if err := es.DB.Put(getUnwrapRequestKey(event.TransactionHash, event.LogIndex), eventBytes); err != nil {
-				es.SendKillSignal()
+				es.SendSigInt()
 				return err
 			}
 		}
@@ -145,7 +145,7 @@ func (es *evmStorage) GetUnwrapRequestsByStatus(status uint32) ([]*events.Unwrap
 	for {
 		if !iterator.Next() {
 			if iterator.Error() != nil {
-				es.SendKillSignal()
+				es.SendSigInt()
 				return nil, iterator.Error()
 			}
 			break
@@ -156,7 +156,7 @@ func (es *evmStorage) GetUnwrapRequestsByStatus(status uint32) ([]*events.Unwrap
 
 		event, err := events.DeserializeEvmUnwrapRequest(iterator.Value())
 		if err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return nil, err
 		}
 		if event.RedeemStatus != status {
@@ -176,7 +176,7 @@ func (es *evmStorage) GetUnsignedUnwrapRequests() ([]*events.UnwrapRequestEvm, e
 	for {
 		if !iterator.Next() {
 			if iterator.Error() != nil {
-				es.SendKillSignal()
+				es.SendSigInt()
 				return nil, iterator.Error()
 			}
 			break
@@ -187,7 +187,7 @@ func (es *evmStorage) GetUnsignedUnwrapRequests() ([]*events.UnwrapRequestEvm, e
 
 		event, err := events.DeserializeEvmUnwrapRequest(iterator.Value())
 		if err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return nil, err
 		}
 		if len(event.Signature) > 0 {
@@ -207,7 +207,7 @@ func (es *evmStorage) GetUnsentSignedUnwrapRequests() ([]*events.UnwrapRequestEv
 	for {
 		if !iterator.Next() {
 			if iterator.Error() != nil {
-				es.SendKillSignal()
+				es.SendSigInt()
 				return nil, iterator.Error()
 			}
 			break
@@ -218,7 +218,7 @@ func (es *evmStorage) GetUnsentSignedUnwrapRequests() ([]*events.UnwrapRequestEv
 
 		event, err := events.DeserializeEvmUnwrapRequest(iterator.Value())
 		if err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return nil, err
 		}
 		// unredeemed means unsent
@@ -240,7 +240,7 @@ func (es *evmStorage) GetLastUpdateHeight() (uint64, error) {
 	}
 
 	if err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return 0, err
 	}
 
@@ -249,13 +249,13 @@ func (es *evmStorage) GetLastUpdateHeight() (uint64, error) {
 
 func (es *evmStorage) SetLastUpdateHeight(blockHeight uint64) error {
 	if _, err := es.GetLastUpdateHeight(); err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return err
 	} else {
 		bytes := make([]byte, 8)
 		binary.LittleEndian.PutUint64(bytes, blockHeight)
 		if err := es.DB.Put(getLastUpdateKey(), bytes); err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return err
 		}
 	}

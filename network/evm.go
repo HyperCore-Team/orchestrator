@@ -283,8 +283,8 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			if rpcErr.Error() == constants.ErrDataNonExistent.Error() {
 				if live {
 					if stateErr := eN.state.SetState(common.EmergencyState); stateErr != nil {
-						eN.logger.Info("sent sigkill from here 4")
-						eN.stopChan <- syscall.SIGKILL
+						eN.logger.Info("sent SIGINT from here 4")
+						eN.stopChan <- syscall.SIGINT
 						return stateErr
 					}
 				}
@@ -294,8 +294,8 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			eN.logger.Info("wrap event not found for register redeem id: ", id.String())
 			if live {
 				if stateErr := eN.state.SetState(common.EmergencyState); stateErr != nil {
-					eN.logger.Info("sent sigkill from here 5")
-					eN.stopChan <- syscall.SIGKILL
+					eN.logger.Info("sent SIGINT from here 5")
+					eN.stopChan <- syscall.SIGINT
 					return stateErr
 				}
 			}
@@ -308,8 +308,8 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 				rpcEvent.TokenAddress != strings.ToLower(registeredRedeem.Token.String()) {
 				if live {
 					if stateErr := eN.state.SetState(common.EmergencyState); stateErr != nil {
-						eN.logger.Info("sent sigkill from here 8")
-						eN.stopChan <- syscall.SIGKILL
+						eN.logger.Info("sent SIGINT from here 8")
+						eN.stopChan <- syscall.SIGINT
 						return stateErr
 					}
 				}
@@ -379,14 +379,14 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			currentState, err := eN.state.GetState()
 			if err != nil {
 				eN.logger.Debug(err)
-				eN.stopChan <- syscall.SIGKILL
+				eN.stopChan <- syscall.SIGINT
 				return err
 			}
 			// if the node is in emergency, it will set the state to halted after all txs, we don't need to do it after we see one
 			if currentState != common.EmergencyState {
 				if err := eN.state.SetState(common.HaltedState); err != nil {
 					eN.logger.Debug(err)
-					eN.stopChan <- syscall.SIGKILL
+					eN.stopChan <- syscall.SIGINT
 					return err
 				}
 			}
@@ -545,7 +545,7 @@ func (eN *evmNetwork) SubscribeToEvents() {
 	logSub, logChan, err := eN.EvmRpc().SubscribeToLogs()
 	if err != nil {
 		eN.logger.Error(err)
-		eN.stopChan <- syscall.SIGKILL
+		eN.stopChan <- syscall.SIGINT
 		return
 	}
 
@@ -562,7 +562,7 @@ func (eN *evmNetwork) SubscribeToEvents() {
 			}
 			if logSub, logChan, err = eN.EvmRpc().SubscribeToLogs(); err != nil {
 				eN.logger.Error(err)
-				eN.stopChan <- syscall.SIGKILL
+				eN.stopChan <- syscall.SIGINT
 			}
 		}
 	}()
@@ -572,7 +572,7 @@ func (eN *evmNetwork) SubscribeToEvents() {
 		case subErr := <-logSub.Err():
 			if subErr != nil {
 				eN.logger.Error(subErr)
-				eN.stopChan <- syscall.SIGKILL
+				eN.stopChan <- syscall.SIGINT
 			}
 		case newLog := <-logChan:
 			if errInterpret := eN.InterpretLog(newLog, true); errInterpret != nil {
@@ -595,7 +595,7 @@ func (eN *evmNetwork) ProcessEvents() {
 			peekedInterface, errQueue = eN.unconfirmedQueue.DequeueBlock()
 			if errQueue != nil {
 				eN.logger.Error(errQueue)
-				eN.stopChan <- syscall.SIGKILL
+				eN.stopChan <- syscall.SIGINT
 				return
 			}
 			dequeue = false
@@ -604,7 +604,7 @@ func (eN *evmNetwork) ProcessEvents() {
 			peekedInterface, errQueue = eN.unconfirmedQueue.PeekBlock()
 			if errQueue != nil {
 				eN.logger.Error(errQueue)
-				eN.stopChan <- syscall.SIGKILL
+				eN.stopChan <- syscall.SIGINT
 				return
 			}
 			dequeued = false
@@ -646,7 +646,7 @@ func (eN *evmNetwork) ProcessEvents() {
 			if currentBlockHeight < txReceipt.BlockNumber.Uint64() {
 				eN.logger.Errorf("blockNumber on evm with chain id: %d is less than the transaction block number, we are probably still syncing", eN.ChainId())
 				// we stop the binary so it restarts and wait for the node to sync
-				eN.stopChan <- syscall.SIGKILL
+				eN.stopChan <- syscall.SIGINT
 				return
 			}
 
@@ -704,7 +704,7 @@ func (eN *evmNetwork) ProcessEvents() {
 
 		if err := eN.eventsStore().AddUnwrapRequest(frontEvent); err != nil {
 			eN.logger.Error(errQueue)
-			eN.stopChan <- syscall.SIGKILL
+			eN.stopChan <- syscall.SIGINT
 			return
 		}
 		eN.logger.Infof("Added event hash: %s logIndex: %d to persistent storage", frontEvent.TransactionHash.String(), frontEvent.LogIndex)
@@ -712,7 +712,7 @@ func (eN *evmNetwork) ProcessEvents() {
 			_, errQueue = eN.unconfirmedQueue.DequeueBlock()
 			if errQueue != nil {
 				eN.logger.Error(errQueue)
-				eN.stopChan <- syscall.SIGKILL
+				eN.stopChan <- syscall.SIGINT
 				return
 			}
 		}

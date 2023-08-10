@@ -606,7 +606,7 @@ func (node *Node) processSignatures() {
 			if stateErr := node.state.SetState(common.LiveState); stateErr != nil {
 				node.logger.Info("Could not set state to live after key gen")
 				node.logger.Debug(stateErr)
-				node.stopChan <- syscall.SIGKILL
+				node.stopChan <- syscall.SIGINT
 				return
 			}
 			// todo delete it?
@@ -788,7 +788,7 @@ func (node *Node) processSignatures() {
 
 			if err := node.state.SetState(common.HaltedState); err != nil {
 				node.logger.Error(err)
-				node.stopChan <- syscall.SIGKILL
+				node.stopChan <- syscall.SIGINT
 				return
 			}
 		case common.HaltedState:
