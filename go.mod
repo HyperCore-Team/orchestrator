@@ -3,6 +3,7 @@ module orchestrator
 go 1.20
 
 require (
+	github.com/MoonBaZZe/znn-sdk-go v0.0.3
 	github.com/ethereum/go-ethereum v1.10.22
 	github.com/golang/protobuf v1.5.2
 	github.com/joncrlsn/dque v0.0.0-20211108142734-c2ef48c5192a
@@ -17,7 +18,6 @@ require (
 	golang.org/x/crypto v0.1.0
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	gopkg.in/urfave/cli.v1 v1.20.0
-	znn-sdk-go v0.0.1
 )
 
 require (
@@ -215,5 +215,4 @@ replace (
 	github.com/binance-chain/tss-lib => github.com/HyperCore-Team/tss-lib v1.3.4-0.20230529081246-b60fed75f5e8
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.2-alpha.regen.4
 	gitlab.com/thorchain/tss/go-tss => github.com/HyperCore-Team/go-tss v1.5.1-0.20230608152523-bd46316c8989
-	znn-sdk-go => github.com/MoonBaZZe/znn-sdk-go v0.0.2-0.20230608064241-7879bb771cfc
 )
