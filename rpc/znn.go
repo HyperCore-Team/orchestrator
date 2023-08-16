@@ -2,6 +2,8 @@ package rpc
 
 import (
 	"encoding/base64"
+	sdk_rpc_client "github.com/MoonBaZZe/znn-sdk-go/rpc_client"
+	"github.com/MoonBaZZe/znn-sdk-go/zenon"
 	ic "github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/pkg/errors"
@@ -19,8 +21,6 @@ import (
 	"orchestrator/common"
 	"orchestrator/common/config"
 	"orchestrator/common/events"
-	sdk_rpc_client "znn-sdk-go/rpc_client"
-	"znn-sdk-go/zenon"
 )
 
 type ZnnRpc struct {

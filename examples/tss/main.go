@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/MoonBaZZe/znn-sdk-go/zenon"
 	"math/big"
 	"orchestrator/app"
 	"os"
 	"strconv"
 	"time"
-	"znn-sdk-go/zenon"
 
 	"github.com/zenon-network/go-zenon/common/types"
 )

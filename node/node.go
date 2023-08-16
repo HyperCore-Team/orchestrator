@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	wallet2 "github.com/MoonBaZZe/znn-sdk-go/wallet"
 	"io"
 	"orchestrator/common"
 	oconfig "orchestrator/common/config"
@@ -18,7 +19,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-	wallet2 "znn-sdk-go/wallet"
 
 	ecommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
