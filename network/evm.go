@@ -138,7 +138,7 @@ func (eN *evmNetwork) Sync() error {
 			} else if distance < filterQuerySize {
 				filterQuerySize = distance
 			}
-			//eN.logger.Infof("distance: %d, left: %d, right: %d, filterQuerySize: %d\n", distance, updateHeight, updateHeight+filterQuerySize, filterQuerySize)
+			eN.logger.Infof("distance: %d, left: %d, right: %d, filterQuerySize: %d\n", distance, updateHeight, updateHeight+filterQuerySize, filterQuerySize)
 
 			if logs, err := eN.EvmRpc().FilterLogs(updateHeight, updateHeight+filterQuerySize); err != nil {
 				return err
