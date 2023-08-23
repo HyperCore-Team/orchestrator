@@ -25,8 +25,8 @@ github.com/BurntSushi/toml v1.2.1 h1:9F2/+DoOYIOksmaJFPw1tGFy1eDnIJXg+UHjuD8lTak
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d/go.mod h1:URdX5+vg25ts3aCh8H5IFZybJYKWhJHYMTnf+ULtoC4=
 github.com/DataDog/zstd v1.4.1/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
-github.com/HyperCore-Team/go-tss v1.5.1-0.20230823112706-ee904a438124 h1:Ok/CQM4lRVEJE2Dll4ujAHW60kqgDzOg8hjYOa83L3M=
-github.com/HyperCore-Team/go-tss v1.5.1-0.20230823112706-ee904a438124/go.mod h1:b9Nc20KvocbEMO/Mf1vithklT6cLKxxpVv4xOkrPG28=
+github.com/HyperCore-Team/go-tss v1.5.1-0.20230823134748-33d68e8e2d84 h1:1Rrt7WFzuZLGS4tqgbug1KNCZzYK5yd22p+FJQLCByE=
+github.com/HyperCore-Team/go-tss v1.5.1-0.20230823134748-33d68e8e2d84/go.mod h1:b9Nc20KvocbEMO/Mf1vithklT6cLKxxpVv4xOkrPG28=
 github.com/HyperCore-Team/tss-lib v1.3.4-0.20230816213927-d92c537775e8 h1:XTigpLzZKEERkVTBglBbrv8+YUxeMVZkqPNvP99xdmw=
 github.com/HyperCore-Team/tss-lib v1.3.4-0.20230816213927-d92c537775e8/go.mod h1:nBpS4eWn/CQOvA4Wy0016jeqUgjElTfo4AdzzVNTrI8=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
