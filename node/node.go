@@ -84,7 +84,7 @@ func NewNode(config *oconfig.Config, logger *zap.Logger) (*Node, error) {
 	if errInit := node.networksManager.Init(config.Networks, node.dbManager, node.state, node.SetBridgeMetadata); errInit != nil {
 		return nil, errInit
 	}
-	node.logger.Info("netMan")
+
 	newKeyStore, err := wallet2.ReadKeyFile(config.ProducerKeyFileName, config.ProducerKeyFilePassphrase, path.Join(config.DataPath, config.ProducerKeyFileName))
 	if err != nil {
 		return nil, err

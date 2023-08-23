@@ -25,10 +25,10 @@ github.com/BurntSushi/toml v1.2.1 h1:9F2/+DoOYIOksmaJFPw1tGFy1eDnIJXg+UHjuD8lTak
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d/go.mod h1:URdX5+vg25ts3aCh8H5IFZybJYKWhJHYMTnf+ULtoC4=
 github.com/DataDog/zstd v1.4.1/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
-github.com/HyperCore-Team/go-tss v1.5.1-0.20230823134748-33d68e8e2d84 h1:1Rrt7WFzuZLGS4tqgbug1KNCZzYK5yd22p+FJQLCByE=
-github.com/HyperCore-Team/go-tss v1.5.1-0.20230823134748-33d68e8e2d84/go.mod h1:b9Nc20KvocbEMO/Mf1vithklT6cLKxxpVv4xOkrPG28=
-github.com/HyperCore-Team/tss-lib v1.3.4-0.20230816213927-d92c537775e8 h1:XTigpLzZKEERkVTBglBbrv8+YUxeMVZkqPNvP99xdmw=
-github.com/HyperCore-Team/tss-lib v1.3.4-0.20230816213927-d92c537775e8/go.mod h1:nBpS4eWn/CQOvA4Wy0016jeqUgjElTfo4AdzzVNTrI8=
+github.com/HyperCore-Team/go-tss v1.5.1-0.20230823203752-f8157b30769d h1:C8WWJvIP37OabKYTpb+xoQZsi0TnlK2VxCkTF8NbnV4=
+github.com/HyperCore-Team/go-tss v1.5.1-0.20230823203752-f8157b30769d/go.mod h1:GgJoJ7bclJgdyoiK5R/ehhBJtufvHdueC/Wg6hOiTSc=
+github.com/HyperCore-Team/tss-lib v1.3.4-0.20230823144412-dc34f69450a5 h1:WiFW4KsyS0aI6W9ufoeL4DLPXD/4XY68QiAJAo7AA3w=
+github.com/HyperCore-Team/tss-lib v1.3.4-0.20230823144412-dc34f69450a5/go.mod h1:nBpS4eWn/CQOvA4Wy0016jeqUgjElTfo4AdzzVNTrI8=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=
 github.com/Microsoft/go-winio v0.5.0/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpzfwIujj1a84=
@@ -839,8 +839,8 @@ github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9dec
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yusufpapurcu/wmi v1.2.2 h1:KBNDSne4vP5mbSWnJbO+51IMOXJB67QiYCSBrubbPRg=
 github.com/yusufpapurcu/wmi v1.2.2/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQmPyzfmi0=
-github.com/zenon-network/go-zenon v0.0.6-alphanet h1:nSTEjePBwdWUaQ25OVzQ4sreYzL3mOnDRPqMdU0e3PY=
-github.com/zenon-network/go-zenon v0.0.6-alphanet/go.mod h1:Mzz6lt06VaHeOogCEHxbZe/pZydMHs6PDevBU9/aZSE=
+github.com/zenon-network/go-zenon v0.0.7-alphanet h1:XDmn6JtQufTEC7jlljyHJcZDk6YQDCpYQPOgcOsCXXo=
+github.com/zenon-network/go-zenon v0.0.7-alphanet/go.mod h1:Mzz6lt06VaHeOogCEHxbZe/pZydMHs6PDevBU9/aZSE=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.3/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/bbolt v1.3.5/go.mod h1:G5EMThwa9y8QZGBClrRx5EY+Yw9kAhnjy3bSjsnlVTQ=
