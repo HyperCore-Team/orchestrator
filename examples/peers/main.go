@@ -4,16 +4,16 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	wallet2 "github.com/MoonBaZZe/znn-sdk-go/wallet"
 	"io/ioutil"
 	"orchestrator/app"
 	"os"
 	"path"
 	"strconv"
-	wallet2 "znn-sdk-go/wallet"
 
-	ic "github.com/libp2p/go-libp2p-core/crypto"
-	"github.com/libp2p/go-libp2p-core/peer"
-	"gitlab.com/thorchain/tss/go-tss/conversion"
+	"github.com/HyperCore-Team/go-tss/conversion"
+	ic "github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/peer"
 )
 
 func main() {

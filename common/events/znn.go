@@ -2,11 +2,11 @@ package events
 
 import (
 	ecommon "github.com/ethereum/go-ethereum/common"
-	"github.com/golang/protobuf/proto"
 	zcommon "github.com/zenon-network/go-zenon/common"
 	"github.com/zenon-network/go-zenon/common/types"
 	"github.com/zenon-network/go-zenon/vm/embedded/definition"
 	"github.com/zenon-network/go-zenon/vm/embedded/implementation"
+	"google.golang.org/protobuf/proto"
 	"math/big"
 )
 

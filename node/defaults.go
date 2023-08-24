@@ -1,7 +1,7 @@
 package node
 
 import (
-	gotss "gitlab.com/thorchain/tss/go-tss/common"
+	gotss "github.com/HyperCore-Team/go-tss/common"
 	"orchestrator/common"
 	"orchestrator/common/config"
 	"path"

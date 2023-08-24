@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	gotss "gitlab.com/thorchain/tss/go-tss/common"
+	gotss "github.com/HyperCore-Team/go-tss/common"
 	"orchestrator/common"
 	"os"
 	"path/filepath"
