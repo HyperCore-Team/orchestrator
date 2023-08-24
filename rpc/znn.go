@@ -6,6 +6,7 @@ import (
 	"github.com/MoonBaZZe/znn-sdk-go/zenon"
 	ic "github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/libp2p/go-libp2p/core/peer"
+
 	"github.com/pkg/errors"
 	"github.com/zenon-network/go-zenon/chain/nom"
 	"github.com/zenon-network/go-zenon/common/types"

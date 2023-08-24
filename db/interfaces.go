@@ -12,7 +12,7 @@ import (
 type EvmStorage interface {
 	Storage() zdb.DB
 	Snapshot() EvmStorage
-	SendKillSignal()
+	SendSigInt()
 
 	AddUnwrapRequest(events.UnwrapRequestEvm) error
 	UpdateUnwrapRequestBlockNumber(events.UnwrapRequestEvm) error
@@ -31,7 +31,7 @@ type EvmStorage interface {
 type ZnnStorage interface {
 	Storage() zdb.DB
 	Snapshot() ZnnStorage
-	SendKillSignal()
+	SendSigInt()
 
 	AddWrapRequest(events.WrapRequestZnn) error
 	SetWrapRequestStatus(types.Hash, uint32) error

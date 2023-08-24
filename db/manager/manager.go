@@ -42,8 +42,8 @@ func NewDbManager(stop chan os.Signal) (*Manager, error) {
 func (m *Manager) AddEvmEventStore(chainId uint32, name string, contractDeploymentHeight uint64) {
 	newLdb, err := storage.CreateOrOpenLevelDb(name)
 	if err != nil {
-		m.logger.Info("sent sigkill from here 1")
-		m.stopChan <- syscall.SIGKILL
+		m.logger.Info("sent SIGINT from here 1")
+		m.stopChan <- syscall.SIGINT
 		m.logger.Error(err)
 		return
 	}

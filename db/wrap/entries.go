@@ -19,11 +19,11 @@ func getWrapEventKey(id types.Hash) []byte {
 
 func (es *eventStore) AddWrapRequest(event events.WrapRequestZnn) error {
 	if eventBytes, err := event.Serialize(); err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return err
 	} else {
 		if err := es.DB.Put(getWrapEventKey(event.Id), eventBytes); err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return err
 		}
 	}
@@ -36,13 +36,13 @@ func (es *eventStore) GetWrapRequestById(id types.Hash) (*events.WrapRequestZnn,
 		return nil, nil
 	}
 	if err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return nil, err
 	}
 
 	event, err := events.DeserializeWrapEventZnn(data)
 	if err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return nil, err
 	}
 	return event, nil
@@ -50,7 +50,7 @@ func (es *eventStore) GetWrapRequestById(id types.Hash) (*events.WrapRequestZnn,
 
 func (es *eventStore) SetWrapRequestStatus(id types.Hash, status uint32) error {
 	if event, err := es.GetWrapRequestById(id); err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return err
 	} else {
 		if event == nil {
@@ -58,11 +58,11 @@ func (es *eventStore) SetWrapRequestStatus(id types.Hash, status uint32) error {
 		}
 		event.RedeemStatus = status
 		if eventBytes, err := event.Serialize(); err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return err
 		} else {
 			if err := es.DB.Put(getWrapEventKey(event.Id), eventBytes); err != nil {
-				es.SendKillSignal()
+				es.SendSigInt()
 				return err
 			}
 		}
@@ -72,7 +72,7 @@ func (es *eventStore) SetWrapRequestStatus(id types.Hash, status uint32) error {
 
 func (es *eventStore) SetWrapRequestSignature(id types.Hash, signature string) error {
 	if event, err := es.GetWrapRequestById(id); err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return err
 	} else {
 		if event == nil {
@@ -80,11 +80,11 @@ func (es *eventStore) SetWrapRequestSignature(id types.Hash, signature string) e
 		}
 		event.Signature = signature
 		if eventBytes, err := event.Serialize(); err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return err
 		} else {
 			if err := es.DB.Put(getWrapEventKey(event.Id), eventBytes); err != nil {
-				es.SendKillSignal()
+				es.SendSigInt()
 				return err
 			}
 		}
@@ -94,7 +94,7 @@ func (es *eventStore) SetWrapRequestSignature(id types.Hash, signature string) e
 
 func (es *eventStore) SetWrapRequestSentSignature(id types.Hash) error {
 	if event, err := es.GetWrapRequestById(id); err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return err
 	} else {
 		if event == nil {
@@ -102,11 +102,11 @@ func (es *eventStore) SetWrapRequestSentSignature(id types.Hash) error {
 		}
 		event.SentSignature = true
 		if eventBytes, err := event.Serialize(); err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return err
 		} else {
 			if err := es.DB.Put(getWrapEventKey(event.Id), eventBytes); err != nil {
-				es.SendKillSignal()
+				es.SendSigInt()
 				return err
 			}
 		}
@@ -122,7 +122,7 @@ func (es *eventStore) GetUnsentSignedWrapRequests() ([]*events.WrapRequestZnn, e
 	for {
 		if !iterator.Next() {
 			if iterator.Error() != nil {
-				es.SendKillSignal()
+				es.SendSigInt()
 				return nil, iterator.Error()
 			}
 			break
@@ -133,7 +133,7 @@ func (es *eventStore) GetUnsentSignedWrapRequests() ([]*events.WrapRequestZnn, e
 
 		event, err := events.DeserializeWrapEventZnn(iterator.Value())
 		if err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return nil, err
 		}
 		if event.SentSignature || len(event.Signature) == 0 {
@@ -153,7 +153,7 @@ func (es *eventStore) GetUnredeemedWrapRequests() ([]*events.WrapRequestZnn, err
 	for {
 		if !iterator.Next() {
 			if iterator.Error() != nil {
-				es.SendKillSignal()
+				es.SendSigInt()
 				return nil, iterator.Error()
 			}
 			break
@@ -164,7 +164,7 @@ func (es *eventStore) GetUnredeemedWrapRequests() ([]*events.WrapRequestZnn, err
 
 		event, err := events.DeserializeWrapEventZnn(iterator.Value())
 		if err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return nil, err
 		}
 		if event.RedeemStatus != common.UnredeemedStatus {
@@ -184,7 +184,7 @@ func (es *eventStore) GetUnsignedWrapRequests() ([]*events.WrapRequestZnn, error
 	for {
 		if !iterator.Next() {
 			if iterator.Error() != nil {
-				es.SendKillSignal()
+				es.SendSigInt()
 				return nil, iterator.Error()
 			}
 			break
@@ -195,7 +195,7 @@ func (es *eventStore) GetUnsignedWrapRequests() ([]*events.WrapRequestZnn, error
 
 		event, err := events.DeserializeWrapEventZnn(iterator.Value())
 		if err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return nil, err
 		}
 		if len(event.Signature) > 0 {
@@ -218,7 +218,7 @@ func (es *eventStore) GetLastUpdateHeight() (uint64, error) {
 	}
 
 	if err != nil {
-		es.SendKillSignal()
+		es.SendSigInt()
 		return 0, err
 	}
 
@@ -232,7 +232,7 @@ func (es *eventStore) SetLastUpdateHeight(accBlHeight uint64) error {
 		bytes := make([]byte, 8)
 		binary.LittleEndian.PutUint64(bytes, accBlHeight)
 		if err := es.DB.Put(getLastUpdateKey(), bytes); err != nil {
-			es.SendKillSignal()
+			es.SendSigInt()
 			return err
 		}
 	}

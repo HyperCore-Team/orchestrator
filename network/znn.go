@@ -317,7 +317,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 						if stateErr := rC.state.SetState(common.EmergencyState); stateErr != nil {
 							rC.logger.Info("error setting emergency state")
 							rC.logger.Info(stateErr)
-							rC.stopChan <- syscall.SIGKILL
+							rC.stopChan <- syscall.SIGINT
 						}
 						return nil
 					}
@@ -418,7 +418,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 				if !found && live {
 					if stateErr := rC.state.SetState(common.EmergencyState); stateErr != nil {
 						rC.logger.Info(stateErr)
-						rC.stopChan <- syscall.SIGKILL
+						rC.stopChan <- syscall.SIGINT
 						return stateErr
 					}
 					break
@@ -501,26 +501,26 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			configData, ok := rC.networksInfo[network.Name]
 			if ok == false {
 				rC.logger.Infof("network url non existent for network: %s chainId: %d", network.Name, network.Id)
-				rC.stopChan <- syscall.SIGKILL
+				rC.stopChan <- syscall.SIGINT
 				return errors.New("network url non existent")
 			}
 			rC.logger.Info("configData: ", configData)
 			newEvmNetwork, err := NewEvmNetwork(network, rC.dbManager, rC.rpcManager, rC.state, rC.stopChan)
 			if err != nil {
 				rC.logger.Error(err)
-				rC.stopChan <- syscall.SIGKILL
+				rC.stopChan <- syscall.SIGINT
 				return err
 			}
 			err = rC.rpcManager.AddEvmClient(configData, network.Id, newEvmNetwork.NetworkName(), *newEvmNetwork.ContractAddress())
 			if err != nil {
 				rC.logger.Error(err)
-				rC.stopChan <- syscall.SIGKILL
+				rC.stopChan <- syscall.SIGINT
 				return err
 			}
 			rC.logger.Debug("add evm client ok")
 			if err := newEvmNetwork.Start(); err != nil {
 				rC.logger.Error(err)
-				rC.stopChan <- syscall.SIGKILL
+				rC.stopChan <- syscall.SIGINT
 				return err
 			}
 			rC.logger.Debug("network start ok")
@@ -582,7 +582,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		currentState, err := rC.state.GetState()
 		if err != nil {
 			rC.logger.Debug(err)
-			rC.stopChan <- syscall.SIGKILL
+			rC.stopChan <- syscall.SIGINT
 			return err
 		}
 		// if the node is in emergency, it will set the state to halted after all txs, we don't need to do it after we see one
@@ -591,7 +591,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			if halted {
 				if err := rC.state.SetState(common.HaltedState); err != nil {
 					rC.logger.Error(err)
-					rC.stopChan <- syscall.SIGKILL
+					rC.stopChan <- syscall.SIGINT
 					return err
 				}
 			}
@@ -630,7 +630,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		if halted {
 			if err := rC.state.SetState(common.HaltedState); err != nil {
 				rC.logger.Error(err)
-				rC.stopChan <- syscall.SIGKILL
+				rC.stopChan <- syscall.SIGINT
 				return err
 			}
 		}
@@ -657,13 +657,13 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			currentState, err := rC.state.GetState()
 			if err != nil {
 				rC.logger.Debug(err)
-				rC.stopChan <- syscall.SIGKILL
+				rC.stopChan <- syscall.SIGINT
 				return err
 			}
 			if currentState == common.KeyGenState {
 				if err := rC.state.SetState(common.LiveState); err != nil {
 					rC.logger.Error(err)
-					rC.stopChan <- syscall.SIGKILL
+					rC.stopChan <- syscall.SIGINT
 					return err
 				}
 			}
@@ -696,13 +696,13 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			currentState, err := rC.state.GetState()
 			if err != nil {
 				rC.logger.Debug(err)
-				rC.stopChan <- syscall.SIGKILL
+				rC.stopChan <- syscall.SIGINT
 				return err
 			}
 			if currentState == common.KeyGenState {
 				if err := rC.state.SetState(common.LiveState); err != nil {
 					rC.logger.Error(err)
-					rC.stopChan <- syscall.SIGKILL
+					rC.stopChan <- syscall.SIGINT
 					return err
 				}
 			}
@@ -761,7 +761,7 @@ func (rC *znnNetwork) ListenForMomentumHeight() {
 	momSub, momChan, err := rC.ZnnRpc().SubscribeToMomentums()
 	if err != nil {
 		rC.logger.Error(err)
-		rC.stopChan <- syscall.SIGKILL
+		rC.stopChan <- syscall.SIGINT
 		return
 	}
 	rC.logger.Debug("Successfully started to listen for momentums")
@@ -770,7 +770,7 @@ func (rC *znnNetwork) ListenForMomentumHeight() {
 		case errSub := <-momSub.Err():
 			if errSub != nil {
 				rC.logger.Debugf("listen mom err: %s", errSub.Error())
-				rC.stopChan <- syscall.SIGKILL
+				rC.stopChan <- syscall.SIGINT
 				return
 			}
 		case momentums := <-momChan:
@@ -796,7 +796,7 @@ func (rC *znnNetwork) ListenForEmbeddedBridgeAccountBlocks() {
 	accBlSub, accBlCh, err := rC.ZnnRpc().SubscribeToAccountBlocks(types.BridgeContract)
 	if err != nil {
 		rC.logger.Info("sub accBerr: ", err)
-		rC.stopChan <- syscall.SIGKILL
+		rC.stopChan <- syscall.SIGINT
 		return
 	}
 	rC.logger.Debug("Successfully started to listen for account blocks")
@@ -805,7 +805,7 @@ func (rC *znnNetwork) ListenForEmbeddedBridgeAccountBlocks() {
 		case errSub := <-accBlSub.Err():
 			if errSub != nil {
 				rC.logger.Debugf("listen accB err: %s", errSub.Error())
-				rC.stopChan <- syscall.SIGKILL
+				rC.stopChan <- syscall.SIGINT
 				return
 			}
 		case accBlocks := <-accBlCh:
@@ -917,13 +917,13 @@ func (rC *znnNetwork) IsHalted() bool {
 	bridgeInfo, err := rC.GetBridgeInfo()
 	if err != nil {
 		rC.logger.Error(err)
-		rC.stopChan <- syscall.SIGKILL
+		rC.stopChan <- syscall.SIGINT
 		return true
 	}
 	frMom, frMomErr := rC.state.GetFrontierMomentum()
 	if frMomErr != nil {
 		rC.logger.Error(err)
-		rC.stopChan <- syscall.SIGKILL
+		rC.stopChan <- syscall.SIGINT
 		return true
 	}
 
