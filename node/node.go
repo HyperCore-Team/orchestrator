@@ -815,6 +815,23 @@ func (node *Node) processSignatures() {
 						}
 					}
 				}
+				bridgeInfo, err := node.networksManager.GetBridgeInfo()
+				if err != nil {
+					node.logger.Debug(err)
+					continue
+				} else if bridgeInfo == nil {
+					node.logger.Debug("processSignatures keygen bridgeInfo == nil")
+					continue
+				}
+				if bridgeInfo.AllowKeyGen == true {
+					// this means we generated a key and we wait for the administrator to change it
+					if len(bridgeInfo.CompressedTssECDSAPubKey) == 0 && len(node.tssManager.GetPubKey()) != 0 {
+						continue
+					}
+					if err := node.state.SetState(common.KeyGenState); err != nil {
+						node.logger.Debug(err.Error())
+					}
+				}
 			}
 		}
 	}
