@@ -270,7 +270,35 @@ func (node *Node) processSignatures() {
 		}
 		switch currentState {
 		case common.KeyGenState:
-			time.Sleep(10 * time.Second)
+			mom, err := node.networksManager.Znn().GetFrontierMomentum()
+			if err != nil {
+				node.logger.Debug(err)
+				continue
+			}
+			// We start a key gen every 270 momentums ( 45 minutes )
+			for mom.Height%270 > 3 {
+				time.Sleep(10 * time.Second)
+				mom, err = node.networksManager.Znn().GetFrontierMomentum()
+				if err != nil {
+					node.logger.Debug(err)
+					continue
+				}
+
+				// we query the state every 1 minute
+				if mom.Height%6 == 0 {
+					state, err := node.state.GetState()
+					if err != nil {
+						node.logger.Debug("currentState error while sleeping for key gen")
+						node.logger.Debug(err.Error())
+						continue
+					}
+					if state != common.KeyGenState {
+						node.logger.Info("State no longer keyGen so will exit key generation")
+						break
+					}
+				}
+			}
+
 			node.logger.Info("Starting keyGen")
 
 			// We start looking 24h of momentums behind the momentum height specified by the bridgeInfo.shouldKeyGenAt
