@@ -285,7 +285,7 @@ func (node *Node) processSignatures() {
 				}
 
 				if mom.Height%24 == 0 {
-					node.logger.Infof("%d momentums left before starting keygen", 270-mom.Height%270)
+					node.logger.Infof("%d momentums left before starting keygen", 216-mom.Height%216)
 				}
 
 				// we query the state every 1 minute
