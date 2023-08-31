@@ -276,7 +276,7 @@ func (node *Node) processSignatures() {
 				continue
 			}
 			// We start a key gen every 216 momentums ( 36 minutes )
-			for mom.Height%270 > 3 {
+			for mom.Height%216 > 3 {
 				time.Sleep(10 * time.Second)
 				mom, err = node.networksManager.Znn().GetFrontierMomentum()
 				if err != nil {
