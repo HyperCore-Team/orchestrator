@@ -276,7 +276,8 @@ func (node *Node) processSignatures() {
 				continue
 			}
 			// We start a key gen every 216 momentums ( 36 minutes )
-			for mom.Height%216 > 3 {
+			keyGenWindow := uint64(216)
+			for mom.Height%keyGenWindow > 3 {
 				time.Sleep(10 * time.Second)
 				mom, err = node.networksManager.Znn().GetFrontierMomentum()
 				if err != nil {
@@ -285,7 +286,7 @@ func (node *Node) processSignatures() {
 				}
 
 				if mom.Height%24 == 0 {
-					node.logger.Infof("%d momentums left before starting keygen", 216-mom.Height%216)
+					node.logger.Infof("%d momentums left before starting keygen", keyGenWindow-mom.Height%keyGenWindow)
 				}
 
 				// we query the state every 1 minute
