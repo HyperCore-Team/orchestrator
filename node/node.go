@@ -539,6 +539,7 @@ func (node *Node) processSignatures() {
 						bridgeInfo, err := node.networksManager.GetBridgeInfo()
 						if err != nil {
 							node.logger.Debug(err)
+							time.Sleep(5 * time.Second)
 							continue
 						}
 						// The pubKey was changed
@@ -550,6 +551,7 @@ func (node *Node) processSignatures() {
 							err = node.networksManager.ChangeTssEcdsaPubKeyZnn(keyGenResponse.PubKey, znnOldKeySignature, znnNewKeySignature, node.producerKeyPair)
 							if err != nil {
 								node.logger.Debug(err)
+								time.Sleep(5 * time.Second)
 								continue
 							}
 							node.logger.Debug("[sendZnnTx PubKey] sent tx")
@@ -580,55 +582,49 @@ func (node *Node) processSignatures() {
 						// todo use estimatedBlockTime / TimeToFinality
 						time.Sleep(20 * time.Second)
 					}
-					node.logger.Info("Successfully set pubKey on all networks")
 				}()
 
 				senders.Wait()
 			} else {
-				znnTssNonce, err := node.networksManager.GetTssNonceZnn()
-				if err != nil {
-					continue
-				}
+				// We wait for the key to be set
+				var waiters sync.WaitGroup
+				waiters.Add(2)
 
-				// ZNN
-				msgsIndexes := make(map[string]int)
-				znnMessage, err := implementation.GetChangePubKeyMessage(definition.ChangeTssECDSAPubKeyMethodName, definition.NoMClass, 1, znnTssNonce, keyGenResponse.PubKey)
-				if err != nil {
-					continue
-				}
-				msgsIndexes[base64.StdEncoding.EncodeToString(znnMessage)] = 0
-				messagesToSign := make([][]byte, 0)
-				messagesToSign = append(messagesToSign, znnMessage)
+				go func() {
+					defer waiters.Done()
+					for {
+						bridgeInfo, err := node.networksManager.GetBridgeInfo()
+						if err != nil {
+							node.logger.Debug(err)
+							time.Sleep(10 * time.Second)
+							continue
+						}
+						// The pubKey was changed
+						if bridgeInfo.CompressedTssECDSAPubKey == keyGenResponse.PubKey {
+							break
+						}
+						time.Sleep(20 * time.Second)
+					}
+				}()
 
-				// EVM messages
-				toSignMessagesEvm, err := node.networksManager.GetSetTssEcdsaPubKeysEvmMessages(keyGenResponse.PubKey)
-				if err != nil {
-					continue
-				}
-				for idx, msg := range toSignMessagesEvm {
-					messagesToSign = append(messagesToSign, msg)
-					msgsIndexes[base64.StdEncoding.EncodeToString(msg)] = idx + 1
-				}
-				// New key sign of messages
-				// we will try to generate a signature using the new key secret shares and validate it
-				node.tssManager.SetPubKey(keyGenResponse.PubKey)
+				go func() {
+					defer waiters.Done()
+					for {
+						if changed, err := node.networksManager.CheckNewTssEcdsaPubKeyEvm(keyGenResponse.PubKey); err != nil {
+							node.logger.Debug(err)
+							time.Sleep(5 * time.Second)
+							continue
+						} else if changed {
+							break
+						}
+						time.Sleep(20 * time.Second)
+					}
+				}()
 
-				newKeySignResponse, err := node.signMessages(messagesToSign, msgsIndexes)
-				if err != nil {
-					continue
-				}
-
-				// Verify all signatures
-				znnNewKeySignature, newKeyFullSignatures, errValidate := node.validateSignatures(newKeySignResponse, decompressedKeyGenPubKey, messagesToSign)
-				if errValidate != nil {
-					node.logger.Info(errValidate.Error())
-					continue
-				}
-
-				node.logger.Infof("znnNewKeySignature: %s\n", znnNewKeySignature)
-				node.logger.Infof("newKeyFullSignatures: %s\n", hex.EncodeToString(newKeyFullSignatures[0]))
+				waiters.Wait()
 			}
 
+			node.logger.Info("Successfully set pubKey on all networks")
 			node.resetSignatures()
 
 			node.logger.Infof("ECDSA KeyGen Response here: %v", keyGenResponse)

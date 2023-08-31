@@ -355,6 +355,35 @@ func (m *NetworksManager) SetTssEcdsaPubKeyEvm(oldKeySignatures, newKeySignature
 	return ok, nil
 }
 
+func (m *NetworksManager) CheckNewTssEcdsaPubKeyEvm(newCompressedPubKey string) (bool, error) {
+	newCompressedPubKeyBytes, err := base64.StdEncoding.DecodeString(newCompressedPubKey)
+	if err != nil {
+		m.logger.Debug(err)
+		return false, err
+	}
+	newPubKey, errDecompress := crypto.DecompressPubkey(newCompressedPubKeyBytes)
+	if errDecompress != nil {
+		m.logger.Debug(err)
+		return false, err
+	}
+	newTss := crypto.PubkeyToAddress(*newPubKey)
+	m.logger.Debugf("New tss address: %s", newTss.String())
+	// true means that all evm networks have the new tss
+	ok := true
+	for _, network := range m.evmNetworks {
+		tss, err := network.GetCurrentTss()
+		if err != nil {
+			m.logger.Debug(err)
+			continue
+		}
+		if tss.String() == newTss.String() {
+			continue
+		}
+		ok = false
+	}
+	return ok, nil
+}
+
 func (m *NetworksManager) SendHaltEvm(signatures [][]byte, ecdsaPrivateKey *ecdsa.PrivateKey, evmAddress ecommon.Address) (bool, error) {
 	// true means that all evm networks are halted
 	ok := true
