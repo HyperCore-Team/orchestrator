@@ -275,13 +275,17 @@ func (node *Node) processSignatures() {
 				node.logger.Debug(err)
 				continue
 			}
-			// We start a key gen every 270 momentums ( 45 minutes )
+			// We start a key gen every 216 momentums ( 36 minutes )
 			for mom.Height%270 > 3 {
 				time.Sleep(10 * time.Second)
 				mom, err = node.networksManager.Znn().GetFrontierMomentum()
 				if err != nil {
 					node.logger.Debug(err)
 					continue
+				}
+
+				if mom.Height%24 == 0 {
+					node.logger.Infof("%d momentums left before starting keygen", 270-mom.Height%270)
 				}
 
 				// we query the state every 1 minute
@@ -1230,14 +1234,9 @@ func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
 				node.config.TssConfig.BaseConfig.PreParamTimeout = duration
 			}
 
-			if len(metadata.KeyGenVersion) > 0 {
-				node.logger.Infof("KeyGenVersion - old: %s, new: %s", node.tssManager.GetKeyGenVersion(), metadata.KeyGenVersion)
-				node.tssManager.SetKeyGenVersion(metadata.KeyGenVersion)
-			}
-
-			if metadata.LeaderBlockHeight != 0 {
-				node.logger.Infof("LeaderBlockHeight - old: %d, new: %d", node.tssManager.GetLeaderBlockHeight(), metadata.LeaderBlockHeight)
-				node.tssManager.SetLeaderBlockHeight(metadata.LeaderBlockHeight)
+			if len(metadata.JoinPartyVersion) > 0 {
+				node.logger.Infof("joinPartyVersion - old: %s, new: %s", node.tssManager.GetJoinPartyVersion(), metadata.JoinPartyVersion)
+				node.tssManager.SetKeyGenVersion(metadata.JoinPartyVersion)
 			}
 		}
 

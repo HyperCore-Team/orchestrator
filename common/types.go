@@ -5,7 +5,7 @@ type BridgeMetadata struct {
 	KeyGenTimeout     uint64           `json:"keyGenTimeout"`
 	KeySignTimeout    uint64           `json:"keySignTimeout"`
 	PreParamTimeout   uint64           `json:"preParamTimeout"`
-	KeyGenVersion     string           `json:"keyGenVersion"`
+	JoinPartyVersion  string           `json:"JoinPartyVersion"`
 	LeaderBlockHeight int64            `json:"leaderBlockHeight"`
 	AffiliateProgram  AffiliateProgram `json:"affiliateProgram"`
 }

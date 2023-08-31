@@ -25,7 +25,7 @@ type TssManager struct {
 	privateKey        string
 	publicKey         string
 	localPubKeys      []string
-	keyGenVersion     string
+	joinPartyVersion  string
 	leaderBlockHeight int64
 }
 
@@ -102,7 +102,7 @@ func NewTssManager(conf config.TssManagerConfig, privateKey string) (*TssManager
 		privateKey:        privateKey,
 		publicKey:         conf.PublicKey,
 		localPubKeys:      conf.LocalPubKeys,
-		keyGenVersion:     common.DefaultKeyGenVersion,
+		joinPartyVersion:  common.DefaultKeyGenVersion,
 		leaderBlockHeight: common.DefaultLeaderBlockHeight,
 	}, nil
 }
@@ -126,7 +126,7 @@ func (m *TssManager) BulkSign(messagesBytes [][]byte, algo messages.Algo) (*keys
 	common.GlobalLogger.Info("before sending sign request")
 	common.GlobalLogger.Info("PublicKey: ", m.publicKey)
 	if algo == messages.ECDSAKEYSIGN {
-		keySignReq = keysign.NewRequest(m.publicKey, messagesStr, 10, m.localPubKeys, "0.13.0", "ecdsa")
+		keySignReq = keysign.NewRequest(m.publicKey, messagesStr, m.GetLeaderBlockHeight(), m.localPubKeys, m.GetJoinPartyVersion(), "ecdsa")
 		resSign, err := m.server.KeySign(keySignReq)
 		return &resSign, err
 	} else {
@@ -159,7 +159,7 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 
 	var req keygen.Request
 	if algo == messages.ECDSAKEYGEN {
-		req = keygen.NewRequest(m.localPubKeys, m.leaderBlockHeight, m.keyGenVersion, algorithm)
+		req = keygen.NewRequest(m.localPubKeys, m.leaderBlockHeight, m.joinPartyVersion, algorithm)
 		response, err := m.server.Keygen(req)
 		if err != nil {
 			return nil, err
@@ -188,15 +188,11 @@ func (m *TssManager) SetPreParamsTimeout(preParamsTimeout time.Duration) {
 }
 
 func (m *TssManager) SetKeyGenVersion(version string) {
-	m.keyGenVersion = version
+	m.joinPartyVersion = version
 }
 
-func (m *TssManager) GetKeyGenVersion() string {
-	return m.keyGenVersion
-}
-
-func (m *TssManager) SetLeaderBlockHeight(height int64) {
-	m.leaderBlockHeight = height
+func (m *TssManager) GetJoinPartyVersion() string {
+	return m.joinPartyVersion
 }
 
 func (m *TssManager) GetLeaderBlockHeight() int64 {
