@@ -3,11 +3,11 @@ module orchestrator
 go 1.20
 
 require (
-	github.com/HyperCore-Team/go-tss v1.5.1-0.20230830113222-d0b00ba2cf73
+	github.com/HyperCore-Team/go-tss v1.5.1-0.20230901163318-245e7f657edb
 	github.com/MoonBaZZe/znn-sdk-go v0.0.3
 	github.com/ethereum/go-ethereum v1.10.22
 	github.com/joncrlsn/dque v0.0.0-20211108142734-c2ef48c5192a
-	github.com/libp2p/go-libp2p v0.30.0
+	github.com/libp2p/go-libp2p v0.31.0
 	github.com/multiformats/go-multiaddr v0.11.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/tsdb v0.10.0
@@ -119,8 +119,8 @@ require (
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/quic-go/qpack v0.4.0 // indirect
-	github.com/quic-go/qtls-go1-20 v0.3.2 // indirect
-	github.com/quic-go/quic-go v0.37.6 // indirect
+	github.com/quic-go/qtls-go1-20 v0.3.3 // indirect
+	github.com/quic-go/quic-go v0.38.1 // indirect
 	github.com/quic-go/webtransport-go v0.5.3 // indirect
 	github.com/raulk/go-watchdog v1.3.0 // indirect
 	github.com/rjeczalik/notify v0.9.1 // indirect
@@ -159,6 +159,7 @@ require (
 )
 
 replace (
+	github.com/HyperCore-Team/go-tss => ../go-tss
 	github.com/agl/ed25519 => github.com/binance-chain/edwards25519 v0.0.0-20200305024217-f36fc4b53d43
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 )
