@@ -275,8 +275,8 @@ func (node *Node) processSignatures() {
 				node.logger.Debug(err)
 				continue
 			}
-			// We start a key gen every 216 momentums ( 36 minutes )
-			keyGenWindow := uint64(216)
+			// We start a key gen every 150 momentums ( 25 minutes )
+			keyGenWindow := uint64(150)
 			for mom.Height%keyGenWindow > 3 {
 				time.Sleep(10 * time.Second)
 				mom, err = node.networksManager.Znn().GetFrontierMomentum()
@@ -343,7 +343,7 @@ func (node *Node) processSignatures() {
 				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
 
 				node.logger.Infof("Old party timeout value: %f minutes", node.tssManager.Config().PartyTimeout.Minutes())
-				node.tssManager.SetPartyTimeout(node.tssManager.Config().PartyTimeout * 2)
+				node.tssManager.SetPartyTimeout(node.tssManager.Config().PartyTimeout * 3)
 				node.logger.Infof("New party timeout value: %f minutes", node.tssManager.Config().PartyTimeout.Minutes())
 
 				// start the key gen

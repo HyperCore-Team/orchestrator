@@ -3,7 +3,7 @@ module orchestrator
 go 1.20
 
 require (
-	github.com/HyperCore-Team/go-tss v1.5.1-0.20230901163318-245e7f657edb
+	github.com/HyperCore-Team/go-tss v1.5.1-0.20230903113814-3dfa14091123
 	github.com/MoonBaZZe/znn-sdk-go v0.0.3
 	github.com/ethereum/go-ethereum v1.10.22
 	github.com/joncrlsn/dque v0.0.0-20211108142734-c2ef48c5192a

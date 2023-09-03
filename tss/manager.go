@@ -150,7 +150,7 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 	elapsed := time.Since(start)
 	common.GlobalLogger.Infof("preParams took %f", elapsed.Seconds())
 
-	sleepDuration := m.Config().PartyTimeout * 3 / 4
+	sleepDuration := m.Config().PartyTimeout * 2
 	if sleepDuration > elapsed {
 		sleepDuration = sleepDuration - elapsed
 		time.Sleep(sleepDuration)
