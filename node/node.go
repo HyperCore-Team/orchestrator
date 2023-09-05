@@ -604,7 +604,7 @@ func (node *Node) processSignatures() {
 						time.Sleep(20 * time.Second)
 					}
 				}()
-        
+
 				go func() {
 					defer waiters.Done()
 					for {
@@ -618,7 +618,7 @@ func (node *Node) processSignatures() {
 						time.Sleep(20 * time.Second)
 					}
 				}()
-        
+
 				waiters.Wait()
 			}
 
@@ -1232,9 +1232,8 @@ func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
 
 			if len(metadata.JoinPartyVersion) > 0 {
 				node.logger.Infof("joinPartyVersion - old: %s, new: %s", node.tssManager.GetJoinPartyVersion(), metadata.JoinPartyVersion)
-				node.tssManager.SetKeyGenVersion(metadata.JoinPartyVersion)
+				node.tssManager.SetJoinPartyVersion(metadata.JoinPartyVersion)
 			}
-
 		}
 
 		node.state.SetIsAffiliateProgram(metadata.AffiliateProgram)

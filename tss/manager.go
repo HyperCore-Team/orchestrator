@@ -188,11 +188,11 @@ func (m *TssManager) SetPreParamsTimeout(preParamsTimeout time.Duration) {
 }
 
 func (m *TssManager) SetJoinPartyVersion(version string) {
-	m.keyGenVersion = version
+	m.joinPartyVersion = version
 }
 
 func (m *TssManager) GetJoinPartyVersion() string {
-	return m.keyGenVersion
+	return m.joinPartyVersion
 }
 
 func (m *TssManager) SetLeaderBlockHeight(height int64) {
