@@ -270,7 +270,41 @@ func (node *Node) processSignatures() {
 		}
 		switch currentState {
 		case common.KeyGenState:
-			time.Sleep(10 * time.Second)
+			mom, err := node.networksManager.Znn().GetFrontierMomentum()
+			if err != nil {
+				node.logger.Debug(err)
+				continue
+			}
+
+			partyTimeout := uint64(node.tssManager.Config().PartyTimeout.Minutes())
+			keyGenWindow := partyTimeout * 30 * 6 // 1.5 minutes * 30 = 45 minutes * 6 momentums / minute
+			for mom.Height%keyGenWindow > 3 {
+				time.Sleep(10 * time.Second)
+				mom, err = node.networksManager.Znn().GetFrontierMomentum()
+				if err != nil {
+					node.logger.Debug(err)
+					continue
+				}
+
+				if mom.Height%24 == 0 {
+					node.logger.Infof("%d momentums left before starting keygen", keyGenWindow-mom.Height%keyGenWindow)
+				}
+
+				// we query the state every 1 minute
+				if mom.Height%6 == 0 {
+					state, err := node.state.GetState()
+					if err != nil {
+						node.logger.Debug("currentState error while sleeping for key gen")
+						node.logger.Debug(err.Error())
+						continue
+					}
+					if state != common.KeyGenState {
+						node.logger.Info("State no longer keyGen so will exit key generation")
+						break
+					}
+				}
+
+			}
 			node.logger.Info("Starting keyGen")
 
 			// We start looking 24h of momentums behind the momentum height specified by the bridgeInfo.shouldKeyGenAt
@@ -309,10 +343,9 @@ func (node *Node) processSignatures() {
 				node.logger.Info("Started ECDSA Keygen")
 				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
 
-				duration := time.Duration(5 * 60 * 1e9) // 5 minutes
 				node.logger.Infof("Old party timeout value: %f minutes", node.tssManager.Config().PartyTimeout.Minutes())
-				node.tssManager.SetPartyTimeout(duration)
-				node.logger.Infof("Set party timeout to value: %f minutes", duration.Minutes())
+				oldTimeout := node.tssManager.Config().PartyTimeout
+				node.tssManager.SetPartyTimeout(oldTimeout * 2)
 				node.logger.Infof("New party timeout value: %f minutes", node.tssManager.Config().PartyTimeout.Minutes())
 
 				// start the key gen
@@ -326,7 +359,7 @@ func (node *Node) processSignatures() {
 				}
 
 				// Set the old party timeout
-				node.tssManager.SetPartyTimeout(node.config.TssConfig.BaseConfig.PartyTimeout)
+				node.tssManager.SetPartyTimeout(oldTimeout)
 				node.logger.Infof("Set party timeout to old value: %f minutes", node.config.TssConfig.BaseConfig.PartyTimeout.Minutes())
 
 				if err != nil {
@@ -517,6 +550,7 @@ func (node *Node) processSignatures() {
 							err = node.networksManager.ChangeTssEcdsaPubKeyZnn(keyGenResponse.PubKey, znnOldKeySignature, znnNewKeySignature, node.producerKeyPair)
 							if err != nil {
 								node.logger.Debug(err)
+								time.Sleep(5 * time.Second)
 								continue
 							}
 							node.logger.Debug("[sendZnnTx PubKey] sent tx")
@@ -549,52 +583,44 @@ func (node *Node) processSignatures() {
 					}
 				}()
 				senders.Wait()
-				node.logger.Info("Successfully set pubKey on all networks")
 			} else {
-				znnTssNonce, err := node.networksManager.GetTssNonceZnn()
-				if err != nil {
-					continue
-				}
+				// We wait for the key to be set
+				var waiters sync.WaitGroup
+				waiters.Add(2)
 
-				// ZNN
-				msgsIndexes := make(map[string]int)
-				znnMessage, err := implementation.GetChangePubKeyMessage(definition.ChangeTssECDSAPubKeyMethodName, definition.NoMClass, 1, znnTssNonce, keyGenResponse.PubKey)
-				if err != nil {
-					continue
-				}
-				msgsIndexes[base64.StdEncoding.EncodeToString(znnMessage)] = 0
-				messagesToSign := make([][]byte, 0)
-				messagesToSign = append(messagesToSign, znnMessage)
+				go func() {
+					defer waiters.Done()
+					for {
+						bridgeInfo, err := node.networksManager.GetBridgeInfo()
+						if err != nil {
+							node.logger.Debug(err)
+							time.Sleep(10 * time.Second)
+							continue
+						}
+						// The pubKey was changed
+						if bridgeInfo.CompressedTssECDSAPubKey == keyGenResponse.PubKey {
+							break
+						}
+						time.Sleep(20 * time.Second)
+					}
+				}()
 
-				// EVM messages
-				toSignMessagesEvm, err := node.networksManager.GetSetTssEcdsaPubKeysEvmMessages(keyGenResponse.PubKey)
-				if err != nil {
-					continue
-				}
-				for idx, msg := range toSignMessagesEvm {
-					messagesToSign = append(messagesToSign, msg)
-					msgsIndexes[base64.StdEncoding.EncodeToString(msg)] = idx + 1
-				}
-				// New key sign of messages
-				// we will try to generate a signature using the new key secret shares and validate it
-				node.tssManager.SetPubKey(keyGenResponse.PubKey)
-
-				newKeySignResponse, err := node.signMessages(messagesToSign, msgsIndexes)
-				if err != nil {
-					continue
-				}
-
-				// Verify all signatures
-				znnNewKeySignature, newKeyFullSignatures, errValidate := node.validateSignatures(newKeySignResponse, decompressedKeyGenPubKey, messagesToSign)
-				if errValidate != nil {
-					node.logger.Info(errValidate.Error())
-					continue
-				}
-
-				node.logger.Infof("znnNewKeySignature: %s\n", znnNewKeySignature)
-				node.logger.Infof("newKeyFullSignatures: %s\n", hex.EncodeToString(newKeyFullSignatures[0]))
+				go func() {
+					defer waiters.Done()
+					for {
+						if changed, err := node.networksManager.CheckNewTssEcdsaPubKeyEvm(keyGenResponse.PubKey); err != nil {
+							node.logger.Debug(err)
+							time.Sleep(5 * time.Second)
+							continue
+						} else if changed {
+							break
+						}
+						time.Sleep(20 * time.Second)
+					}
+				}()
+				waiters.Wait()
 			}
-
+			node.logger.Info("Successfully set pubKey on all networks")
 			node.resetSignatures()
 
 			node.logger.Infof("ECDSA KeyGen Response here: %v", keyGenResponse)
@@ -623,6 +649,7 @@ func (node *Node) processSignatures() {
 			bridgeInfo, err := node.networksManager.GetBridgeInfo()
 			if err != nil {
 				node.logger.Debug(err)
+				time.Sleep(5 * time.Second)
 				continue
 			} else if bridgeInfo == nil {
 				node.logger.Debug("processSignatures bridgeInfo == nil")
@@ -1199,16 +1226,6 @@ func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
 				node.logger.Infof("PreParamsTimeout in seconds - old: %f, new: %d", node.config.TssConfig.BaseConfig.PreParamTimeout.Seconds(), metadata.PreParamTimeout)
 				node.tssManager.SetPreParamsTimeout(duration)
 				node.config.TssConfig.BaseConfig.PreParamTimeout = duration
-			}
-
-			if len(metadata.KeyGenVersion) > 0 {
-				node.logger.Infof("KeyGenVersion - old: %s, new: %s", node.tssManager.GetKeyGenVersion(), metadata.KeyGenVersion)
-				node.tssManager.SetKeyGenVersion(metadata.KeyGenVersion)
-			}
-
-			if metadata.LeaderBlockHeight != 0 {
-				node.logger.Infof("LeaderBlockHeight - old: %d, new: %d", node.tssManager.GetLeaderBlockHeight(), metadata.LeaderBlockHeight)
-				node.tssManager.SetLeaderBlockHeight(metadata.LeaderBlockHeight)
 			}
 		}
 

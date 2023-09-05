@@ -126,7 +126,7 @@ func (m *TssManager) BulkSign(messagesBytes [][]byte, algo messages.Algo) (*keys
 	common.GlobalLogger.Info("before sending sign request")
 	common.GlobalLogger.Info("PublicKey: ", m.publicKey)
 	if algo == messages.ECDSAKEYSIGN {
-		keySignReq = keysign.NewRequest(m.publicKey, messagesStr, 10, m.localPubKeys, "0.13.0", "ecdsa")
+		keySignReq = keysign.NewRequest(m.publicKey, messagesStr, m.GetLeaderBlockHeight(), m.localPubKeys, m.GetJoinPartyVersion(), "ecdsa")
 		resSign, err := m.server.KeySign(keySignReq)
 		return &resSign, err
 	} else {
@@ -150,7 +150,7 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 	elapsed := time.Since(start)
 	common.GlobalLogger.Infof("preParams took %f", elapsed.Seconds())
 
-	sleepDuration := m.Config().PartyTimeout / 2
+	sleepDuration := m.Config().PartyTimeout * 2 / 3
 	if sleepDuration > elapsed {
 		sleepDuration = sleepDuration - elapsed
 		time.Sleep(sleepDuration)
@@ -187,11 +187,11 @@ func (m *TssManager) SetPreParamsTimeout(preParamsTimeout time.Duration) {
 	m.server.SetPreParamsTimeout(preParamsTimeout)
 }
 
-func (m *TssManager) SetKeyGenVersion(version string) {
+func (m *TssManager) SetJoinPartyVersion(version string) {
 	m.keyGenVersion = version
 }
 
-func (m *TssManager) GetKeyGenVersion() string {
+func (m *TssManager) GetJoinPartyVersion() string {
 	return m.keyGenVersion
 }
 
