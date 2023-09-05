@@ -20,6 +20,10 @@ import (
 	"syscall"
 	"time"
 
+	tcommon "github.com/HyperCore-Team/go-tss/common"
+	"github.com/HyperCore-Team/go-tss/keygen"
+	"github.com/HyperCore-Team/go-tss/keysign"
+	"github.com/HyperCore-Team/go-tss/messages"
 	ecommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	ic "github.com/libp2p/go-libp2p-core/crypto"
@@ -30,10 +34,6 @@ import (
 	"github.com/zenon-network/go-zenon/vm/embedded/definition"
 	"github.com/zenon-network/go-zenon/vm/embedded/implementation"
 	"github.com/zenon-network/go-zenon/wallet"
-	tcommon "gitlab.com/thorchain/tss/go-tss/common"
-	"gitlab.com/thorchain/tss/go-tss/keygen"
-	"gitlab.com/thorchain/tss/go-tss/keysign"
-	"gitlab.com/thorchain/tss/go-tss/messages"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/sha3"
 )
