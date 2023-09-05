@@ -547,10 +547,9 @@ func (node *Node) processSignatures() {
 						// todo use estimatedBlockTime / TimeToFinality
 						time.Sleep(20 * time.Second)
 					}
-					node.logger.Info("Successfully set pubKey on all networks")
 				}()
-
 				senders.Wait()
+				node.logger.Info("Successfully set pubKey on all networks")
 			} else {
 				znnTssNonce, err := node.networksManager.GetTssNonceZnn()
 				if err != nil {
