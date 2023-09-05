@@ -26,8 +26,8 @@ import (
 	"github.com/HyperCore-Team/go-tss/messages"
 	ecommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	ic "github.com/libp2p/go-libp2p-core/crypto"
-	"github.com/libp2p/go-libp2p-core/peer"
+	ic "github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/pkg/errors"
 	"github.com/prometheus/tsdb/fileutil"
 	"github.com/zenon-network/go-zenon/common/types"
@@ -84,7 +84,7 @@ func NewNode(config *oconfig.Config, logger *zap.Logger) (*Node, error) {
 	if errInit := node.networksManager.Init(config.Networks, node.dbManager, node.state, node.SetBridgeMetadata); errInit != nil {
 		return nil, errInit
 	}
-	node.logger.Info("netMan")
+
 	newKeyStore, err := wallet2.ReadKeyFile(config.ProducerKeyFileName, config.ProducerKeyFilePassphrase, path.Join(config.DataPath, config.ProducerKeyFileName))
 	if err != nil {
 		return nil, err
@@ -303,7 +303,6 @@ func (node *Node) processSignatures() {
 						break
 					}
 				}
-
 			}
 			node.logger.Info("Starting keyGen")
 
@@ -539,6 +538,7 @@ func (node *Node) processSignatures() {
 						bridgeInfo, err := node.networksManager.GetBridgeInfo()
 						if err != nil {
 							node.logger.Debug(err)
+							time.Sleep(5 * time.Second)
 							continue
 						}
 						// The pubKey was changed
@@ -604,7 +604,7 @@ func (node *Node) processSignatures() {
 						time.Sleep(20 * time.Second)
 					}
 				}()
-
+        
 				go func() {
 					defer waiters.Done()
 					for {
@@ -618,8 +618,10 @@ func (node *Node) processSignatures() {
 						time.Sleep(20 * time.Second)
 					}
 				}()
+        
 				waiters.Wait()
 			}
+
 			node.logger.Info("Successfully set pubKey on all networks")
 			node.resetSignatures()
 
@@ -1227,6 +1229,12 @@ func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
 				node.tssManager.SetPreParamsTimeout(duration)
 				node.config.TssConfig.BaseConfig.PreParamTimeout = duration
 			}
+
+			if len(metadata.JoinPartyVersion) > 0 {
+				node.logger.Infof("joinPartyVersion - old: %s, new: %s", node.tssManager.GetJoinPartyVersion(), metadata.JoinPartyVersion)
+				node.tssManager.SetKeyGenVersion(metadata.JoinPartyVersion)
+			}
+
 		}
 
 		node.state.SetIsAffiliateProgram(metadata.AffiliateProgram)

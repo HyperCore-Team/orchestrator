@@ -25,7 +25,7 @@ type TssManager struct {
 	privateKey        string
 	publicKey         string
 	localPubKeys      []string
-	keyGenVersion     string
+	joinPartyVersion  string
 	leaderBlockHeight int64
 }
 
@@ -102,7 +102,7 @@ func NewTssManager(conf config.TssManagerConfig, privateKey string) (*TssManager
 		privateKey:        privateKey,
 		publicKey:         conf.PublicKey,
 		localPubKeys:      conf.LocalPubKeys,
-		keyGenVersion:     common.DefaultKeyGenVersion,
+		joinPartyVersion:  common.DefaultKeyGenVersion,
 		leaderBlockHeight: common.DefaultLeaderBlockHeight,
 	}, nil
 }
@@ -159,7 +159,7 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 
 	var req keygen.Request
 	if algo == messages.ECDSAKEYGEN {
-		req = keygen.NewRequest(m.localPubKeys, m.leaderBlockHeight, m.keyGenVersion, algorithm)
+		req = keygen.NewRequest(m.localPubKeys, m.leaderBlockHeight, m.joinPartyVersion, algorithm)
 		response, err := m.server.Keygen(req)
 		if err != nil {
 			return nil, err
