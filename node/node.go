@@ -275,8 +275,9 @@ func (node *Node) processSignatures() {
 				node.logger.Debug(err)
 				continue
 			}
-			// We start a key gen every 150 momentums ( 25 minutes )
-			keyGenWindow := uint64(150)
+
+			partyTimeout := uint64(node.tssManager.Config().PartyTimeout.Minutes())
+			keyGenWindow := partyTimeout * 30 * 6 // 1.5 minutes * 30 = 45 minutes * 6 momentums / minute
 			for mom.Height%keyGenWindow > 3 {
 				time.Sleep(10 * time.Second)
 				mom, err = node.networksManager.Znn().GetFrontierMomentum()
@@ -303,7 +304,6 @@ func (node *Node) processSignatures() {
 					}
 				}
 			}
-
 			node.logger.Info("Starting keyGen")
 
 			// We start looking 24h of momentums behind the momentum height specified by the bridgeInfo.shouldKeyGenAt
@@ -343,7 +343,8 @@ func (node *Node) processSignatures() {
 				node.logger.Debug("len(node.participatingPubKeys): ", node.getParticipantsLength())
 
 				node.logger.Infof("Old party timeout value: %f minutes", node.tssManager.Config().PartyTimeout.Minutes())
-				node.tssManager.SetPartyTimeout(node.tssManager.Config().PartyTimeout * 3)
+				oldTimeout := node.tssManager.Config().PartyTimeout
+				node.tssManager.SetPartyTimeout(oldTimeout * 2)
 				node.logger.Infof("New party timeout value: %f minutes", node.tssManager.Config().PartyTimeout.Minutes())
 
 				// start the key gen
@@ -357,7 +358,7 @@ func (node *Node) processSignatures() {
 				}
 
 				// Set the old party timeout
-				node.tssManager.SetPartyTimeout(node.config.TssConfig.BaseConfig.PartyTimeout)
+				node.tssManager.SetPartyTimeout(oldTimeout)
 				node.logger.Infof("Set party timeout to old value: %f minutes", node.config.TssConfig.BaseConfig.PartyTimeout.Minutes())
 
 				if err != nil {
@@ -581,7 +582,6 @@ func (node *Node) processSignatures() {
 						time.Sleep(20 * time.Second)
 					}
 				}()
-
 				senders.Wait()
 			} else {
 				// We wait for the key to be set
@@ -604,7 +604,7 @@ func (node *Node) processSignatures() {
 						time.Sleep(20 * time.Second)
 					}
 				}()
-
+        
 				go func() {
 					defer waiters.Done()
 					for {
@@ -618,7 +618,7 @@ func (node *Node) processSignatures() {
 						time.Sleep(20 * time.Second)
 					}
 				}()
-
+        
 				waiters.Wait()
 			}
 
@@ -651,6 +651,7 @@ func (node *Node) processSignatures() {
 			bridgeInfo, err := node.networksManager.GetBridgeInfo()
 			if err != nil {
 				node.logger.Debug(err)
+				time.Sleep(5 * time.Second)
 				continue
 			} else if bridgeInfo == nil {
 				node.logger.Debug("processSignatures bridgeInfo == nil")
@@ -1233,6 +1234,7 @@ func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
 				node.logger.Infof("joinPartyVersion - old: %s, new: %s", node.tssManager.GetJoinPartyVersion(), metadata.JoinPartyVersion)
 				node.tssManager.SetKeyGenVersion(metadata.JoinPartyVersion)
 			}
+
 		}
 
 		node.state.SetIsAffiliateProgram(metadata.AffiliateProgram)

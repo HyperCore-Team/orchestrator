@@ -8,8 +8,8 @@ import (
 	"github.com/HyperCore-Team/go-tss/keysign"
 	"github.com/HyperCore-Team/go-tss/messages"
 	"github.com/HyperCore-Team/go-tss/tss"
-	ic "github.com/libp2p/go-libp2p/core/crypto"
-	"github.com/libp2p/go-libp2p/core/peer"
+	ic "github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/peer"
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/pkg/errors"
 	"orchestrator/common"
@@ -150,7 +150,7 @@ func (m *TssManager) KeyGen(algo messages.Algo) (*keygen.Response, error) {
 	elapsed := time.Since(start)
 	common.GlobalLogger.Infof("preParams took %f", elapsed.Seconds())
 
-	sleepDuration := m.Config().PartyTimeout * 2
+	sleepDuration := m.Config().PartyTimeout * 2 / 3
 	if sleepDuration > elapsed {
 		sleepDuration = sleepDuration - elapsed
 		time.Sleep(sleepDuration)
@@ -187,12 +187,16 @@ func (m *TssManager) SetPreParamsTimeout(preParamsTimeout time.Duration) {
 	m.server.SetPreParamsTimeout(preParamsTimeout)
 }
 
-func (m *TssManager) SetKeyGenVersion(version string) {
-	m.joinPartyVersion = version
+func (m *TssManager) SetJoinPartyVersion(version string) {
+	m.keyGenVersion = version
 }
 
 func (m *TssManager) GetJoinPartyVersion() string {
-	return m.joinPartyVersion
+	return m.keyGenVersion
+}
+
+func (m *TssManager) SetLeaderBlockHeight(height int64) {
+	m.leaderBlockHeight = height
 }
 
 func (m *TssManager) GetLeaderBlockHeight() int64 {
