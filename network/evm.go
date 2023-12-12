@@ -182,9 +182,9 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			return errParse
 		}
 
-		var eventsToProcess []events.UnwrapRequestEvm
+		var eventsToProcess []*events.UnwrapRequestEvm
 
-		event := events.UnwrapRequestEvm{
+		event := &events.UnwrapRequestEvm{
 			NetworkClass:    eN.NetworkClass(),
 			ChainId:         eN.ChainId(),
 			BlockNumber:     log.BlockNumber,
@@ -219,7 +219,7 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 				affiliateAmount.Mul(affiliateAmount, big.NewInt(2))
 				affiliateAmount.Div(affiliateAmount, big.NewInt(100)) // 2%
 
-				affiliateEvent := events.UnwrapRequestEvm{
+				affiliateEvent := &events.UnwrapRequestEvm{
 					NetworkClass:    eN.NetworkClass(),
 					ChainId:         eN.ChainId(),
 					BlockNumber:     log.BlockNumber,
@@ -253,12 +253,12 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 				if localEvent, dbErr := eN.eventsStore().GetUnwrapRequestByHashAndLog(ev.TransactionHash, ev.LogIndex); dbErr != nil {
 					return dbErr
 				} else if localEvent == nil {
-					if err := eN.eventsStore().AddUnwrapRequest(ev); err != nil {
+					if err := eN.eventsStore().AddUnwrapRequest(*ev); err != nil {
 						return err
 					}
 				} else {
 					// the event was added by the znn sync, we update the block number
-					if err := eN.eventsStore().UpdateUnwrapRequestBlockNumber(ev); err != nil {
+					if err := eN.eventsStore().UpdateUnwrapRequestBlockNumber(*ev); err != nil {
 						return err
 					}
 				}
@@ -610,7 +610,7 @@ func (eN *evmNetwork) ProcessEvents() {
 			dequeued = false
 		}
 		var y bool
-		frontEvent, y := peekedInterface.(events.UnwrapRequestEvm)
+		frontEvent, y := peekedInterface.(*events.UnwrapRequestEvm)
 		if !y {
 			eN.logger.Info("Dequeued object is not events.UnwrapRequestEvm")
 			if dequeued == false {
@@ -702,7 +702,7 @@ func (eN *evmNetwork) ProcessEvents() {
 
 		eN.logger.Infof("Event with hash: %s and logIndex: %d is confirmed", frontEvent.TransactionHash.String(), frontEvent.LogIndex)
 
-		if err := eN.eventsStore().AddUnwrapRequest(frontEvent); err != nil {
+		if err := eN.eventsStore().AddUnwrapRequest(*frontEvent); err != nil {
 			eN.logger.Error(errQueue)
 			eN.stopChan <- syscall.SIGINT
 			return
