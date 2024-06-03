@@ -39,6 +39,9 @@ var DefaultNodeConfig = config.Config{
 			EnableMonitor:     false,
 		},
 	},
+	HealthConfig: config.HealthRpcConfig{
+		Port: 55000,
+	},
 	ProducerKeyFileName:       "producer",
 	ProducerKeyFilePassphrase: "",
 	ProducerIndex:             0,

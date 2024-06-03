@@ -24,6 +24,8 @@ type TssManager struct {
 	port              int
 	privateKey        string
 	publicKey         string
+	peerPubKey        string
+	peerId            peer.ID
 	localPubKeys      []string
 	joinPartyVersion  string
 	leaderBlockHeight int64
@@ -62,19 +64,23 @@ func NewTssManager(conf config.TssManagerConfig, privateKey string) (*TssManager
 		return nil, err
 	}
 	pubB, _ := pub.Raw()
-	common.GlobalLogger.Infof("ic.pub: %s\n", base64.StdEncoding.EncodeToString(pubB))
+
+	peerPubKey := base64.StdEncoding.EncodeToString(pubB)
+	common.GlobalLogger.Infof("peerPubKey: %s\n", peerPubKey)
 	id, err := peer.IDFromPublicKey(pub)
 	if err != nil {
 		return nil, err
 	}
-	common.GlobalLogger.Infof("id from ic.pub: %s\n", id.String())
 
-	id, err = peer.IDFromPrivateKey(priv)
+	idPriv, err := peer.IDFromPrivateKey(priv)
 	if err != nil {
 		return nil, err
 	}
+	if id.String() != idPriv.String() {
+		return nil, errors.New("peerId from pubKey different from privKey")
+	}
 
-	common.GlobalLogger.Infof("id from ic.priv: %s\n", id.String())
+	common.GlobalLogger.Infof("peerId: %s\n", id.String())
 
 	var server *tss.TssServer
 	var wg sync.WaitGroup
@@ -101,6 +107,8 @@ func NewTssManager(conf config.TssManagerConfig, privateKey string) (*TssManager
 		server:            server,
 		privateKey:        privateKey,
 		publicKey:         conf.PublicKey,
+		peerPubKey:        peerPubKey,
+		peerId:            id,
 		localPubKeys:      conf.LocalPubKeys,
 		joinPartyVersion:  common.DefaultKeyGenVersion,
 		leaderBlockHeight: common.DefaultLeaderBlockHeight,
@@ -217,6 +225,14 @@ func (m *TssManager) DeleteLocalPubKey(pubKey string) {
 			m.localPubKeys = append(m.localPubKeys[:idx], m.localPubKeys[idx+1:]...)
 		}
 	}
+}
+
+func (m *TssManager) GetPeerId() peer.ID {
+	return m.peerId
+}
+
+func (m *TssManager) GetPeerPubKey() string {
+	return m.peerPubKey
 }
 
 func (m *TssManager) GetLocalPubKeys() []string {

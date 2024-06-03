@@ -7,7 +7,7 @@ BUILDDIR = $(shell pwd)/build
 GIT_COMMIT=$(shell git rev-parse HEAD)
 GIT_COMMIT_FILE=$(shell pwd)/metadata/git_commit.go
 
-build:
+build: version
 	go build --ldflags '-extldflags "-Wl,--allow-multiple-definition"' -o $(BUILDDIR)/${BINARY_NAME} main.go
 
 run:

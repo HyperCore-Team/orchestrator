@@ -869,6 +869,10 @@ func (rC *znnNetwork) GetFrontierMomentum() (*api.Momentum, error) {
 	return rC.ZnnRpc().GetFrontierMomentum()
 }
 
+func (rC *znnNetwork) GetAllPillars() (*embedded.PillarInfoList, error) {
+	return rC.ZnnRpc().GetAllPillars()
+}
+
 func (rC *znnNetwork) GetUnsignedWrapRequestsRpc(pageIndex, pageSize uint32) (*embedded.WrapTokenRequestList, error) {
 	return rC.ZnnRpc().GetAllUnsignedWrapTokenRequests(pageIndex, pageSize)
 }

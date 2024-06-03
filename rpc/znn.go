@@ -194,6 +194,10 @@ func (r *ZnnRpc) GetFrontierMomentum() (*api.Momentum, error) {
 	return r.rpcClient.LedgerApi.GetFrontierMomentum()
 }
 
+func (r *ZnnRpc) GetAllPillars() (*embedded.PillarInfoList, error) {
+	return r.rpcClient.PillarApi.GetAll(0, api.RpcMaxCountSize)
+}
+
 func (r *ZnnRpc) GetAllNetworks() ([]*definition.NetworkInfo, error) {
 	page := uint32(0)
 	ans := make([]*definition.NetworkInfo, 0)

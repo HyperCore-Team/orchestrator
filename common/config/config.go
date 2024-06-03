@@ -26,6 +26,10 @@ type TssManagerConfig struct {
 	BaseConfig            gotss.TssConfig
 }
 
+type HealthRpcConfig struct {
+	Port int
+}
+
 type Config struct {
 	DataPath    string // default ~/.orchestrator
 	EventsPath  string
@@ -35,6 +39,8 @@ type Config struct {
 
 	Networks  map[string]BaseNetworkConfig
 	TssConfig TssManagerConfig
+
+	HealthConfig HealthRpcConfig
 
 	ProducerKeyFileName       string
 	ProducerKeyFilePassphrase string
