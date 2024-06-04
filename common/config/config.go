@@ -27,7 +27,10 @@ type TssManagerConfig struct {
 }
 
 type HealthRpcConfig struct {
-	Port int
+	Port                int
+	CachedResponseDelay int64
+	ResponsesPerSecond  int
+	Burst               int
 }
 
 type Config struct {

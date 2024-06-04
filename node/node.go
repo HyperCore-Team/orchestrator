@@ -136,7 +136,7 @@ func NewNode(config *oconfig.Config, logger *zap.Logger) (*Node, error) {
 		node.logger.Info(err.Error())
 	}
 
-	healthHandler, err := health.NewHealthRpcHandler(node.networksManager, node.dbManager, node.state)
+	healthHandler, err := health.NewHealthRpcHandler(node.networksManager, node.dbManager, node.state, node.config.HealthConfig)
 	if err != nil {
 		return nil, err
 	}

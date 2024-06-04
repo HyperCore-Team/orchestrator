@@ -711,8 +711,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		if !live || sendBlock.Address.String() != rC.administrator {
 			break
 		}
-		common.AdministratorLogger.Info("SetOrchestratorInfoMethodName")
-		rC.logger.Debug("found SetOrchestratorInfoMethodName")
+
 		orchestratorInfo, err := rC.GetOrchestratorInfo()
 		if err != nil {
 			rC.logger.Error(err)
@@ -722,6 +721,9 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		rC.SetKeyGenThreshold(orchestratorInfo.KeyGenThreshold)
 		rC.SetConfirmationsToFinality(orchestratorInfo.ConfirmationsToFinality)
 		rC.SetEstimatedMomentumTime(orchestratorInfo.EstimatedMomentumTime)
+
+		common.AdministratorLogger.Infof("SetOrchestratorInfoMethodName WindowSize: %d, KeyGenThreshold: %d, ConfirmationsToFinality: %d, EstimatedMomentumTime: %d",
+			orchestratorInfo.WindowSize, orchestratorInfo.KeyGenThreshold, orchestratorInfo.ConfirmationsToFinality, orchestratorInfo.EstimatedMomentumTime)
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.SetBridgeMetadataMethodName].Id()):
 		if !live || sendBlock.Address.String() != rC.administrator {
 			break

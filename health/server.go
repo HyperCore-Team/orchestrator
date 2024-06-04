@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"golang.org/x/crypto/sha3"
+	"golang.org/x/time/rate"
 	"net/http"
 	"orchestrator/common"
+	"orchestrator/common/config"
 	"orchestrator/db/manager"
 	"orchestrator/metadata"
 	"orchestrator/network"
@@ -21,13 +23,17 @@ type Handler struct {
 	networksManager *network.NetworksManager
 	dbManager       *manager.Manager
 	identity        Identity
+	limiter         *rate.Limiter
+	StatusCache     *StatusResults
 }
 
-func NewHealthRpcHandler(networksManager *network.NetworksManager, dbManager *manager.Manager, state *common.GlobalState) (*Handler, error) {
+func NewHealthRpcHandler(networksManager *network.NetworksManager, dbManager *manager.Manager, state *common.GlobalState, healthConfig config.HealthRpcConfig) (*Handler, error) {
 	return &Handler{
 		state:           state,
 		networksManager: networksManager,
 		dbManager:       dbManager,
+		limiter:         rate.NewLimiter(rate.Limit(healthConfig.ResponsesPerSecond), healthConfig.Burst),
+		StatusCache:     NewCachedStatusResults(healthConfig.CachedResponseDelay),
 	}, nil
 }
 
@@ -39,6 +45,11 @@ func (s *Handler) SetIdentity(identity Identity) {
 func (s *Handler) GetStatus(params []interface{}) (interface{}, error) {
 	if len(params) != 0 {
 		return nil, fmt.Errorf("this method does not accept parameters")
+	}
+
+	cachedStatus := s.StatusCache.GetStatusResult()
+	if cachedStatus != nil {
+		return cachedStatus, nil
 	}
 
 	state, err := s.state.GetState()
@@ -115,6 +126,7 @@ func (s *Handler) GetStatus(params []interface{}) (interface{}, error) {
 
 	status := Status{
 		State:            state,
+		StateName:        common.StateToText(state),
 		FrontierMomentum: frontierMomentum,
 		WrapsToSign:      uint32(len(wraps)),
 		WrapsHash:        digestWrapHex,
@@ -122,6 +134,8 @@ func (s *Handler) GetStatus(params []interface{}) (interface{}, error) {
 		UnwrapsHash:      digestUnwrapHex,
 		Networks:         networksStatus,
 	}
+
+	s.StatusCache.SetStatusResult(status)
 	return status, nil
 }
 
@@ -150,6 +164,13 @@ func (s *Handler) GetIdentity(params []interface{}) (interface{}, error) {
 func (s *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var req Request
 	var res Response
+
+	if !s.limiter.Allow() {
+		res.Error = fmt.Sprintf("Too many requests per second. Maximum ")
+		w.WriteHeader(http.StatusTooManyRequests)
+		json.NewEncoder(w).Encode(res)
+		return
+	}
 
 	// Decode request
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

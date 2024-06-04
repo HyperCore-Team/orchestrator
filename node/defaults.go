@@ -40,7 +40,10 @@ var DefaultNodeConfig = config.Config{
 		},
 	},
 	HealthConfig: config.HealthRpcConfig{
-		Port: 55000,
+		Port:                55000,
+		CachedResponseDelay: 25,
+		ResponsesPerSecond:  2,
+		Burst:               2,
 	},
 	ProducerKeyFileName:       "producer",
 	ProducerKeyFilePassphrase: "",

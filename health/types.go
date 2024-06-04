@@ -1,5 +1,7 @@
 package health
 
+import "time"
+
 // Request and Response structures
 type Request struct {
 	Method string        `json:"method"`
@@ -24,6 +26,7 @@ type StatusNetworkInfo struct {
 // Status struct
 type Status struct {
 	State            uint8                        `json:"state"`
+	StateName        string                       `json:"stateName"`
 	FrontierMomentum uint64                       `json:"frontierMomentum"`
 	WrapsToSign      uint32                       `json:"wrapsToSign"`
 	WrapsHash        string                       `json:"wrapsHash"`
@@ -44,4 +47,40 @@ type Identity struct {
 	TssPeerPubKey string `json:"tssPeerPubKey"`
 	TssPeerId     string `json:"tssPeerId"`
 	EvmAddress    string `json:"evmAddress"`
+}
+
+type StatusResults struct {
+	statusResult *Status
+	lastResponse int64
+	delay        int64
+}
+
+func NewCachedStatusResults(delay int64) *StatusResults {
+	return &StatusResults{
+		statusResult: nil,
+		lastResponse: 0,
+		delay:        delay, // seconds
+	}
+}
+
+func (c *StatusResults) SetStatusResult(s Status) {
+	c.statusResult = &Status{
+		State:            s.State,
+		StateName:        s.StateName,
+		FrontierMomentum: s.FrontierMomentum,
+		WrapsToSign:      s.WrapsToSign,
+		WrapsHash:        s.WrapsHash,
+		UnwrapsToSign:    s.UnwrapsToSign,
+		UnwrapsHash:      s.UnwrapsHash,
+		Networks:         s.Networks,
+	}
+	c.lastResponse = time.Now().Unix()
+}
+
+func (c *StatusResults) GetStatusResult() *Status {
+	currentTimestamp := time.Now().Unix()
+	if c.statusResult != nil && c.lastResponse+c.delay >= currentTimestamp {
+		return c.statusResult
+	}
+	return nil
 }
