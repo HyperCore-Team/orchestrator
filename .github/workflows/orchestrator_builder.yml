@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - cicd
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -21,10 +22,10 @@ jobs:
       - name: Make version
         run: make version
       - name: Build orchestrator
-        uses: crazy-max/ghaction-xgo@v2.4.0
+        uses: crazy-max/ghaction-xgo@v3.0.0
         with:
           xgo_version: latest
-          go_version: 1.20.0
+          go_version: 1.22.1
           dest: build
           prefix: orchestrator
           pkg: ./main.go
