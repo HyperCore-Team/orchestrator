@@ -156,6 +156,10 @@ func (m *NetworksManager) NetworksLength() int {
 	return len(m.evmNetworks)
 }
 
+func (m *NetworksManager) Networks() []*evmNetwork {
+	return m.evmNetworks
+}
+
 ///////// state
 
 func (m *NetworksManager) CountNetworksHaltState() (int, int, error) {
@@ -202,6 +206,15 @@ func (m *NetworksManager) HaltZnn(signature string, keyPair *wallet.KeyPair) err
 }
 
 //// RPC Calls
+
+func (m *NetworksManager) GetAllPillars() (*embedded.PillarInfoList, error) {
+	pillars, err := m.Znn().GetAllPillars()
+	if err != nil {
+		return nil, err
+	}
+
+	return pillars, nil
+}
 
 func (m *NetworksManager) GetTssNonceZnn() (uint64, error) {
 	bridgeInfo, err := m.Znn().GetBridgeInfo()

@@ -1,15 +1,20 @@
 package node
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
+	"fmt"
 	wallet2 "github.com/MoonBaZZe/znn-sdk-go/wallet"
 	"io"
+	"net/http"
 	"orchestrator/common"
 	oconfig "orchestrator/common/config"
 	"orchestrator/db/manager"
+	"orchestrator/health"
 	"orchestrator/network"
 	"orchestrator/tss"
 	"os"
@@ -28,7 +33,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	ic "github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/pkg/errors"
 	"github.com/prometheus/tsdb/fileutil"
 	"github.com/zenon-network/go-zenon/common/types"
 	"github.com/zenon-network/go-zenon/vm/embedded/definition"
@@ -48,6 +52,8 @@ type Node struct {
 	ecdsaPrivateKey *ecdsa.PrivateKey
 	evmAddress      ecommon.Address
 	state           *common.GlobalState
+
+	healthRpcServer *http.Server
 
 	logger *zap.SugaredLogger
 
@@ -129,6 +135,18 @@ func NewNode(config *oconfig.Config, logger *zap.Logger) (*Node, error) {
 	if err := oconfig.WriteConfig(*node.config); err != nil {
 		node.logger.Info(err.Error())
 	}
+
+	healthHandler, err := health.NewHealthRpcHandler(node.networksManager, node.dbManager, node.state, node.config.HealthConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	addr := fmt.Sprintf(":%d", node.config.HealthConfig.Port)
+	node.healthRpcServer = &http.Server{
+		Addr:    addr,
+		Handler: healthHandler,
+	}
+
 	return node, nil
 }
 
@@ -221,6 +239,36 @@ func (node *Node) Start() error {
 		}
 	}
 
+	pillars, err := node.networksManager.Znn().GetAllPillars()
+	if err != nil {
+		return err
+	}
+
+	pillarName := "notFound"
+	for _, p := range pillars.List {
+		if p.BlockProducingAddress.String() == node.producerKeyPair.Address.String() {
+			pillarName = p.Name
+		}
+	}
+
+	identity := health.Identity{
+		Producer:      node.producerKeyPair.Address.String(),
+		PillarName:    pillarName,
+		TssPeerPubKey: node.tssManager.GetPeerPubKey(),
+		TssPeerId:     node.tssManager.GetPeerId().String(),
+		EvmAddress:    node.config.EvmAddress,
+	}
+
+	node.healthRpcServer.Handler.(*health.Handler).SetTssManager(node.tssManager)
+	node.healthRpcServer.Handler.(*health.Handler).SetIdentity(identity)
+
+	go func() {
+		node.logger.Infof("Starting health rpc server on port: %d\n", node.config.HealthConfig.Port)
+		if errListen := node.healthRpcServer.ListenAndServe(); errListen != nil && !errors.Is(errListen, http.ErrServerClosed) {
+			node.logger.Fatalf("ListenAndServe(): %v", errListen)
+		}
+	}()
+
 	go node.processSignatures()
 	go node.sendSignatures()
 	return nil
@@ -234,6 +282,10 @@ func (node *Node) Stop() error {
 
 	node.tssManager.Stop()
 	node.networksManager.Stop()
+
+	if err := node.healthRpcServer.Shutdown(context.Background()); err != nil {
+		node.logger.Fatalf("Health rpc server shutdown failed: %v", err)
+	}
 
 	// Release instance directory lock.
 	node.closeDataDir()
