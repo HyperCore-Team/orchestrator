@@ -10,6 +10,7 @@ import (
 	"github.com/HyperCore-Team/go-tss/tss"
 	ic "github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-peerstore/addr"
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/pkg/errors"
 	"orchestrator/common"
@@ -260,4 +261,8 @@ func (m *TssManager) GetWhitelists() (map[string]bool, map[string]bool, map[stri
 
 func (m *TssManager) DeleteWhitelistEntry(pubKey string) {
 	m.server.DeleteWhitelistEntry(pubKey)
+}
+
+func (m *TssManager) ExportPeersStore() map[peer.ID]addr.AddrList {
+	return m.server.ExportPeersStore()
 }

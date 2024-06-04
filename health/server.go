@@ -13,6 +13,7 @@ import (
 	"orchestrator/db/manager"
 	"orchestrator/metadata"
 	"orchestrator/network"
+	"orchestrator/tss"
 	"runtime"
 	"sort"
 )
@@ -22,6 +23,7 @@ type Handler struct {
 	state           *common.GlobalState
 	networksManager *network.NetworksManager
 	dbManager       *manager.Manager
+	tssManager      *tss.TssManager
 	identity        Identity
 	limiter         *rate.Limiter
 	StatusCache     *StatusResults
@@ -32,9 +34,14 @@ func NewHealthRpcHandler(networksManager *network.NetworksManager, dbManager *ma
 		state:           state,
 		networksManager: networksManager,
 		dbManager:       dbManager,
+		tssManager:      nil,
 		limiter:         rate.NewLimiter(rate.Limit(healthConfig.ResponsesPerSecond), healthConfig.Burst),
 		StatusCache:     NewCachedStatusResults(healthConfig.CachedResponseDelay),
 	}, nil
+}
+
+func (s *Handler) SetTssManager(tssManager *tss.TssManager) {
+	s.tssManager = tssManager
 }
 
 func (s *Handler) SetIdentity(identity Identity) {
@@ -145,11 +152,29 @@ func (s *Handler) GetStatus(params []interface{}) (interface{}, error) {
 		}
 	}
 
+	clear(wrapsData)
+	clear(wrapsLen)
+	clear(unwrapsData)
+	clear(unwrapsLen)
+
+	peersLen := uint32(0)
+	peers := make([]string, 0)
+	addressBook := s.tssManager.ExportPeersStore()
+	for k, _ := range addressBook {
+		if s.identity.TssPeerId == k.String() {
+			continue
+		}
+		peersLen += 1
+		peers = append(peers, k.String())
+	}
+
 	status := Status{
 		State:            state,
 		StateName:        common.StateToText(state),
 		FrontierMomentum: frontierMomentum,
 		Networks:         networksStatus,
+		PeersLen:         peersLen,
+		Peers:            peers,
 	}
 
 	s.StatusCache.SetStatusResult(status)

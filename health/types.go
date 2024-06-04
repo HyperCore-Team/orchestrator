@@ -37,6 +37,8 @@ type Status struct {
 	StateName        string                       `json:"stateName"`
 	FrontierMomentum uint64                       `json:"frontierMomentum"`
 	Networks         map[string]StatusNetworkInfo `json:"networks"`
+	PeersLen         uint32                       `json:"peersLen"`
+	Peers            []string                     `json:"peers"`
 }
 
 type BuildInfo struct {
@@ -73,6 +75,8 @@ func (c *StatusResults) SetStatusResult(s Status) {
 		StateName:        s.StateName,
 		FrontierMomentum: s.FrontierMomentum,
 		Networks:         s.Networks,
+		PeersLen:         s.PeersLen,
+		Peers:            s.Peers,
 	}
 	c.lastResponse = time.Now().Unix()
 }

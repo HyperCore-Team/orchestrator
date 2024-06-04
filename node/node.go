@@ -259,6 +259,7 @@ func (node *Node) Start() error {
 		EvmAddress:    node.config.EvmAddress,
 	}
 
+	node.healthRpcServer.Handler.(*health.Handler).SetTssManager(node.tssManager)
 	node.healthRpcServer.Handler.(*health.Handler).SetIdentity(identity)
 
 	go func() {
