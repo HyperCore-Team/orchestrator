@@ -61,8 +61,17 @@ func (s *Handler) GetStatus(params []interface{}) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	digestWrapHex := "0"
-	digestUnwrapHex := "0"
+
+	wrapsData := make(map[uint32][]byte)
+	wrapsLen := make(map[uint32]uint32)
+	unwrapsData := make(map[uint32][]byte)
+	unwrapsLen := make(map[uint32]uint32)
+	for _, evmNetwork := range s.networksManager.Networks() {
+		wrapsData[evmNetwork.ChainId()] = make([]byte, 0)
+		wrapsLen[evmNetwork.ChainId()] = 0
+		unwrapsData[evmNetwork.ChainId()] = make([]byte, 0)
+		unwrapsLen[evmNetwork.ChainId()] = 0
+	}
 
 	wraps, errWraps := s.networksManager.GetUnsignedWrapRequests()
 	if errWraps != nil {
@@ -71,15 +80,10 @@ func (s *Handler) GetStatus(params []interface{}) (interface{}, error) {
 		sort.Slice(wraps, func(i, j int) bool {
 			return wraps[i].Id.String() < wraps[j].Id.String()
 		})
-		data := make([]byte, 0)
 		for _, wrap := range wraps {
-			data = append(data, wrap.Id.Bytes()...)
+			wrapsData[wrap.ChainId] = append(wrapsData[wrap.ChainId], wrap.Id.Bytes()...)
+			wrapsLen[wrap.ChainId] += 1
 		}
-
-		hasher := sha3.NewLegacyKeccak256()
-		hasher.Write(data)
-		digestWrap := hasher.Sum(nil)
-		digestWrapHex = hex.EncodeToString(digestWrap)
 	}
 
 	unwraps, err := s.networksManager.GetUnsignedUnwrapRequests()
@@ -92,18 +96,13 @@ func (s *Handler) GetStatus(params []interface{}) (interface{}, error) {
 			}
 			return unwraps[i].TransactionHash.String() < unwraps[j].TransactionHash.String()
 		})
-		data := make([]byte, 0)
 		for _, unwrap := range unwraps {
-			data = append(data, unwrap.TransactionHash.Bytes()...)
+			unwrapsData[unwrap.ChainId] = append(unwrapsData[unwrap.ChainId], unwrap.TransactionHash.Bytes()...)
 			logNumberBytes := make([]byte, 4)
 			binary.BigEndian.PutUint32(logNumberBytes, unwrap.LogIndex)
-			data = append(data, logNumberBytes...)
+			unwrapsData[unwrap.ChainId] = append(unwrapsData[unwrap.ChainId], logNumberBytes...)
+			unwrapsLen[unwrap.ChainId] += 1
 		}
-
-		hasher := sha3.NewLegacyKeccak256()
-		hasher.Write(data)
-		digestUnwrap := hasher.Sum(nil)
-		digestUnwrapHex = hex.EncodeToString(digestUnwrap)
 	}
 
 	networksStatus := make(map[string]StatusNetworkInfo)
@@ -111,6 +110,22 @@ func (s *Handler) GetStatus(params []interface{}) (interface{}, error) {
 		lastUpdateHeight, err := s.dbManager.EvmStorage(evmNetwork.ChainId()).GetLastUpdateHeight()
 		if err != nil {
 			return nil, err
+		}
+
+		hasher := sha3.NewLegacyKeccak256()
+		digestWrapHex := "00"
+		if len(wrapsData[evmNetwork.ChainId()]) > 0 {
+			hasher.Write(wrapsData[evmNetwork.ChainId()])
+			digestWrap := hasher.Sum(nil)
+			digestWrapHex = hex.EncodeToString(digestWrap)
+		}
+
+		hasher = sha3.NewLegacyKeccak256()
+		digestUnwrapHex := "00"
+		if len(unwrapsData[evmNetwork.ChainId()]) > 0 {
+			hasher.Write(unwrapsData[evmNetwork.ChainId()])
+			digestUnwrap := hasher.Sum(nil)
+			digestUnwrapHex = hex.EncodeToString(digestUnwrap)
 		}
 
 		networksStatus[evmNetwork.NetworkName()] = StatusNetworkInfo{
@@ -121,6 +136,12 @@ func (s *Handler) GetStatus(params []interface{}) (interface{}, error) {
 			EstimatedBlockTime:       uint64(evmNetwork.EstimatedBlockTime().Seconds()),
 			ConfirmationsToFinality:  evmNetwork.ConfirmationsToFinality(),
 			LatestUpdateHeight:       lastUpdateHeight,
+			NetworkSigningStatus: NetworkSigningStatus{
+				WrapsTSign:    wrapsLen[evmNetwork.ChainId()],
+				WrapsHash:     digestWrapHex,
+				UnwrapsToSign: unwrapsLen[evmNetwork.ChainId()],
+				UnwrapsHash:   digestUnwrapHex,
+			},
 		}
 	}
 
@@ -128,10 +149,6 @@ func (s *Handler) GetStatus(params []interface{}) (interface{}, error) {
 		State:            state,
 		StateName:        common.StateToText(state),
 		FrontierMomentum: frontierMomentum,
-		WrapsToSign:      uint32(len(wraps)),
-		WrapsHash:        digestWrapHex,
-		UnwrapsToSign:    uint32(len(unwraps)),
-		UnwrapsHash:      digestUnwrapHex,
 		Networks:         networksStatus,
 	}
 

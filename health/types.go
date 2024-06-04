@@ -13,6 +13,13 @@ type Response struct {
 	Error  string      `json:"error"`
 }
 
+type NetworkSigningStatus struct {
+	WrapsTSign    uint32 `json:"wrapsToSign"`
+	WrapsHash     string `json:"wrapsHash"`
+	UnwrapsToSign uint32 `json:"unwrapsToSign"`
+	UnwrapsHash   string `json:"unwrapsHash"`
+}
+
 type StatusNetworkInfo struct {
 	ChainId                  uint32 `json:"chainId"`
 	NetworkClass             uint32 `json:"networkClass"`
@@ -21,6 +28,7 @@ type StatusNetworkInfo struct {
 	EstimatedBlockTime       uint64 `json:"estimatedBlockTime"`
 	ConfirmationsToFinality  uint64 `json:"confirmationsToFinality"`
 	LatestUpdateHeight       uint64 `json:"latestUpdateHeight"`
+	NetworkSigningStatus
 }
 
 // Status struct
@@ -28,10 +36,6 @@ type Status struct {
 	State            uint8                        `json:"state"`
 	StateName        string                       `json:"stateName"`
 	FrontierMomentum uint64                       `json:"frontierMomentum"`
-	WrapsToSign      uint32                       `json:"wrapsToSign"`
-	WrapsHash        string                       `json:"wrapsHash"`
-	UnwrapsToSign    uint32                       `json:"unwrapsToSign"`
-	UnwrapsHash      string                       `json:"unwrapsHash"`
 	Networks         map[string]StatusNetworkInfo `json:"networks"`
 }
 
@@ -68,10 +72,6 @@ func (c *StatusResults) SetStatusResult(s Status) {
 		State:            s.State,
 		StateName:        s.StateName,
 		FrontierMomentum: s.FrontierMomentum,
-		WrapsToSign:      s.WrapsToSign,
-		WrapsHash:        s.WrapsHash,
-		UnwrapsToSign:    s.UnwrapsToSign,
-		UnwrapsHash:      s.UnwrapsHash,
 		Networks:         s.Networks,
 	}
 	c.lastResponse = time.Now().Unix()
