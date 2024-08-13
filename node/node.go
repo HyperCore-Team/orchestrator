@@ -914,7 +914,7 @@ func (node *Node) processSignatures() {
 			index := 0
 
 			resignNetworkClass, resignChainId := node.state.GetResignNetwork()
-
+			participantIndex := node.getParticipantIndex(base64.StdEncoding.EncodeToString(node.producerKeyPair.Public))
 			// Gather all wraps that need to be resigned
 			for {
 				wrapRequests, err := node.networksManager.Znn().GetAllWrapTokenRequests(pageIndex, pageSize)
@@ -1004,52 +1004,63 @@ func (node *Node) processSignatures() {
 					continue
 				}
 
-				// we apply the signatures that don't return error
-				for idx, sig := range response.Signatures {
-					signature, err := base64.StdEncoding.DecodeString(sig.Signature)
-					if err != nil {
-						node.logger.Debug(err)
-						continue
-					}
-					recoverID, err := base64.StdEncoding.DecodeString(sig.RecoveryID)
-					fullSignature := append(signature, recoverID...)
-					fullSignatureStr := base64.StdEncoding.EncodeToString(fullSignature)
+				allSent := false
 
-					ok, err := implementation.CheckECDSASignature(messagesToSign[idx], node.config.TssConfig.DecompressedPublicKey, fullSignatureStr)
-					if err != nil {
-						node.logger.Debug("Error checking ecdsa signature for wrap: %s", err.Error())
-						continue
-					} else if ok == false {
-						node.logger.Debugf("invalid signature when checking ecdsa signature for wrap msg: %s", messagesToSign[idx])
-						continue
-					}
-
-					//node.logger.Infof("%d. msg: %s sig: %s\n", msgsIndexes[sig.Msg], base64.StdEncoding.EncodeToString(messagesToSign[idx]), sig.Signature)
-
-					wrapRpc, errGet := node.networksManager.Znn().GetWrapTokenRequestById(wrapIds[msgsIndexes[sig.Msg]])
-					if err != nil {
-						node.logger.Debug(errGet)
-						continue
-					} else if wrapRpc == nil {
-						node.logger.Debugf("Wrap request: %s not found", wrapIds[msgsIndexes[sig.Msg]].String())
-					} else if wrapRpc.Signature != fullSignatureStr {
-						errUpdate := node.networksManager.UpdateWrapRequest(wrapIds[msgsIndexes[sig.Msg]], fullSignatureStr, node.producerKeyPair)
+				for !allSent {
+					allSent = true
+					// we apply the signatures that don't return error
+					// Every participant stars updating from a different index so we don't flood the network with the same update
+					for idx := (participantIndex + 1) % len(response.Signatures); idx != participantIndex; idx++ {
+						sig := response.Signatures[idx]
+						signature, err := base64.StdEncoding.DecodeString(sig.Signature)
 						if err != nil {
-							node.logger.Debug(errUpdate)
-							continue
-						}
-
-						if err = node.networksManager.SetWrapEventSignature(wrapIds[msgsIndexes[sig.Msg]], fullSignatureStr); err != nil {
 							node.logger.Debug(err)
 							continue
 						}
-					}
-					signIndex += 99
-				}
+						recoverID, err := base64.StdEncoding.DecodeString(sig.RecoveryID)
+						fullSignature := append(signature, recoverID...)
+						fullSignatureStr := base64.StdEncoding.EncodeToString(fullSignature)
 
-				if err := node.state.SetState(common.LiveState); err != nil {
-					node.logger.Debug(err.Error())
+						ok, err := implementation.CheckECDSASignature(messagesToSign[idx], node.config.TssConfig.DecompressedPublicKey, fullSignatureStr)
+						if err != nil {
+							node.logger.Debug("Error checking ecdsa signature for wrap: %s", err.Error())
+							continue
+						} else if ok == false {
+							node.logger.Debugf("invalid signature when checking ecdsa signature for wrap msg: %s", messagesToSign[idx])
+							continue
+						}
+
+						//node.logger.Infof("%d. msg: %s sig: %s\n", msgsIndexes[sig.Msg], base64.StdEncoding.EncodeToString(messagesToSign[idx]), sig.Signature)
+
+						wrapRpc, errGet := node.networksManager.Znn().GetWrapTokenRequestById(wrapIds[msgsIndexes[sig.Msg]])
+						if err != nil {
+							node.logger.Debug(errGet)
+							continue
+						} else if wrapRpc == nil {
+							node.logger.Debugf("Wrap request: %s not found", wrapIds[msgsIndexes[sig.Msg]].String())
+						} else if wrapRpc.Signature != fullSignatureStr {
+							allSent = false
+							node.logger.Info("[sendSignaturesWrap] this is me")
+							errUpdate := node.networksManager.UpdateWrapRequest(wrapIds[msgsIndexes[sig.Msg]], fullSignatureStr, node.producerKeyPair)
+							if err != nil {
+								node.logger.Debug(errUpdate)
+								continue
+							}
+
+							if err = node.networksManager.SetWrapEventSignature(wrapIds[msgsIndexes[sig.Msg]], fullSignatureStr); err != nil {
+								node.logger.Debug(err)
+								continue
+							}
+
+							time.Sleep(10 * time.Second)
+						}
+					}
 				}
+				signIndex += 99
+			}
+
+			if err := node.state.SetState(common.LiveState); err != nil {
+				node.logger.Debug(err.Error())
 			}
 		}
 	}
@@ -1401,6 +1412,15 @@ func (node *Node) getParticipantsLength() uint32 {
 
 func (node *Node) getParticipant(index uint32) string {
 	return node.config.TssConfig.LocalPubKeys[index]
+}
+
+func (node *Node) getParticipantIndex(pubKey string) int {
+	for idx, localPubKey := range node.config.TssConfig.LocalPubKeys {
+		if pubKey == localPubKey {
+			return idx
+		}
+	}
+	return -1
 }
 
 // Setters
