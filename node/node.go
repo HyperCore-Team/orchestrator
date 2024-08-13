@@ -908,13 +908,7 @@ func (node *Node) processSignatures() {
 			pageIndex := uint32(0)
 			pageSize := uint32(100)
 
-			messagesToSign := make([][]byte, 0)
-			msgsIndexes := make(map[string]int)
-			wrapIds := make([]types.Hash, 0)
-			index := 0
-
 			resignNetworkClass, resignChainId := node.state.GetResignNetwork()
-
 			// Gather all wraps that need to be resigned
 			for {
 				wrapRequests, err := node.networksManager.Znn().GetAllWrapTokenRequests(pageIndex, pageSize)
@@ -956,16 +950,10 @@ func (node *Node) processSignatures() {
 						}
 						// The wrap is not redeemed or in pendingRedeem so we resign it
 						if redeemStatus.BlockNumber.Cmp(big.NewInt(0)) == 0 {
-							msg, err := event.GetMessage(node.networksManager.Evm(wrap.ChainId).ContractAddress())
-							if err != nil {
+							if err = node.networksManager.SetResignStatus(wrap.Id, true); err != nil {
 								node.logger.Debug(err)
 								continue
 							}
-
-							messagesToSign = append(messagesToSign, msg)
-							msgsIndexes[base64.StdEncoding.EncodeToString(msg)] = index
-							wrapIds = append(wrapIds, wrap.Id)
-							index++
 						} else {
 							status := common.PendingRedeemStatus
 							if redeemStatus.BlockNumber.Cmp(zcommon.BigP256) == 0 {
@@ -981,64 +969,6 @@ func (node *Node) processSignatures() {
 					}
 				}
 				pageIndex++
-			}
-
-			// Sign the wraps
-			lenMessages := len(messagesToSign)
-			signIndex := 0
-			// Sign a maximum of 100 messages at once. We could have multiple rounds
-			for signIndex < lenMessages {
-				right := index + 99
-				if signIndex+right > lenMessages {
-					right = lenMessages
-				}
-				roundMessagesToSign := messagesToSign[signIndex:right]
-
-				response, errSign := node.signMessages(roundMessagesToSign, msgsIndexes)
-				if errSign != nil {
-					node.logger.Debug(errSign)
-					continue
-				} else if response.Status != tcommon.Success {
-					node.logger.Debug(response.Status)
-					node.logger.Debug(" error resigning wrap")
-					continue
-				}
-
-				// we apply the signatures that don't return error
-				for idx, sig := range response.Signatures {
-					signature, err := base64.StdEncoding.DecodeString(sig.Signature)
-					if err != nil {
-						node.logger.Debug(err)
-						continue
-					}
-					recoverID, err := base64.StdEncoding.DecodeString(sig.RecoveryID)
-					fullSignature := append(signature, recoverID...)
-					fullSignatureStr := base64.StdEncoding.EncodeToString(fullSignature)
-
-					ok, err := implementation.CheckECDSASignature(messagesToSign[idx], node.config.TssConfig.DecompressedPublicKey, fullSignatureStr)
-					if err != nil {
-						node.logger.Debug("Error checking ecdsa signature for wrap: %s", err.Error())
-						continue
-					} else if ok == false {
-						node.logger.Debugf("invalid signature when checking ecdsa signature for wrap msg: %s", messagesToSign[idx])
-						continue
-					}
-
-					if err = node.networksManager.SetWrapRequestSignature(wrapIds[msgsIndexes[sig.Msg]], fullSignatureStr); err != nil {
-						node.logger.Debug(err)
-						continue
-					}
-
-					if err = node.networksManager.SetResignStatus(wrapIds[msgsIndexes[sig.Msg]], true); err != nil {
-						node.logger.Debug(err)
-						continue
-					}
-
-					//node.logger.Infof("%d. msg: %s sig: %s\n", msgsIndexes[sig.Msg], base64.StdEncoding.EncodeToString(messagesToSign[idx]), sig.Signature)
-
-				}
-
-				signIndex += 99
 			}
 
 			if err := node.state.SetState(common.LiveState); err != nil {
