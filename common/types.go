@@ -7,6 +7,13 @@ type BridgeMetadata struct {
 	PreParamTimeout  uint64           `json:"preParamTimeout"`
 	JoinPartyVersion string           `json:"joinPartyVersion"`
 	AffiliateProgram AffiliateProgram `json:"affiliateProgram"`
+	ResignState      ResignState      `json:"resignState"`
+}
+
+type ResignState struct {
+	Active       bool   `json:"active"`
+	NetworkClass uint32 `json:"networkClass"`
+	ChainId      uint32 `json:"chainId"`
 }
 
 type AffiliateProgram struct {

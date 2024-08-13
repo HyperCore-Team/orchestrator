@@ -6,10 +6,11 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	wallet2 "github.com/MoonBaZZe/znn-sdk-go/wallet"
+	zcommon "github.com/zenon-network/go-zenon/common"
 	"io"
+	"math/big"
 	"net/http"
 	"orchestrator/common"
 	oconfig "orchestrator/common/config"
@@ -33,6 +34,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	ic "github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/pkg/errors"
 	"github.com/prometheus/tsdb/fileutil"
 	"github.com/zenon-network/go-zenon/common/types"
 	"github.com/zenon-network/go-zenon/vm/embedded/definition"
@@ -191,6 +193,12 @@ func (node *Node) Start() error {
 			return err
 		} else {
 			node.state.SetIsAffiliateProgram(metadata.AffiliateProgram)
+			if metadata.ResignState.Active {
+				if err := node.state.SetState(common.ReSignState); err != nil {
+					return err
+				}
+				node.state.SetResignNetwork(metadata.ResignState.NetworkClass, metadata.ResignState.ChainId)
+			}
 		}
 	}
 
@@ -662,7 +670,7 @@ func (node *Node) processSignatures() {
 					for {
 						if changed, err := node.networksManager.CheckNewTssEcdsaPubKeyEvm(keyGenResponse.PubKey); err != nil {
 							node.logger.Debug(err)
-							time.Sleep(5 * time.Second)
+							time.Sleep(10 * time.Second)
 							continue
 						} else if changed {
 							break
@@ -894,6 +902,153 @@ func (node *Node) processSignatures() {
 							continue
 						}
 					}
+				}
+			}
+		case common.ReSignState:
+			pageIndex := uint32(0)
+			pageSize := uint32(100)
+
+			messagesToSign := make([][]byte, 0)
+			msgsIndexes := make(map[string]int)
+			wrapIds := make([]types.Hash, 0)
+			index := 0
+
+			resignNetworkClass, resignChainId := node.state.GetResignNetwork()
+
+			// Gather all wraps that need to be resigned
+			for {
+				wrapRequests, err := node.networksManager.Znn().GetAllWrapTokenRequests(pageIndex, pageSize)
+				if err != nil {
+					node.logger.Debug(err)
+					time.Sleep(10 * time.Second)
+					continue
+				} else if wrapRequests == nil || len(wrapRequests.List) == 0 {
+					break
+				} else {
+					for _, wrap := range wrapRequests.List {
+						if wrap.NetworkClass != resignNetworkClass || wrap.ChainId != resignChainId {
+							continue
+						}
+						event, errGetWrap := node.networksManager.GetWrapEventById(wrap.Id)
+						if errGetWrap != nil || event == nil {
+							// if the rpc returns it but we don't have it locally there was a problem
+							// if we don't have it we just add it now
+							if errStorage := node.networksManager.Znn().AddWrapEvent(wrap.WrapTokenRequest); errStorage != nil {
+								node.logger.Error(errGetWrap)
+								node.stopChan <- syscall.SIGINT
+								continue
+							}
+							event, errGetWrap = node.networksManager.GetWrapEventById(wrap.Id)
+							if errGetWrap != nil || event == nil {
+								node.logger.Error(errGetWrap)
+								node.stopChan <- syscall.SIGINT
+								continue
+							}
+						}
+
+						if event.RedeemStatus != common.UnredeemedStatus {
+							continue
+						}
+
+						redeemStatus, err := node.networksManager.Evm(wrap.ChainId).RedeemsInfo(wrap.Id)
+						if err != nil {
+							node.logger.Debug(err.Error())
+						}
+						// The wrap is not redeemed or in pendingRedeem so we resign it
+						if redeemStatus.BlockNumber.Cmp(big.NewInt(0)) == 0 {
+							msg, err := event.GetMessage(node.networksManager.Evm(wrap.ChainId).ContractAddress())
+							if err != nil {
+								node.logger.Debug(err)
+								continue
+							}
+
+							messagesToSign = append(messagesToSign, msg)
+							msgsIndexes[base64.StdEncoding.EncodeToString(msg)] = index
+							wrapIds = append(wrapIds, wrap.Id)
+							index++
+						} else {
+							status := common.PendingRedeemStatus
+							if redeemStatus.BlockNumber.Cmp(zcommon.BigP256) == 0 {
+								status = common.RedeemedStatus
+							}
+
+							if errStorage := node.networksManager.Znn().SetWrapEventStatus(event.Id, status); errStorage != nil {
+								node.logger.Error(errGetWrap)
+								node.stopChan <- syscall.SIGINT
+								continue
+							}
+						}
+					}
+				}
+				pageIndex++
+			}
+
+			// Sign the wraps
+			lenMessages := len(messagesToSign)
+			signIndex := 0
+			// Sign a maximum of 100 messages at once. We could have multiple rounds
+			for signIndex < lenMessages {
+				right := index + 99
+				if signIndex+right > lenMessages {
+					right = lenMessages
+				}
+				roundMessagesToSign := messagesToSign[signIndex:right]
+
+				response, errSign := node.signMessages(roundMessagesToSign, msgsIndexes)
+				if errSign != nil {
+					node.logger.Debug(errSign)
+					continue
+				} else if response.Status != tcommon.Success {
+					node.logger.Debug(response.Status)
+					node.logger.Debug(" error resigning wrap")
+					continue
+				}
+
+				// we apply the signatures that don't return error
+				for idx, sig := range response.Signatures {
+					signature, err := base64.StdEncoding.DecodeString(sig.Signature)
+					if err != nil {
+						node.logger.Debug(err)
+						continue
+					}
+					recoverID, err := base64.StdEncoding.DecodeString(sig.RecoveryID)
+					fullSignature := append(signature, recoverID...)
+					fullSignatureStr := base64.StdEncoding.EncodeToString(fullSignature)
+
+					ok, err := implementation.CheckECDSASignature(messagesToSign[idx], node.config.TssConfig.DecompressedPublicKey, fullSignatureStr)
+					if err != nil {
+						node.logger.Debug("Error checking ecdsa signature for wrap: %s", err.Error())
+						continue
+					} else if ok == false {
+						node.logger.Debugf("invalid signature when checking ecdsa signature for wrap msg: %s", messagesToSign[idx])
+						continue
+					}
+
+					//node.logger.Infof("%d. msg: %s sig: %s\n", msgsIndexes[sig.Msg], base64.StdEncoding.EncodeToString(messagesToSign[idx]), sig.Signature)
+
+					wrapRpc, errGet := node.networksManager.Znn().GetWrapTokenRequestById(wrapIds[msgsIndexes[sig.Msg]])
+					if err != nil {
+						node.logger.Debug(errGet)
+						continue
+					} else if wrapRpc == nil {
+						node.logger.Debugf("Wrap request: %s not found", wrapIds[msgsIndexes[sig.Msg]].String())
+					} else if wrapRpc.Signature != fullSignatureStr {
+						errUpdate := node.networksManager.UpdateWrapRequest(wrapIds[msgsIndexes[sig.Msg]], fullSignatureStr, node.producerKeyPair)
+						if err != nil {
+							node.logger.Debug(errUpdate)
+							continue
+						}
+
+						if err = node.networksManager.SetWrapEventSignature(wrapIds[msgsIndexes[sig.Msg]], fullSignatureStr); err != nil {
+							node.logger.Debug(err)
+							continue
+						}
+					}
+					signIndex += 99
+				}
+
+				if err := node.state.SetState(common.LiveState); err != nil {
+					node.logger.Debug(err.Error())
 				}
 			}
 		}
@@ -1289,6 +1444,17 @@ func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
 		}
 
 		node.state.SetIsAffiliateProgram(metadata.AffiliateProgram)
+
+		if metadata.ResignState.Active {
+			if err := node.state.SetState(common.ReSignState); err != nil {
+				node.logger.Debug(err)
+			}
+			node.state.SetResignNetwork(metadata.ResignState.NetworkClass, metadata.ResignState.ChainId)
+		} else {
+			if err := node.state.SetState(common.LiveState); err != nil {
+				node.logger.Debug(err)
+			}
+		}
 	}
 }
 

@@ -12,6 +12,7 @@ const (
 	KeyGenState    uint8 = 1
 	HaltedState    uint8 = 2
 	EmergencyState uint8 = 3
+	ReSignState    uint8 = 4
 )
 
 type GlobalState struct {
@@ -24,6 +25,8 @@ type GlobalState struct {
 	tokensMap                map[uint32]map[string]string
 	isAffiliateProgramActive map[string]bool
 	affiliateStartingHeight  *big.Int
+	resignNetworkClass       uint32
+	resignNetworkChainId     uint32
 }
 
 func NewGlobalState(state *uint8) *GlobalState {
@@ -152,4 +155,13 @@ func (gs *GlobalState) GetAffiliateStartingHeight() *big.Int {
 		gs.affiliateStartingHeight = big.NewInt(0)
 	}
 	return gs.affiliateStartingHeight
+}
+
+func (gs *GlobalState) GetResignNetwork() (uint32, uint32) {
+	return gs.resignNetworkClass, gs.resignNetworkChainId
+}
+
+func (gs *GlobalState) SetResignNetwork(networkClass, chainId uint32) {
+	gs.resignNetworkClass = networkClass
+	gs.resignNetworkChainId = chainId
 }

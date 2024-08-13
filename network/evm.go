@@ -804,3 +804,10 @@ func (eN *evmNetwork) EstimatedBlockTimeRpc() (uint64, error) {
 func (eN *evmNetwork) ConfirmationsToFinalityRpc() (uint64, error) {
 	return eN.EvmRpc().ConfirmationsToFinality()
 }
+
+func (eN *evmNetwork) RedeemsInfo(hash types.Hash) (struct {
+	BlockNumber *big.Int
+	ParamsHash  [32]byte
+}, error) {
+	return eN.EvmRpc().RedeemsInfo(hash)
+}
