@@ -244,7 +244,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 				}
 			}
 			if len(request.Signature) > 0 {
-				if err = rC.eventsStore().SetWrapRequestSentSignature(request.Id); err != nil {
+				if err = rC.eventsStore().SetWrapRequestSentSignature(request.Id, true); err != nil {
 					return err
 				}
 			}
@@ -946,8 +946,20 @@ func (rC *znnNetwork) GetUnredeemedWrapRequests() ([]*events.WrapRequestZnn, err
 	return rC.eventsStore().GetUnredeemedWrapRequests()
 }
 
-func (rC *znnNetwork) SetWrapEventSignature(id types.Hash, signature string) error {
+func (rC *znnNetwork) SetWrapRequestSignature(id types.Hash, signature string) error {
 	return rC.eventsStore().SetWrapRequestSignature(id, signature)
+}
+
+func (rC *znnNetwork) SetWrapRequestSentSignature(id types.Hash, sent bool) error {
+	return rC.eventsStore().SetWrapRequestSentSignature(id, sent)
+}
+
+func (rC *znnNetwork) SetResignStatus(id types.Hash, status bool) error {
+	return rC.eventsStore().SetResignStatus(id, status)
+}
+
+func (rC *znnNetwork) GetResignStatus(id types.Hash) (bool, error) {
+	return rC.eventsStore().GetResignStatus(id)
 }
 
 func (rC *znnNetwork) GetWrapEventById(id types.Hash) (*events.WrapRequestZnn, error) {

@@ -914,7 +914,7 @@ func (node *Node) processSignatures() {
 			index := 0
 
 			resignNetworkClass, resignChainId := node.state.GetResignNetwork()
-			participantIndex := node.getParticipantIndex(base64.StdEncoding.EncodeToString(node.producerKeyPair.Public))
+
 			// Gather all wraps that need to be resigned
 			for {
 				wrapRequests, err := node.networksManager.Znn().GetAllWrapTokenRequests(pageIndex, pageSize)
@@ -1004,58 +1004,40 @@ func (node *Node) processSignatures() {
 					continue
 				}
 
-				allSent := false
-
-				for !allSent {
-					allSent = true
-					// we apply the signatures that don't return error
-					// Every participant stars updating from a different index so we don't flood the network with the same update
-					for idx := (participantIndex + 1) % len(response.Signatures); idx != participantIndex; idx++ {
-						sig := response.Signatures[idx]
-						signature, err := base64.StdEncoding.DecodeString(sig.Signature)
-						if err != nil {
-							node.logger.Debug(err)
-							continue
-						}
-						recoverID, err := base64.StdEncoding.DecodeString(sig.RecoveryID)
-						fullSignature := append(signature, recoverID...)
-						fullSignatureStr := base64.StdEncoding.EncodeToString(fullSignature)
-
-						ok, err := implementation.CheckECDSASignature(messagesToSign[idx], node.config.TssConfig.DecompressedPublicKey, fullSignatureStr)
-						if err != nil {
-							node.logger.Debug("Error checking ecdsa signature for wrap: %s", err.Error())
-							continue
-						} else if ok == false {
-							node.logger.Debugf("invalid signature when checking ecdsa signature for wrap msg: %s", messagesToSign[idx])
-							continue
-						}
-
-						//node.logger.Infof("%d. msg: %s sig: %s\n", msgsIndexes[sig.Msg], base64.StdEncoding.EncodeToString(messagesToSign[idx]), sig.Signature)
-
-						wrapRpc, errGet := node.networksManager.Znn().GetWrapTokenRequestById(wrapIds[msgsIndexes[sig.Msg]])
-						if err != nil {
-							node.logger.Debug(errGet)
-							continue
-						} else if wrapRpc == nil {
-							node.logger.Debugf("Wrap request: %s not found", wrapIds[msgsIndexes[sig.Msg]].String())
-						} else if wrapRpc.Signature != fullSignatureStr {
-							allSent = false
-							node.logger.Info("[sendSignaturesWrap] this is me")
-							errUpdate := node.networksManager.UpdateWrapRequest(wrapIds[msgsIndexes[sig.Msg]], fullSignatureStr, node.producerKeyPair)
-							if err != nil {
-								node.logger.Debug(errUpdate)
-								continue
-							}
-
-							if err = node.networksManager.SetWrapEventSignature(wrapIds[msgsIndexes[sig.Msg]], fullSignatureStr); err != nil {
-								node.logger.Debug(err)
-								continue
-							}
-
-							time.Sleep(10 * time.Second)
-						}
+				// we apply the signatures that don't return error
+				for idx, sig := range response.Signatures {
+					signature, err := base64.StdEncoding.DecodeString(sig.Signature)
+					if err != nil {
+						node.logger.Debug(err)
+						continue
 					}
+					recoverID, err := base64.StdEncoding.DecodeString(sig.RecoveryID)
+					fullSignature := append(signature, recoverID...)
+					fullSignatureStr := base64.StdEncoding.EncodeToString(fullSignature)
+
+					ok, err := implementation.CheckECDSASignature(messagesToSign[idx], node.config.TssConfig.DecompressedPublicKey, fullSignatureStr)
+					if err != nil {
+						node.logger.Debug("Error checking ecdsa signature for wrap: %s", err.Error())
+						continue
+					} else if ok == false {
+						node.logger.Debugf("invalid signature when checking ecdsa signature for wrap msg: %s", messagesToSign[idx])
+						continue
+					}
+
+					if err = node.networksManager.SetWrapRequestSignature(wrapIds[msgsIndexes[sig.Msg]], fullSignatureStr); err != nil {
+						node.logger.Debug(err)
+						continue
+					}
+
+					if err = node.networksManager.SetResignStatus(wrapIds[msgsIndexes[sig.Msg]], true); err != nil {
+						node.logger.Debug(err)
+						continue
+					}
+
+					//node.logger.Infof("%d. msg: %s sig: %s\n", msgsIndexes[sig.Msg], base64.StdEncoding.EncodeToString(messagesToSign[idx]), sig.Signature)
+
 				}
+
 				signIndex += 99
 			}
 
@@ -1095,8 +1077,16 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 				node.stopChan <- syscall.SIGINT
 				return err, false
 			}
-		} else if len(event.Signature) > 0 {
-			continue
+		} else {
+			resignStatus, err := node.networksManager.GetResignStatus(event.Id)
+			if err != nil {
+				node.logger.Error(err)
+				node.stopChan <- syscall.SIGINT
+				return err, false
+			}
+			if !resignStatus && len(event.Signature) > 0 {
+				continue
+			}
 		}
 		node.logger.Debugf("param.Id: %s", request.Id.String())
 		node.logger.Debugf("param.ToAddress: %s", request.ToAddress)
@@ -1106,9 +1096,17 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 		if localEvent, errStorage := node.dbManager.ZnnStorage().GetWrapRequestById(event.Id); err != nil {
 			node.logger.Debug(errStorage)
 		} else {
+			resignStatus, err := node.networksManager.GetResignStatus(event.Id)
+			if err != nil {
+				node.logger.Error(err)
+				node.stopChan <- syscall.SIGINT
+				return err, false
+			}
+
+			// If we should resign it, we add it to the pool
 			// if we have a signature but it was not sent yet, do not sign again
 			// on a new key sign, this will be set as unsigned if the signature set will not be succeeded
-			if len(localEvent.Signature) > 0 {
+			if !resignStatus && len(localEvent.Signature) > 0 {
 				continue
 			}
 		}
@@ -1156,10 +1154,17 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 			continue
 		}
 
-		if err = node.networksManager.SetWrapEventSignature(wrapRequestsIds[msgsIndexes[sig.Msg]].Id, fullSignatureStr); err != nil {
+		if err = node.networksManager.SetWrapRequestSignature(wrapRequestsIds[msgsIndexes[sig.Msg]].Id, fullSignatureStr); err != nil {
 			node.logger.Debug(err)
 			continue
 		}
+
+		// Set it as unsent after setting the new signature for resigned requests
+		if err = node.networksManager.SetWrapRequestSentSignature(wrapRequestsIds[msgsIndexes[sig.Msg]].Id, false); err != nil {
+			node.logger.Debug(err)
+			continue
+		}
+
 		node.logger.Infof("%d. msg: %s sig: %s\n", msgsIndexes[sig.Msg], base64.StdEncoding.EncodeToString(messagesToSign[idx]), sig.Signature)
 	}
 	return nil, true
@@ -1284,11 +1289,16 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 	}
 
 	for _, req := range requests {
+		resignStatus, err := node.networksManager.GetResignStatus(req.Id)
+		if err != nil {
+			node.logger.Error(err)
+			node.stopChan <- syscall.SIGINT
+		}
 		rpcRequest, err := node.networksManager.GetWrapRequestByIdRPC(req.Id)
 		if err != nil {
 			node.logger.Debug(err)
 			continue
-		} else if len(rpcRequest.Signature) != 0 {
+		} else if !resignStatus && len(rpcRequest.Signature) != 0 {
 			delete(seenEventsCount, req.Id.String())
 			continue
 		}
@@ -1308,6 +1318,11 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 			}
 			delete(seenEventsCount, req.Id.String())
 			node.logger.Info("[sendSignaturesWrap] sent request")
+
+			if err = node.networksManager.SetResignStatus(req.Id, false); err != nil {
+				node.logger.Debug(err)
+				continue
+			}
 		}
 		// todo how much to wait between sends?
 		time.Sleep(25 * time.Second)
@@ -1504,7 +1519,7 @@ func (node *Node) resetSignatures() {
 		node.logger.Debug(err)
 	} else {
 		for _, request := range requests {
-			if err := node.networksManager.SetWrapEventSignature(request.Id, ""); err != nil {
+			if err := node.networksManager.SetWrapRequestSignature(request.Id, ""); err != nil {
 				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.Id.String())
 				continue
 			}
@@ -1516,7 +1531,7 @@ func (node *Node) resetSignatures() {
 		node.logger.Debug(err)
 	} else {
 		for _, request := range requests {
-			if err := node.networksManager.SetWrapEventSignature(request.Id, ""); err != nil {
+			if err := node.networksManager.SetWrapRequestSignature(request.Id, ""); err != nil {
 				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.Id.String())
 				continue
 			}

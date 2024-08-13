@@ -2,6 +2,7 @@ package wrap
 
 import (
 	"encoding/binary"
+	"errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	zcommon "github.com/zenon-network/go-zenon/common"
 	"github.com/zenon-network/go-zenon/common/types"
@@ -92,7 +93,7 @@ func (es *eventStore) SetWrapRequestSignature(id types.Hash, signature string) e
 	return nil
 }
 
-func (es *eventStore) SetWrapRequestSentSignature(id types.Hash) error {
+func (es *eventStore) SetWrapRequestSentSignature(id types.Hash, value bool) error {
 	if event, err := es.GetWrapRequestById(id); err != nil {
 		es.SendSigInt()
 		return err
@@ -100,7 +101,7 @@ func (es *eventStore) SetWrapRequestSentSignature(id types.Hash) error {
 		if event == nil {
 			return leveldb.ErrNotFound
 		}
-		event.SentSignature = true
+		event.SentSignature = value
 		if eventBytes, err := event.Serialize(); err != nil {
 			es.SendSigInt()
 			return err
@@ -235,6 +236,42 @@ func (es *eventStore) SetLastUpdateHeight(accBlHeight uint64) error {
 			es.SendSigInt()
 			return err
 		}
+	}
+	return nil
+}
+
+func getResignedStatusKey(id types.Hash) []byte {
+	return zcommon.JoinBytes(resignedStatusPrefix, id.Bytes())
+}
+
+func (es *eventStore) GetResignStatus(id types.Hash) (bool, error) {
+	data, err := es.DB.Get(getResignedStatusKey(id))
+	if errors.Is(err, leveldb.ErrNotFound) {
+		return false, nil
+	}
+
+	if err != nil {
+		es.SendSigInt()
+		return false, err
+	}
+	value := binary.LittleEndian.Uint32(data)
+	ans := false
+	if value > 0 {
+		ans = true
+	}
+	return ans, nil
+}
+
+func (es *eventStore) SetResignStatus(id types.Hash, status bool) error {
+	bytes := make([]byte, 4)
+	value := uint32(0)
+	if status {
+		value = 1
+	}
+	binary.LittleEndian.PutUint32(bytes, value)
+	if err := es.DB.Put(getResignedStatusKey(id), bytes); err != nil {
+		es.SendSigInt()
+		return err
 	}
 	return nil
 }

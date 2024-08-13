@@ -269,8 +269,20 @@ func (m *NetworksManager) WindowSize() uint64 {
 
 /// Local storage calls
 
-func (m *NetworksManager) SetWrapEventSignature(id types.Hash, signature string) error {
-	return m.znnNetwork.SetWrapEventSignature(id, signature)
+func (m *NetworksManager) SetWrapRequestSignature(id types.Hash, signature string) error {
+	return m.znnNetwork.SetWrapRequestSignature(id, signature)
+}
+
+func (m *NetworksManager) SetWrapRequestSentSignature(id types.Hash, sent bool) error {
+	return m.znnNetwork.SetWrapRequestSentSignature(id, sent)
+}
+
+func (m *NetworksManager) SetResignStatus(id types.Hash, status bool) error {
+	return m.znnNetwork.SetResignStatus(id, status)
+}
+
+func (m *NetworksManager) GetResignStatus(id types.Hash) (bool, error) {
+	return m.znnNetwork.GetResignStatus(id)
 }
 
 func (m *NetworksManager) GetWrapEventById(id types.Hash) (*events.WrapRequestZnn, error) {
