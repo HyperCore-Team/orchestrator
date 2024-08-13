@@ -1445,10 +1445,15 @@ func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
 
 		node.state.SetIsAffiliateProgram(metadata.AffiliateProgram)
 
+		node.logger.Infof("ResignState.Active - new: %v", metadata.ResignState.Active)
 		if metadata.ResignState.Active {
 			if err := node.state.SetState(common.ReSignState); err != nil {
 				node.logger.Debug(err)
 			}
+
+			resignNetworkClass, resignChainId := node.state.GetResignNetwork()
+			node.logger.Infof("ResignState NetworkClass - old: %d, new: %d", resignNetworkClass, metadata.ResignState.NetworkClass)
+			node.logger.Infof("ResignState ChainId - old: %d, new: %d", resignChainId, metadata.ResignState.ChainId)
 			node.state.SetResignNetwork(metadata.ResignState.NetworkClass, metadata.ResignState.ChainId)
 		} else {
 			if err := node.state.SetState(common.LiveState); err != nil {

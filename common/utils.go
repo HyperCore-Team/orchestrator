@@ -140,7 +140,10 @@ func StateToText(state uint8) string {
 		stateStr = "HaltedState"
 	case EmergencyState:
 		stateStr = "EmergencyState"
+	case ReSignState:
+		stateStr = "ReSignState"
 	}
+
 	return stateStr
 }
 
