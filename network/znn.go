@@ -942,6 +942,10 @@ func (rC *znnNetwork) GetUnsentSignedWrapRequests() ([]*events.WrapRequestZnn, e
 	return rC.eventsStore().GetUnsentSignedWrapRequests()
 }
 
+func (rC *znnNetwork) GetResignableWrapRequests() ([]*events.WrapRequestZnn, error) {
+	return rC.eventsStore().GetResignableWrapRequests()
+}
+
 func (rC *znnNetwork) GetUnredeemedWrapRequests() ([]*events.WrapRequestZnn, error) {
 	return rC.eventsStore().GetUnredeemedWrapRequests()
 }

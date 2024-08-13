@@ -40,6 +40,7 @@ type ZnnStorage interface {
 	GetWrapRequestById(types.Hash) (*events.WrapRequestZnn, error)
 	GetUnsentSignedWrapRequests() ([]*events.WrapRequestZnn, error)
 	GetUnredeemedWrapRequests() ([]*events.WrapRequestZnn, error)
+	GetResignableWrapRequests() ([]*events.WrapRequestZnn, error)
 
 	GetUnsignedWrapRequests() ([]*events.WrapRequestZnn, error)
 

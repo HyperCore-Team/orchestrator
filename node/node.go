@@ -985,6 +985,18 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 	if err != nil {
 		return err, false
 	} else if wrapRequestsIds == nil {
+		wrapRequestsIds = make([]*definition.WrapTokenRequest, 0)
+	}
+
+	resignableWrapsRequestsIds, err := node.networksManager.GetResignableWrapRequests()
+	if err != nil {
+		return err, false
+	} else if resignableWrapsRequestsIds == nil {
+		resignableWrapsRequestsIds = make([]*definition.WrapTokenRequest, 0)
+	}
+
+	wrapRequestsIds = append(wrapRequestsIds, resignableWrapsRequestsIds...)
+	if len(wrapRequestsIds) == 0 {
 		return nil, false
 	}
 
@@ -996,7 +1008,7 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 		if err != nil || event == nil {
 			// if the rpc returns it but we don't have it locally there was a problem
 			// if we don't have it we just add it now
-			if errStorage := node.networksManager.Znn().AddWrapEvent(request.WrapTokenRequest); errStorage != nil {
+			if errStorage := node.networksManager.Znn().AddWrapEvent(request); errStorage != nil {
 				node.logger.Error(err)
 				node.stopChan <- syscall.SIGINT
 				return err, false

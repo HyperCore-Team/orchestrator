@@ -146,6 +146,42 @@ func (es *eventStore) GetUnsentSignedWrapRequests() ([]*events.WrapRequestZnn, e
 	return result, nil
 }
 
+func (es *eventStore) GetResignableWrapRequests() ([]*events.WrapRequestZnn, error) {
+	iterator := es.DB.NewIterator(getWrapEventPrefix())
+	defer iterator.Release()
+	result := make([]*events.WrapRequestZnn, 0)
+
+	for {
+		if !iterator.Next() {
+			if iterator.Error() != nil {
+				es.SendSigInt()
+				return nil, iterator.Error()
+			}
+			break
+		}
+		if iterator.Value() == nil {
+			continue
+		}
+
+		event, err := events.DeserializeWrapEventZnn(iterator.Value())
+		if err != nil {
+			es.SendSigInt()
+			return nil, err
+		}
+		resignable, err := es.GetResignStatus(event.Id)
+		if err != nil {
+			es.SendSigInt()
+			return nil, err
+		}
+		if !resignable {
+			continue
+		}
+
+		result = append(result, event)
+	}
+	return result, nil
+}
+
 func (es *eventStore) GetUnredeemedWrapRequests() ([]*events.WrapRequestZnn, error) {
 	iterator := es.DB.NewIterator(getWrapEventPrefix())
 	defer iterator.Release()
