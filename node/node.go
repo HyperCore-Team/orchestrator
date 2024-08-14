@@ -954,6 +954,7 @@ func (node *Node) processSignatures() {
 								node.logger.Debug(err)
 								continue
 							}
+							node.logger.Debugf("Set wrap %s status as true", wrap.Id.String())
 						} else {
 							status := common.PendingRedeemStatus
 							if redeemStatus.BlockNumber.Cmp(zcommon.BigP256) == 0 {
