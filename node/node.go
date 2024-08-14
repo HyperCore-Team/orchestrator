@@ -995,16 +995,16 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 	} else if resignableWrapsRequestsIds == nil {
 		resignableWrapsRequestsIds = make([]*definition.WrapTokenRequest, 0)
 	}
-	node.logger.Debugf("Resignable WrapRequests len: %d", len(wrapRequestsIds))
+	node.logger.Debugf("Resignable WrapRequests len: %d", len(resignableWrapsRequestsIds))
 
 	wrapRequestsIds = append(wrapRequestsIds, resignableWrapsRequestsIds...)
 	if len(wrapRequestsIds) == 0 {
 		return nil, false
 	}
+	node.logger.Debugf("Final WrapRequests len: %d", len(wrapRequestsIds))
 
 	messagesToSign := make([][]byte, 0)
 	msgsIndexes := make(map[string]int)
-	node.logger.Debugf("Final WrapRequests len: %d", len(wrapRequestsIds))
 	for idx, request := range wrapRequestsIds {
 		event, err := node.networksManager.GetWrapEventById(request.Id)
 		if err != nil || event == nil {
