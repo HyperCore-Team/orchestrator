@@ -1064,7 +1064,11 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 		return nil, false
 	}
 
-	messagesToSign = messagesToSign[:common.SignCeremonyPoolSize]
+	right := len(messagesToSign)
+	if right > common.SignCeremonyPoolSize {
+		right = common.SignCeremonyPoolSize
+	}
+	messagesToSign = messagesToSign[:right]
 	response, err := node.signMessages(messagesToSign, msgsIndexes)
 	if err != nil {
 		return err, true
@@ -1149,7 +1153,13 @@ func (node *Node) processSignaturesUnwrap() (error, bool) {
 	if len(messagesToSign) == 0 {
 		return nil, false
 	}
-	node.logger.Debug("MessagesToSign: ", messagesToSign)
+
+	right := len(messagesToSign)
+	if right > common.SignCeremonyPoolSize {
+		right = common.SignCeremonyPoolSize
+	}
+	messagesToSign = messagesToSign[:right]
+	//node.logger.Debug("MessagesToSign: ", messagesToSign)
 	response, err := node.signMessages(messagesToSign, msgsIndexes)
 	if err != nil {
 		return err, true
