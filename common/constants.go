@@ -72,6 +72,11 @@ const (
 )
 
 var (
+	// Orchestrator
+
+	// SignCeremonyPoolSize Maximum number of messages signed in a ceremony
+	SignCeremonyPoolSize = 50
+
 	// EVM
 	EvmContractAbi, _                 = abi.JSON(strings.NewReader(bridge.BridgeMetaData.ABI))
 	UnwrapSigHash                     = crypto.Keccak256Hash([]byte(unwrappedSignatureString))

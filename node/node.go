@@ -192,13 +192,7 @@ func (node *Node) Start() error {
 		if err := json.Unmarshal([]byte(bridgeInfo.Metadata), metadata); err != nil {
 			return err
 		} else {
-			node.state.SetIsAffiliateProgram(metadata.AffiliateProgram)
-			if metadata.ResignState.Active {
-				if err := node.state.SetState(common.ReSignState); err != nil {
-					return err
-				}
-				node.state.SetResignNetwork(metadata.ResignState.NetworkClass, metadata.ResignState.ChainId)
-			}
+			node.SetBridgeMetadata(metadata)
 		}
 	}
 
@@ -954,7 +948,7 @@ func (node *Node) processSignatures() {
 								node.logger.Debug(err)
 								continue
 							}
-							node.logger.Debugf("Set wrap %s status as true", wrap.Id.String())
+							//node.logger.Debugf("Set wrap %s status as true", wrap.Id.String())
 						} else {
 							status := common.PendingRedeemStatus
 							if redeemStatus.BlockNumber.Cmp(zcommon.BigP256) == 0 {
@@ -1070,6 +1064,7 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 		return nil, false
 	}
 
+	messagesToSign = messagesToSign[:common.SignCeremonyPoolSize]
 	response, err := node.signMessages(messagesToSign, msgsIndexes)
 	if err != nil {
 		return err, true
@@ -1240,8 +1235,8 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 
 	producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
 	for _, req := range requests {
-		node.logger.Debugf("Local wrap: Id: %s, Signature: %s, SentSignature: %v",
-			req.Id.String(), req.Signature, req.SentSignature)
+		//node.logger.Debugf("Local wrap: Id: %s, Signature: %s, SentSignature: %v",
+		//	req.Id.String(), req.Signature, req.SentSignature)
 		rpcRequest, err := node.networksManager.GetWrapRequestByIdRPC(req.Id)
 		if err != nil {
 			node.logger.Debug(err)
@@ -1250,13 +1245,13 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 			if errSet := node.networksManager.Znn().SetWrapRequestSentSignature(req.Id, true); errSet != nil {
 				node.logger.Debug(err)
 			} else {
-				node.logger.Debugf("Set wrap %s as sent", req.Id.String())
+				//node.logger.Debugf("Set wrap %s as sent", req.Id.String())
 			}
 			delete(seenEventsCount, req.Id.String())
 			continue
 		}
-		node.logger.Debugf("Rpc wrap: Id: %s, Signature: %s",
-			rpcRequest.Id.String(), rpcRequest.Signature)
+		//node.logger.Debugf("Rpc wrap: Id: %s, Signature: %s",
+		//	rpcRequest.Id.String(), rpcRequest.Signature)
 
 		index := uint32(req.Id.Bytes()[31]) % node.getParticipantsLength()
 		if seenEventsCount[req.Id.String()] > 2 {
@@ -1444,6 +1439,11 @@ func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
 				node.logger.Debug(err)
 			}
 		}
+
+		if metadata.SignCeremonyPoolSize != 0 {
+			common.SignCeremonyPoolSize = metadata.SignCeremonyPoolSize
+		}
+		node.logger.Infof("SignCeremonyPoolSize: %d", common.SignCeremonyPoolSize)
 	}
 }
 

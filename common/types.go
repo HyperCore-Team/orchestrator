@@ -1,13 +1,14 @@
 package common
 
 type BridgeMetadata struct {
-	PartyTimeout     uint64           `json:"partyTimeout"`
-	KeyGenTimeout    uint64           `json:"keyGenTimeout"`
-	KeySignTimeout   uint64           `json:"keySignTimeout"`
-	PreParamTimeout  uint64           `json:"preParamTimeout"`
-	JoinPartyVersion string           `json:"joinPartyVersion"`
-	AffiliateProgram AffiliateProgram `json:"affiliateProgram"`
-	ResignState      ResignState      `json:"resignState"`
+	PartyTimeout         uint64           `json:"partyTimeout"`
+	KeyGenTimeout        uint64           `json:"keyGenTimeout"`
+	KeySignTimeout       uint64           `json:"keySignTimeout"`
+	PreParamTimeout      uint64           `json:"preParamTimeout"`
+	JoinPartyVersion     string           `json:"joinPartyVersion"`
+	AffiliateProgram     AffiliateProgram `json:"affiliateProgram"`
+	ResignState          ResignState      `json:"resignState"`
+	SignCeremonyPoolSize int              `json:"signCeremonyPoolSize"`
 }
 
 type ResignState struct {
