@@ -1238,12 +1238,18 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 		return
 	}
 
+	producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
 	for _, req := range requests {
 		rpcRequest, err := node.networksManager.GetWrapRequestByIdRPC(req.Id)
 		if err != nil {
 			node.logger.Debug(err)
 			continue
 		} else if req.Signature == rpcRequest.Signature {
+			if errSet := node.networksManager.Znn().SetWrapRequestSentSignature(req.Id, true); errSet != nil {
+				node.logger.Debug(err)
+			} else {
+				node.logger.Debugf("Set wrap %s as sent", req.Id.String())
+			}
 			delete(seenEventsCount, req.Id.String())
 			continue
 		}
@@ -1253,7 +1259,6 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 			index = (index + seenEventsCount[req.Id.String()]) % node.getParticipantsLength()
 		}
 		seenEventsCount[req.Id.String()] += 1
-		producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
 		if producerPubKey == node.getParticipant(index) {
 			node.logger.Info("[sendSignaturesWrap] this is me")
 			err = node.networksManager.UpdateWrapRequest(req.Id, req.Signature, node.producerKeyPair)
