@@ -243,7 +243,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 					return err
 				}
 			}
-			if len(request.Signature) > 0 {
+			if param.Signature == request.Signature {
 				if err = rC.eventsStore().SetWrapRequestSentSignature(request.Id, true); err != nil {
 					return err
 				}
