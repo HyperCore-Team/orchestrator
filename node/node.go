@@ -1110,7 +1110,7 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 			continue
 		}
 
-		if err = node.networksManager.Znn().SetResignStatus(wrapRequestsIds[msgsIndexes[sig.Msg]].Id, true); err != nil {
+		if err = node.networksManager.Znn().SetResignStatus(wrapRequestsIds[msgsIndexes[sig.Msg]].Id, false); err != nil {
 			node.logger.Debug(err)
 			continue
 		}
@@ -1265,7 +1265,7 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 			node.logger.Info("[sendSignaturesWrap] sent request")
 		}
 		// todo how much to wait between sends?
-		time.Sleep(25 * time.Second)
+		time.Sleep(15 * time.Second)
 	}
 }
 
