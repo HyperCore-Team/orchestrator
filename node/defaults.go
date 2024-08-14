@@ -21,6 +21,10 @@ var DefaultNodeConfig = config.Config{
 			Urls:            []string{"ws://127.0.0.1:8545"},
 			FilterQuerySize: 2000,
 		},
+		"Supernova": {
+			Urls:            []string{"wss://rpc.novascan.io"},
+			FilterQuerySize: 2000,
+		},
 	},
 	GlobalState: common.LiveState,
 	TssConfig: config.TssManagerConfig{
