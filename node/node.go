@@ -987,6 +987,7 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 	} else if wrapRequestsIds == nil {
 		wrapRequestsIds = make([]*definition.WrapTokenRequest, 0)
 	}
+	node.logger.Debugf("WrapRequests len: %d", len(wrapRequestsIds))
 
 	resignableWrapsRequestsIds, err := node.networksManager.GetResignableWrapRequests()
 	if err != nil {
@@ -994,6 +995,7 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 	} else if resignableWrapsRequestsIds == nil {
 		resignableWrapsRequestsIds = make([]*definition.WrapTokenRequest, 0)
 	}
+	node.logger.Debugf("Resignable WrapRequests len: %d", len(wrapRequestsIds))
 
 	wrapRequestsIds = append(wrapRequestsIds, resignableWrapsRequestsIds...)
 	if len(wrapRequestsIds) == 0 {
@@ -1002,7 +1004,7 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 
 	messagesToSign := make([][]byte, 0)
 	msgsIndexes := make(map[string]int)
-	node.logger.Debugf("WrapRequests len: %d", len(wrapRequestsIds))
+	node.logger.Debugf("Final WrapRequests len: %d", len(wrapRequestsIds))
 	for idx, request := range wrapRequestsIds {
 		event, err := node.networksManager.GetWrapEventById(request.Id)
 		if err != nil || event == nil {
@@ -1103,6 +1105,11 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 
 		// Set it as unsent after setting the new signature for resigned requests
 		if err = node.networksManager.SetWrapRequestSentSignature(wrapRequestsIds[msgsIndexes[sig.Msg]].Id, false); err != nil {
+			node.logger.Debug(err)
+			continue
+		}
+
+		if err = node.networksManager.Znn().SetResignStatus(wrapRequestsIds[msgsIndexes[sig.Msg]].Id, true); err != nil {
 			node.logger.Debug(err)
 			continue
 		}
@@ -1231,16 +1238,11 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 	}
 
 	for _, req := range requests {
-		resignStatus, err := node.networksManager.GetResignStatus(req.Id)
-		if err != nil {
-			node.logger.Error(err)
-			node.stopChan <- syscall.SIGINT
-		}
 		rpcRequest, err := node.networksManager.GetWrapRequestByIdRPC(req.Id)
 		if err != nil {
 			node.logger.Debug(err)
 			continue
-		} else if !resignStatus && len(rpcRequest.Signature) != 0 {
+		} else if req.Signature == rpcRequest.Signature {
 			delete(seenEventsCount, req.Id.String())
 			continue
 		}
@@ -1260,11 +1262,6 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 			}
 			delete(seenEventsCount, req.Id.String())
 			node.logger.Info("[sendSignaturesWrap] sent request")
-
-			if err = node.networksManager.SetResignStatus(req.Id, false); err != nil {
-				node.logger.Debug(err)
-				continue
-			}
 		}
 		// todo how much to wait between sends?
 		time.Sleep(25 * time.Second)
