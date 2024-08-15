@@ -6,10 +6,11 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	wallet2 "github.com/MoonBaZZe/znn-sdk-go/wallet"
+	zcommon "github.com/zenon-network/go-zenon/common"
 	"io"
+	"math/big"
 	"net/http"
 	"orchestrator/common"
 	oconfig "orchestrator/common/config"
@@ -33,6 +34,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	ic "github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/pkg/errors"
 	"github.com/prometheus/tsdb/fileutil"
 	"github.com/zenon-network/go-zenon/common/types"
 	"github.com/zenon-network/go-zenon/vm/embedded/definition"
@@ -190,7 +192,7 @@ func (node *Node) Start() error {
 		if err := json.Unmarshal([]byte(bridgeInfo.Metadata), metadata); err != nil {
 			return err
 		} else {
-			node.state.SetIsAffiliateProgram(metadata.AffiliateProgram)
+			node.SetBridgeMetadata(metadata)
 		}
 	}
 
@@ -662,7 +664,7 @@ func (node *Node) processSignatures() {
 					for {
 						if changed, err := node.networksManager.CheckNewTssEcdsaPubKeyEvm(keyGenResponse.PubKey); err != nil {
 							node.logger.Debug(err)
-							time.Sleep(5 * time.Second)
+							time.Sleep(10 * time.Second)
 							continue
 						} else if changed {
 							break
@@ -896,6 +898,77 @@ func (node *Node) processSignatures() {
 					}
 				}
 			}
+		case common.ReSignState:
+			pageIndex := uint32(0)
+			pageSize := uint32(100)
+
+			resignNetworkClass, resignChainId := node.state.GetResignNetwork()
+			// Gather all wraps that need to be resigned
+			for {
+				wrapRequests, err := node.networksManager.Znn().GetAllWrapTokenRequests(pageIndex, pageSize)
+				if err != nil {
+					node.logger.Debug(err)
+					time.Sleep(10 * time.Second)
+					continue
+				} else if wrapRequests == nil || len(wrapRequests.List) == 0 {
+					break
+				} else {
+					for _, wrap := range wrapRequests.List {
+						if wrap.NetworkClass != resignNetworkClass || wrap.ChainId != resignChainId {
+							continue
+						}
+						event, errGetWrap := node.networksManager.GetWrapEventById(wrap.Id)
+						if errGetWrap != nil || event == nil {
+							// if the rpc returns it but we don't have it locally there was a problem
+							// if we don't have it we just add it now
+							if errStorage := node.networksManager.Znn().AddWrapEvent(wrap.WrapTokenRequest); errStorage != nil {
+								node.logger.Error(errGetWrap)
+								node.stopChan <- syscall.SIGINT
+								continue
+							}
+							event, errGetWrap = node.networksManager.GetWrapEventById(wrap.Id)
+							if errGetWrap != nil || event == nil {
+								node.logger.Error(errGetWrap)
+								node.stopChan <- syscall.SIGINT
+								continue
+							}
+						}
+
+						if event.RedeemStatus != common.UnredeemedStatus {
+							continue
+						}
+
+						redeemStatus, err := node.networksManager.Evm(wrap.ChainId).RedeemsInfo(wrap.Id)
+						if err != nil {
+							node.logger.Debug(err.Error())
+						}
+						// The wrap is not redeemed or in pendingRedeem so we resign it
+						if redeemStatus.BlockNumber.Cmp(big.NewInt(0)) == 0 {
+							if err = node.networksManager.SetResignStatus(wrap.Id, true); err != nil {
+								node.logger.Debug(err)
+								continue
+							}
+							//node.logger.Debugf("Set wrap %s status as true", wrap.Id.String())
+						} else {
+							status := common.PendingRedeemStatus
+							if redeemStatus.BlockNumber.Cmp(zcommon.BigP256) == 0 {
+								status = common.RedeemedStatus
+							}
+
+							if errStorage := node.networksManager.Znn().SetWrapEventStatus(event.Id, status); errStorage != nil {
+								node.logger.Error(errGetWrap)
+								node.stopChan <- syscall.SIGINT
+								continue
+							}
+						}
+					}
+				}
+				pageIndex++
+			}
+
+			if err := node.state.SetState(common.LiveState); err != nil {
+				node.logger.Debug(err.Error())
+			}
 		}
 	}
 }
@@ -907,18 +980,32 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 	if err != nil {
 		return err, false
 	} else if wrapRequestsIds == nil {
+		wrapRequestsIds = make([]*definition.WrapTokenRequest, 0)
+	}
+	node.logger.Debugf("WrapRequests len: %d", len(wrapRequestsIds))
+
+	resignableWrapsRequestsIds, err := node.networksManager.GetResignableWrapRequests()
+	if err != nil {
+		return err, false
+	} else if resignableWrapsRequestsIds == nil {
+		resignableWrapsRequestsIds = make([]*definition.WrapTokenRequest, 0)
+	}
+	node.logger.Debugf("Resignable WrapRequests len: %d", len(resignableWrapsRequestsIds))
+
+	wrapRequestsIds = append(wrapRequestsIds, resignableWrapsRequestsIds...)
+	if len(wrapRequestsIds) == 0 {
 		return nil, false
 	}
+	node.logger.Debugf("Final WrapRequests len: %d", len(wrapRequestsIds))
 
 	messagesToSign := make([][]byte, 0)
 	msgsIndexes := make(map[string]int)
-	node.logger.Debugf("WrapRequests len: %d", len(wrapRequestsIds))
 	for idx, request := range wrapRequestsIds {
 		event, err := node.networksManager.GetWrapEventById(request.Id)
 		if err != nil || event == nil {
 			// if the rpc returns it but we don't have it locally there was a problem
 			// if we don't have it we just add it now
-			if errStorage := node.networksManager.Znn().AddWrapEvent(request.WrapTokenRequest); errStorage != nil {
+			if errStorage := node.networksManager.Znn().AddWrapEvent(request); errStorage != nil {
 				node.logger.Error(err)
 				node.stopChan <- syscall.SIGINT
 				return err, false
@@ -929,8 +1016,16 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 				node.stopChan <- syscall.SIGINT
 				return err, false
 			}
-		} else if len(event.Signature) > 0 {
-			continue
+		} else {
+			resignStatus, err := node.networksManager.GetResignStatus(event.Id)
+			if err != nil {
+				node.logger.Error(err)
+				node.stopChan <- syscall.SIGINT
+				return err, false
+			}
+			if !resignStatus && len(event.Signature) > 0 {
+				continue
+			}
 		}
 		node.logger.Debugf("param.Id: %s", request.Id.String())
 		node.logger.Debugf("param.ToAddress: %s", request.ToAddress)
@@ -940,9 +1035,17 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 		if localEvent, errStorage := node.dbManager.ZnnStorage().GetWrapRequestById(event.Id); err != nil {
 			node.logger.Debug(errStorage)
 		} else {
+			resignStatus, err := node.networksManager.GetResignStatus(event.Id)
+			if err != nil {
+				node.logger.Error(err)
+				node.stopChan <- syscall.SIGINT
+				return err, false
+			}
+
+			// If we should resign it, we add it to the pool
 			// if we have a signature but it was not sent yet, do not sign again
 			// on a new key sign, this will be set as unsigned if the signature set will not be succeeded
-			if len(localEvent.Signature) > 0 {
+			if !resignStatus && len(localEvent.Signature) > 0 {
 				continue
 			}
 		}
@@ -961,6 +1064,11 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 		return nil, false
 	}
 
+	right := len(messagesToSign)
+	if right > common.SignCeremonyPoolSize {
+		right = common.SignCeremonyPoolSize
+	}
+	messagesToSign = messagesToSign[:right]
 	response, err := node.signMessages(messagesToSign, msgsIndexes)
 	if err != nil {
 		return err, true
@@ -990,10 +1098,22 @@ func (node *Node) processSignaturesWrap() (error, bool) {
 			continue
 		}
 
-		if err = node.networksManager.SetWrapEventSignature(wrapRequestsIds[msgsIndexes[sig.Msg]].Id, fullSignatureStr); err != nil {
+		if err = node.networksManager.SetWrapRequestSignature(wrapRequestsIds[msgsIndexes[sig.Msg]].Id, fullSignatureStr); err != nil {
 			node.logger.Debug(err)
 			continue
 		}
+
+		// Set it as unsent after setting the new signature for resigned requests
+		if err = node.networksManager.SetWrapRequestSentSignature(wrapRequestsIds[msgsIndexes[sig.Msg]].Id, false); err != nil {
+			node.logger.Debug(err)
+			continue
+		}
+
+		if err = node.networksManager.Znn().SetResignStatus(wrapRequestsIds[msgsIndexes[sig.Msg]].Id, false); err != nil {
+			node.logger.Debug(err)
+			continue
+		}
+
 		node.logger.Infof("%d. msg: %s sig: %s\n", msgsIndexes[sig.Msg], base64.StdEncoding.EncodeToString(messagesToSign[idx]), sig.Signature)
 	}
 	return nil, true
@@ -1033,7 +1153,13 @@ func (node *Node) processSignaturesUnwrap() (error, bool) {
 	if len(messagesToSign) == 0 {
 		return nil, false
 	}
-	node.logger.Debug("MessagesToSign: ", messagesToSign)
+
+	right := len(messagesToSign)
+	if right > common.SignCeremonyPoolSize {
+		right = common.SignCeremonyPoolSize
+	}
+	messagesToSign = messagesToSign[:right]
+	//node.logger.Debug("MessagesToSign: ", messagesToSign)
 	response, err := node.signMessages(messagesToSign, msgsIndexes)
 	if err != nil {
 		return err, true
@@ -1117,22 +1243,31 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 		return
 	}
 
+	producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
 	for _, req := range requests {
+		//node.logger.Debugf("Local wrap: Id: %s, Signature: %s, SentSignature: %v",
+		//	req.Id.String(), req.Signature, req.SentSignature)
 		rpcRequest, err := node.networksManager.GetWrapRequestByIdRPC(req.Id)
 		if err != nil {
 			node.logger.Debug(err)
 			continue
-		} else if len(rpcRequest.Signature) != 0 {
+		} else if req.Signature == rpcRequest.Signature {
+			if errSet := node.networksManager.Znn().SetWrapRequestSentSignature(req.Id, true); errSet != nil {
+				node.logger.Debug(err)
+			} else {
+				//node.logger.Debugf("Set wrap %s as sent", req.Id.String())
+			}
 			delete(seenEventsCount, req.Id.String())
 			continue
 		}
+		//node.logger.Debugf("Rpc wrap: Id: %s, Signature: %s",
+		//	rpcRequest.Id.String(), rpcRequest.Signature)
 
 		index := uint32(req.Id.Bytes()[31]) % node.getParticipantsLength()
 		if seenEventsCount[req.Id.String()] > 2 {
 			index = (index + seenEventsCount[req.Id.String()]) % node.getParticipantsLength()
 		}
 		seenEventsCount[req.Id.String()] += 1
-		producerPubKey := base64.StdEncoding.EncodeToString(node.producerKeyPair.Public)
 		if producerPubKey == node.getParticipant(index) {
 			node.logger.Info("[sendSignaturesWrap] this is me")
 			err = node.networksManager.UpdateWrapRequest(req.Id, req.Signature, node.producerKeyPair)
@@ -1144,7 +1279,7 @@ func (node *Node) sendSignaturesWrap(seenEventsCount map[string]uint32) {
 			node.logger.Info("[sendSignaturesWrap] sent request")
 		}
 		// todo how much to wait between sends?
-		time.Sleep(25 * time.Second)
+		time.Sleep(15 * time.Second)
 	}
 }
 
@@ -1248,6 +1383,15 @@ func (node *Node) getParticipant(index uint32) string {
 	return node.config.TssConfig.LocalPubKeys[index]
 }
 
+func (node *Node) getParticipantIndex(pubKey string) int {
+	for idx, localPubKey := range node.config.TssConfig.LocalPubKeys {
+		if pubKey == localPubKey {
+			return idx
+		}
+	}
+	return -1
+}
+
 // Setters
 
 func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
@@ -1289,6 +1433,27 @@ func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
 		}
 
 		node.state.SetIsAffiliateProgram(metadata.AffiliateProgram)
+
+		node.logger.Infof("ResignState.Active - new: %v", metadata.ResignState.Active)
+		if metadata.ResignState.Active {
+			if err := node.state.SetState(common.ReSignState); err != nil {
+				node.logger.Debug(err)
+			}
+
+			resignNetworkClass, resignChainId := node.state.GetResignNetwork()
+			node.logger.Infof("ResignState NetworkClass - old: %d, new: %d", resignNetworkClass, metadata.ResignState.NetworkClass)
+			node.logger.Infof("ResignState ChainId - old: %d, new: %d", resignChainId, metadata.ResignState.ChainId)
+			node.state.SetResignNetwork(metadata.ResignState.NetworkClass, metadata.ResignState.ChainId)
+		} else {
+			if err := node.state.SetState(common.LiveState); err != nil {
+				node.logger.Debug(err)
+			}
+		}
+
+		if metadata.SignCeremonyPoolSize != 0 {
+			common.SignCeremonyPoolSize = metadata.SignCeremonyPoolSize
+		}
+		node.logger.Infof("SignCeremonyPoolSize: %d", common.SignCeremonyPoolSize)
 	}
 }
 
@@ -1313,7 +1478,7 @@ func (node *Node) resetSignatures() {
 		node.logger.Debug(err)
 	} else {
 		for _, request := range requests {
-			if err := node.networksManager.SetWrapEventSignature(request.Id, ""); err != nil {
+			if err := node.networksManager.SetWrapRequestSignature(request.Id, ""); err != nil {
 				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.Id.String())
 				continue
 			}
@@ -1325,7 +1490,7 @@ func (node *Node) resetSignatures() {
 		node.logger.Debug(err)
 	} else {
 		for _, request := range requests {
-			if err := node.networksManager.SetWrapEventSignature(request.Id, ""); err != nil {
+			if err := node.networksManager.SetWrapRequestSignature(request.Id, ""); err != nil {
 				node.logger.Debugf("Error: %s for event: %s", err.Error(), request.Id.String())
 				continue
 			}

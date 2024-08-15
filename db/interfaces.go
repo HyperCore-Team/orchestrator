@@ -36,13 +36,17 @@ type ZnnStorage interface {
 	AddWrapRequest(events.WrapRequestZnn) error
 	SetWrapRequestStatus(types.Hash, uint32) error
 	SetWrapRequestSignature(types.Hash, string) error
-	SetWrapRequestSentSignature(types.Hash) error
+	SetWrapRequestSentSignature(types.Hash, bool) error
 	GetWrapRequestById(types.Hash) (*events.WrapRequestZnn, error)
 	GetUnsentSignedWrapRequests() ([]*events.WrapRequestZnn, error)
 	GetUnredeemedWrapRequests() ([]*events.WrapRequestZnn, error)
+	GetResignableWrapRequests() ([]*events.WrapRequestZnn, error)
 
 	GetUnsignedWrapRequests() ([]*events.WrapRequestZnn, error)
 
 	GetLastUpdateHeight() (uint64, error)
 	SetLastUpdateHeight(uint64) error
+
+	GetResignStatus(types.Hash) (bool, error)
+	SetResignStatus(types.Hash, bool) error
 }

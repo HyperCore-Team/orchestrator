@@ -79,6 +79,21 @@ func ZnnWrapToOrchestratorWrap(rpcEvent *definition.WrapTokenRequest) events.Wra
 	return ans
 }
 
+func OrchestratorWrapToZnnWrap(rpcEvent *events.WrapRequestZnn) *definition.WrapTokenRequest {
+	ans := &definition.WrapTokenRequest{
+		NetworkClass:           rpcEvent.NetworkClass,
+		ChainId:                rpcEvent.ChainId,
+		Id:                     rpcEvent.Id,
+		ToAddress:              rpcEvent.ToAddress,
+		TokenAddress:           rpcEvent.TokenAddress,
+		Amount:                 big.NewInt(0).Set(rpcEvent.Amount),
+		Fee:                    big.NewInt(0).Set(rpcEvent.Fee),
+		Signature:              rpcEvent.Signature,
+		CreationMomentumHeight: 0,
+	}
+	return ans
+}
+
 func ZnnUnwrapToOrchestatorUnwrap(event *definition.UnwrapTokenRequest) events.UnwrapRequestEvm {
 	var status uint32
 	if event.Revoked == 1 {
@@ -140,7 +155,10 @@ func StateToText(state uint8) string {
 		stateStr = "HaltedState"
 	case EmergencyState:
 		stateStr = "EmergencyState"
+	case ReSignState:
+		stateStr = "ReSignState"
 	}
+
 	return stateStr
 }
 

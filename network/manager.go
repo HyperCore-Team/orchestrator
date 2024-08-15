@@ -269,8 +269,34 @@ func (m *NetworksManager) WindowSize() uint64 {
 
 /// Local storage calls
 
-func (m *NetworksManager) SetWrapEventSignature(id types.Hash, signature string) error {
-	return m.znnNetwork.SetWrapEventSignature(id, signature)
+func (m *NetworksManager) GetResignableWrapRequests() ([]*definition.WrapTokenRequest, error) {
+	wrapRequests, err := m.Znn().GetResignableWrapRequests()
+	if err != nil {
+		return nil, err
+	}
+
+	ans := make([]*definition.WrapTokenRequest, 0)
+	for _, wrap := range wrapRequests {
+		ans = append(ans, common.OrchestratorWrapToZnnWrap(wrap))
+	}
+
+	return ans, nil
+}
+
+func (m *NetworksManager) SetWrapRequestSignature(id types.Hash, signature string) error {
+	return m.znnNetwork.SetWrapRequestSignature(id, signature)
+}
+
+func (m *NetworksManager) SetWrapRequestSentSignature(id types.Hash, sent bool) error {
+	return m.znnNetwork.SetWrapRequestSentSignature(id, sent)
+}
+
+func (m *NetworksManager) SetResignStatus(id types.Hash, status bool) error {
+	return m.znnNetwork.SetResignStatus(id, status)
+}
+
+func (m *NetworksManager) GetResignStatus(id types.Hash) (bool, error) {
+	return m.znnNetwork.GetResignStatus(id)
 }
 
 func (m *NetworksManager) GetWrapEventById(id types.Hash) (*events.WrapRequestZnn, error) {
@@ -285,7 +311,7 @@ func (m *NetworksManager) GetUnredeemedWrapRequests() ([]*events.WrapRequestZnn,
 	return m.Znn().GetUnsentSignedWrapRequests()
 }
 
-func (m *NetworksManager) GetUnsignedWrapRequests() ([]*embedded.WrapTokenRequest, error) {
+func (m *NetworksManager) GetUnsignedWrapRequests() ([]*definition.WrapTokenRequest, error) {
 	// todo how many to get for signing?
 	requests, err := m.Znn().GetUnsignedWrapRequestsRpc(0, 100)
 	if err != nil {
@@ -294,10 +320,10 @@ func (m *NetworksManager) GetUnsignedWrapRequests() ([]*embedded.WrapTokenReques
 	if requests == nil || len(requests.List) == 0 {
 		return nil, nil
 	}
-	ans := make([]*embedded.WrapTokenRequest, 0)
+	ans := make([]*definition.WrapTokenRequest, 0)
 	for _, request := range requests.List {
 		if request.ConfirmationsToFinality == 0 {
-			ans = append(ans, request)
+			ans = append(ans, request.WrapTokenRequest)
 		}
 	}
 	return ans, nil

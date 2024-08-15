@@ -8,6 +8,7 @@ import (
 	etypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/pkg/errors"
+	"github.com/zenon-network/go-zenon/common/types"
 	"github.com/zenon-network/go-zenon/vm/embedded/definition"
 	"github.com/zenon-network/go-zenon/vm/embedded/implementation"
 	"go.uber.org/zap"
@@ -373,6 +374,13 @@ func (r *EvmRpc) EstimatedBlockTime() (uint64, error) {
 
 func (r *EvmRpc) ConfirmationsToFinality() (uint64, error) {
 	return r.bridgeContract.ConfirmationsToFinality(nil)
+}
+
+func (r *EvmRpc) RedeemsInfo(hash types.Hash) (struct {
+	BlockNumber *big.Int
+	ParamsHash  [32]byte
+}, error) {
+	return r.bridgeContract.RedeemsInfo(nil, big.NewInt(0).SetBytes(hash.Bytes()))
 }
 
 func (r *EvmRpc) ContractDeploymentHeight() (uint64, error) {
