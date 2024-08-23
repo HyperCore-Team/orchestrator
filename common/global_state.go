@@ -119,6 +119,9 @@ func (gs *GlobalState) GetIsAdministratorActive() bool {
 func (gs *GlobalState) SetIsAffiliateProgram(program AffiliateProgram) {
 	for chainId, networkValues := range program.Networks {
 		GlobalLogger.Infof("Set affiliate program values for network: %d", chainId)
+		if _, foundNetwork := gs.isAffiliateProgramActive[chainId]; !foundNetwork {
+			gs.isAffiliateProgramActive = make(map[uint32]map[string]bool)
+		}
 
 		gs.SetAffiliateStartingHeight(chainId, networkValues.StartingHeight)
 		GlobalLogger.Infof("SetAffiliateStartingHeight: %d", networkValues.StartingHeight)
