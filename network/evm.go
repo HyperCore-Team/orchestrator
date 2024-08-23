@@ -198,43 +198,41 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			Signature:       "",
 			RedeemStatus:    common.UnredeemedStatus,
 		}
-
 		eventsToProcess = append(eventsToProcess, event)
 
-		// this means we can add the affiliate event and bonus percentages to amount
+		if _, errParse = common.ParseAddressString(addresses[1], definition.NoMClass); errParse != nil {
+			eN.logger.Debugf("Could not parse zenon address '%s' for affiliate with error: %s", addresses[1], errParse.Error())
+		}
+
 		token := strings.ToLower(unwrapped.Token.String())
-		if eN.state.GetIsAffiliateProgramActive(eN.ChainId(), token) && len(addresses) > 1 {
-			// only add affiliate address if it's correct
-			if _, errParse = common.ParseAddressString(addresses[1], definition.NoMClass); errParse != nil {
-				eN.logger.Debugf("Could not parse zenon address '%s' for affiliate with error: %s", addresses[1], errParse.Error())
-			} else if log.BlockNumber < eN.state.GetAffiliateStartingHeight(eN.ChainId()).Uint64() {
-				eN.logger.Infof("Found an affiliate unwrap refferencing a tx that is contained in a block height: %d older than affiliateStartingHeight %d",
-					log.BlockNumber, eN.state.GetAffiliateStartingHeight(eN.ChainId()).Uint64())
-			} else {
-				initiatorAmount := big.NewInt(0).Set(unwrapped.Amount)
-				initiatorAmount.Div(initiatorAmount, big.NewInt(100))                     // 1%
-				eventsToProcess[0].Amount.Add(eventsToProcess[0].Amount, initiatorAmount) // 101%
+		isAffiliateProgramActive := eN.state.GetIsAffiliateProgramActive(eN.ChainId(), token)
+		isAffiliateProgramActive = isAffiliateProgramActive && (log.BlockNumber >= eN.state.GetAffiliateStartingHeight(eN.ChainId()).Uint64())
 
-				affiliateAmount := big.NewInt(0).Set(unwrapped.Amount)
-				affiliateAmount.Mul(affiliateAmount, big.NewInt(2))
-				affiliateAmount.Div(affiliateAmount, big.NewInt(100)) // 2%
+		// Add affiliate event if: affiliate is active for that token, affiliate program has started, the affiliate address exists and is correct
+		if isAffiliateProgramActive && errParse == nil && len(addresses) > 1 {
+			initiatorAmount := big.NewInt(0).Set(unwrapped.Amount)
+			initiatorAmount.Div(initiatorAmount, big.NewInt(100))                     // 1%
+			eventsToProcess[0].Amount.Add(eventsToProcess[0].Amount, initiatorAmount) // 101%
 
-				affiliateEvent := &events.UnwrapRequestEvm{
-					NetworkClass:    eN.NetworkClass(),
-					ChainId:         eN.ChainId(),
-					BlockNumber:     log.BlockNumber,
-					BlockHash:       log.BlockHash,
-					TransactionHash: log.TxHash,
-					LogIndex:        uint32(log.Index) + common.AffiliateLogIndexAddition,
-					From:            unwrapped.From,
-					To:              addresses[1], // we checked this exists
-					Token:           unwrapped.Token,
-					Amount:          affiliateAmount,
-					Signature:       "",
-					RedeemStatus:    common.UnredeemedStatus,
-				}
-				eventsToProcess = append(eventsToProcess, affiliateEvent)
+			affiliateAmount := big.NewInt(0).Set(unwrapped.Amount)
+			affiliateAmount.Mul(affiliateAmount, big.NewInt(2))
+			affiliateAmount.Div(affiliateAmount, big.NewInt(100)) // 2%
+
+			affiliateEvent := &events.UnwrapRequestEvm{
+				NetworkClass:    eN.NetworkClass(),
+				ChainId:         eN.ChainId(),
+				BlockNumber:     log.BlockNumber,
+				BlockHash:       log.BlockHash,
+				TransactionHash: log.TxHash,
+				LogIndex:        uint32(log.Index) + common.AffiliateLogIndexAddition,
+				From:            unwrapped.From,
+				To:              addresses[1], // we checked this exists
+				Token:           unwrapped.Token,
+				Amount:          affiliateAmount,
+				Signature:       "",
+				RedeemStatus:    common.UnredeemedStatus,
 			}
+			eventsToProcess = append(eventsToProcess, affiliateEvent)
 		}
 
 		for _, ev := range eventsToProcess {
