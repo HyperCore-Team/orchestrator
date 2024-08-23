@@ -175,7 +175,11 @@ func (gs *GlobalState) GetIsAffiliateProgramActive(chainId uint32, token string)
 }
 
 func (gs *GlobalState) SetAffiliateStartingHeight(chainId uint32, value uint64) {
+	if _, foundNetwork := gs.isAffiliateProgramActive[chainId]; !foundNetwork {
+		gs.affiliateStartingHeight = make(map[uint32]*big.Int)
+	}
 	gs.affiliateStartingHeight[chainId] = big.NewInt(0).SetUint64(value)
+
 }
 
 func (gs *GlobalState) GetAffiliateStartingHeight(chainId uint32) *big.Int {
