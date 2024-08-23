@@ -177,13 +177,17 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 
 		if len(unwrapped.To) == 0 {
 			eN.logger.Debugf("Could not parse zenon address: %s", unwrapped.To)
-			return errParse
+			break
 		}
 		addresses := strings.Split(unwrapped.To, common.AffiliateProgramAddressSeparator)
 		// only process events that have valid addresses
-		if _, errParse = common.ParseAddressString(addresses[0], definition.NoMClass); errParse != nil {
+		if beneficiaryZnn, errParseBeneficiary := common.ParseAddressString(addresses[0], definition.NoMClass); errParseBeneficiary != nil {
 			eN.logger.Debugf("Could not parse zenon address: %s", addresses[0])
-			return errParse
+			break
+		} else if types.IsEmbeddedAddress(beneficiaryZnn.(types.Address)) {
+			eN.logger.Debugf("Beneficiary cannot be an embedded: %s for hash: %s, logIndex: %d",
+				addresses[0], log.TxHash.String(), log.Index)
+			break
 		}
 
 		var eventsToProcess []*events.UnwrapRequestEvm
@@ -210,8 +214,11 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 
 		// Add affiliate event if: affiliate is active for that token, affiliate program has started, the affiliate address exists and is correct
 		if isAffiliateProgramActive && len(addresses) > 1 {
-			if _, errParse = common.ParseAddressString(addresses[1], definition.NoMClass); errParse != nil {
-				eN.logger.Debugf("Could not parse zenon address '%s' for affiliate with error: %s", addresses[1], errParse.Error())
+			if affiliateAddress, errParseAffiliate := common.ParseAddressString(addresses[1], definition.NoMClass); errParseAffiliate != nil {
+				eN.logger.Debugf("Could not parse zenon address '%s' for affiliate with error: %s", addresses[1], errParseAffiliate.Error())
+			} else if types.IsEmbeddedAddress(affiliateAddress.(types.Address)) {
+				eN.logger.Debugf("Affiliate address cannot be an embedded: %s for hash: %s, logIndex: %d",
+					addresses[1], log.TxHash.String(), log.Index)
 			} else {
 				initiatorAmount := big.NewInt(0).Set(unwrapped.Amount)
 				initiatorAmount.Div(initiatorAmount, big.NewInt(100))                     // 1%
@@ -462,7 +469,6 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 			}
 			common.AdministratorLogger.Info("SetGuardiansSigHash")
 		}
-
 	case common.SetAdministratorDelaySigHash.Hex():
 		if live {
 			delay, errParse := eN.EvmRpc().Bridge().ParseSetAdministratorDelay(log)
