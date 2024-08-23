@@ -207,12 +207,12 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		if request, err := rC.ZnnRpc().GetWrapTokenRequestById(sendBlock.Hash); err != nil {
 			if err.Error() == constants.ErrDataNonExistent.Error() {
 				rC.logger.Debug(constants.ErrDataNonExistent)
-				return nil
+				break
 			}
 			return err
 		} else if request == nil {
 			rC.logger.Info("request non existent")
-			return nil
+			break
 		} else {
 			if err = rC.AddWrapEvent(request); err != nil {
 				return err
@@ -228,12 +228,12 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		if request, err := rC.ZnnRpc().GetWrapTokenRequestById(param.Id); err != nil {
 			if err.Error() == constants.ErrDataNonExistent.Error() {
 				rC.logger.Debug(constants.ErrDataNonExistent)
-				return nil
+				break
 			}
 			return err
 		} else if request == nil {
 			rC.logger.Info("update request non existent")
-			return nil
+			break
 		} else {
 			if localRequest, err := rC.eventsStore().GetWrapRequestById(param.Id); err != nil {
 				return err
@@ -261,13 +261,13 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			if rpcErr.Error() == constants.ErrDataNonExistent.Error() {
 				rC.logger.Info("there is a redeem attempt for a non existing unwrap event")
 				rC.logger.Debug(rpcErr)
-				return nil
+				break
 			}
 			return rpcErr
 		} else if rpcEvent == nil {
 			// someone is trying to redeem a non existent event
 			rC.logger.Info("there is a redeem attempt for a non existing unwrap event")
-			return nil
+			break
 		} else {
 			if localEvent, err := rC.dbManager.EvmStorage(rpcEvent.ChainId).GetUnwrapRequestByHashAndLog(ecommon.Hash(rpcEvent.TransactionHash), rpcEvent.LogIndex); err != nil {
 				return err
@@ -301,14 +301,14 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 			if rpcZnnErr.Error() == constants.ErrDataNonExistent.Error() {
 				rC.logger.Debugf("UnwrapTokenRequest not found: Hash: %s, LogIndex: %d, ChainId: %d\n",
 					param.TransactionHash.String(), param.LogIndex, param.ChainId)
-				return nil
+				break
 			}
 			rC.logger.Debugf("get for tx %s and log :%d rpc error: %s", param.TransactionHash.String(), param.LogIndex, rpcZnnErr.Error())
 			return rpcZnnErr
 		} else if rpcZnnEvent == nil {
 			// We don't care if it the rpc does not return it, it means the tx returned an error
 			rC.logger.Infof("unwrap event non existent: %s", param.TransactionHash.String())
-			return nil
+			break
 		} else {
 			if tx, rpcEvmErr := rC.rpcManager.Evm(param.ChainId).TransactionReceipt(ecommon.Hash(param.TransactionHash)); rpcEvmErr != nil {
 				rC.logger.Debugf("error: %s", rpcEvmErr.Error())
@@ -446,13 +446,13 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		if rpcEvent, rpcErr := rC.GetUnwrapTokenRequestByHashAndLog(param.TransactionHash, param.LogIndex); rpcErr != nil {
 			if rpcErr.Error() == constants.ErrDataNonExistent.Error() {
 				rC.logger.Debug(rpcErr)
-				return nil
+				break
 			}
 			return rpcErr
 		} else if rpcEvent == nil {
 			// someone is trying to redeem a non existent event
 			rC.logger.Info("event non existent")
-			return nil
+			break
 		} else {
 			// if the event was revoked we also set it locally
 			if localEvent, err := rC.dbManager.EvmStorage(rpcEvent.ChainId).GetUnwrapRequestByHashAndLog(ecommon.Hash(rpcEvent.TransactionHash), rpcEvent.LogIndex); err != nil {
@@ -485,7 +485,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 		} else if network == nil {
 			// we don't do anything
 			rC.logger.Info("network not added")
-			return nil
+			break
 		}
 		rC.logger.Debugf("network found in go-zeonon: %s, %d, %d", network.Name, network.NetworkClass, network.Id)
 		// check locally that the network is added
