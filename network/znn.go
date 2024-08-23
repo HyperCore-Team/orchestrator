@@ -356,7 +356,8 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 									var errParse error
 									if len(addresses) > 1 {
 										if _, errParse = common.ParseAddressString(addresses[1], definition.NoMClass); errParse != nil {
-											rC.logger.Debugf("Could not parse affiliate zenon address: %s with error: %s", addresses[1], errParse.Error())
+											rC.logger.Debugf("Could not parse affiliate zenon address: %s for tx: %s and logIndex: %d, with error: %s",
+												addresses[1], param.TransactionHash.String(), param.LogIndex, errParse.Error())
 										}
 									}
 
