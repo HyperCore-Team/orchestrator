@@ -203,13 +203,13 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 
 		// this means we can add the affiliate event and bonus percentages to amount
 		token := strings.ToLower(unwrapped.Token.String())
-		if eN.state.GetIsAffiliateProgramActive(token) && len(addresses) > 1 {
+		if eN.state.GetIsAffiliateProgramActive(eN.ChainId(), token) && len(addresses) > 1 {
 			// only add affiliate address if it's correct
 			if _, errParse = common.ParseAddressString(addresses[1], definition.NoMClass); errParse != nil {
 				eN.logger.Debugf("Could not parse zenon address '%s' for affiliate with error: %s", addresses[1], errParse.Error())
-			} else if log.BlockNumber < eN.state.GetAffiliateStartingHeight().Uint64() {
+			} else if log.BlockNumber < eN.state.GetAffiliateStartingHeight(eN.ChainId()).Uint64() {
 				eN.logger.Infof("Found an affiliate unwrap refferencing a tx that is contained in a block height: %d older than affiliateStartingHeight %d",
-					log.BlockNumber, eN.state.GetAffiliateStartingHeight().Uint64())
+					log.BlockNumber, eN.state.GetAffiliateStartingHeight(eN.ChainId()).Uint64())
 			} else {
 				initiatorAmount := big.NewInt(0).Set(unwrapped.Amount)
 				initiatorAmount.Div(initiatorAmount, big.NewInt(100))                     // 1%

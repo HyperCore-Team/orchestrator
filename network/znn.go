@@ -362,10 +362,10 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 									// No matter if affiliate program is active, this transaction should be treated as normal
 									zts := rC.state.GetTokensMap(param.ChainId, strings.ToLower(unwrapRequest.Token.String()))
 									// Here we check the zts because the checks on evm only might not be active
-									if len(addresses) == 1 || errParse != nil || !rC.state.GetIsAffiliateProgramActive(zts) {
+									if len(addresses) == 1 || errParse != nil || !rC.state.GetIsAffiliateProgramActive(param.ChainId, zts) {
 										if param.LogIndex >= common.AffiliateLogIndexAddition {
 											rC.logger.Debugf("Found affiliate logIndex but this is a non affiliate unwrap - len(addresses): %d, errParse != nil: %t,"+
-												"!affiliateActive(): %t", len(addresses), errParse != nil, !rC.state.GetIsAffiliateProgramActive(zts))
+												"!affiliateActive(): %t", len(addresses), errParse != nil, !rC.state.GetIsAffiliateProgramActive(param.ChainId, zts))
 										} else if addresses[0] != rpcZnnEvent.ToAddress.String() {
 											rC.logger.Debugf("Normal unwrap event address %s different than znn unwrap toAddress %s", addresses[0], rpcZnnEvent.ToAddress.String())
 										} else if unwrapRequest.Amount.Cmp(rpcZnnEvent.Amount) != 0 {
@@ -376,10 +376,24 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 											found = true
 										}
 									} else {
-										affiliateStartingHeight := rC.state.GetAffiliateStartingHeight()
+										affiliateStartingHeight := rC.state.GetAffiliateStartingHeight(param.ChainId)
 										if tx.BlockNumber.Cmp(affiliateStartingHeight) == -1 {
-											rC.logger.Infof("Found an affiliate unwrap refferencing a tx that is contained in a block height: %d lower than affiliateStartingHeight: %d",
-												tx.BlockNumber.Uint64(), affiliateStartingHeight.Uint64())
+											// If we find an unwrap that contains an affiliate address but the unwrapRequest on NoM matches, we treat is a normal behaviour
+											if addresses[0] != rpcZnnEvent.ToAddress.String() {
+												rC.logger.Debugf("Normal unwrap event address %s different than znn unwrap toAddress %s", addresses[0], rpcZnnEvent.ToAddress.String())
+											} else if unwrapRequest.Amount.Cmp(rpcZnnEvent.Amount) != 0 {
+												rC.logger.Debugf("Normal unwrap event amount %s different than znn unwrap amount %s", unwrapRequest.Amount.String(), rpcZnnEvent.Amount.String())
+											} else if strings.ToLower(unwrapRequest.Token.String()) != rpcZnnEvent.TokenAddress {
+												rC.logger.Debugf("Normal unwrap event Token %s different than znn unwrap TokenAddress %s", unwrapRequest.Token.String(), rpcZnnEvent.TokenAddress)
+											} else {
+												found = true
+												rC.logger.Infof("Found an affiliate unwrap refferencing a tx that is contained in a block height: %d lower than affiliateStartingHeight: %d, but unwrap has normal values",
+													tx.BlockNumber.Uint64(), affiliateStartingHeight.Uint64())
+											}
+											if !found {
+												rC.logger.Infof("Found an affiliate unwrap refferencing a tx that is contained in a block height: %d lower than affiliateStartingHeight: %d",
+													tx.BlockNumber.Uint64(), affiliateStartingHeight.Uint64())
+											}
 										} else {
 											addressToCheck := addresses[0]
 											amountToCheck := big.NewInt(0).Set(unwrapRequest.Amount)
