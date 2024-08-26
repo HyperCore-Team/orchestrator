@@ -405,15 +405,7 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 										if addressToCheck != rpcZnnEvent.ToAddress.String() {
 											rC.logger.Debugf("Affiliate unwrap event address %s different than znn unwrap toAddress %s", addressToCheck, rpcZnnEvent.ToAddress.String())
 										} else if amountToCheck.Cmp(rpcZnnEvent.Amount) != 0 {
-											// If affiliate program is active and address i correct, but somehow the amount is the same as the unwrap, we move on
-											if param.LogIndex < common.AffiliateLogIndexAddition {
-												if rpcZnnEvent.Amount.Cmp(unwrapRequest.Amount) == 0 {
-													found = true
-												}
-											}
-											if !found {
-												rC.logger.Debugf("Affiliate unwrap event amount %s different than znn unwrap amount %s", amountToCheck.String(), rpcZnnEvent.Amount.String())
-											}
+											rC.logger.Debugf("Affiliate unwrap event amount %s (amountToCheck %s) different than znn unwrap amount %s, ", unwrapRequest.Amount.String(), amountToCheck.String(), rpcZnnEvent.Amount.String())
 										} else if strings.ToLower(unwrapRequest.Token.String()) != rpcZnnEvent.TokenAddress {
 											rC.logger.Debugf("Affiliate unwrap event Token %s different than znn unwrap TokenAddress %s", unwrapRequest.Token.String(), rpcZnnEvent.TokenAddress)
 										} else {
