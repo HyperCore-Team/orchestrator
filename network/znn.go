@@ -411,10 +411,12 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 											if param.LogIndex < common.AffiliateLogIndexAddition {
 												if rpcZnnEvent.Amount.Cmp(unwrapRequest.Amount) == 0 {
 													found = true
+													rC.logger.Debugf("Affiliate unwrap event %s (amountToCheck %s) equal to znn unwrap amount %s", unwrapRequest.Amount.String(), amountToCheck.String(), rpcZnnEvent.Amount.String())
+
 												}
 											}
 											if !found {
-												rC.logger.Debugf("Affiliate unwrap event %s (amountToCheck %s) different than znn unwrap amount %s, ", unwrapRequest.Amount.String(), amountToCheck.String(), rpcZnnEvent.Amount.String())
+												rC.logger.Debugf("Affiliate amountToCheck %s (unwrap event %s) different than znn unwrap amount %s", amountToCheck.String(), unwrapRequest.Amount.String(), rpcZnnEvent.Amount.String())
 											}
 										} else {
 											found = true
