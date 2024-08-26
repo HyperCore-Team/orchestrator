@@ -135,7 +135,7 @@ func (gs *GlobalState) SetIsAffiliateProgram(program AffiliateProgram) {
 		GlobalLogger.Infof("SetIsAffiliateProgramActive for %s to : %t", types.ZnnTokenStandard.String(), networkValues.ZNN)
 
 		if tokenInfo, found := gs.isAffiliateProgramActive[chainId]; found {
-			tokenInfo[types.QsrTokenStandard.String()] = networkValues.ZNN
+			tokenInfo[types.QsrTokenStandard.String()] = networkValues.QSR
 		} else {
 			gs.isAffiliateProgramActive[chainId] = make(map[string]bool)
 			gs.isAffiliateProgramActive[chainId][types.QsrTokenStandard.String()] = networkValues.QSR
