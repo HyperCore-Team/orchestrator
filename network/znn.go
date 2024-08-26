@@ -353,11 +353,14 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 									rC.logger.Debugf("Could not parse zenon address: %s with error: %s", addresses[0], errParse.Error())
 								} else {
 									// We have to check the proper amounts for the initiator or the affiliate amount
-									var errParse error
+									parseOk := false
 									if len(addresses) > 1 {
-										if _, errParse = common.ParseAddressString(addresses[1], definition.NoMClass); errParse != nil {
+										if parsedAffiliate, errParseAffiliate := common.ParseAddressString(addresses[1], definition.NoMClass); errParseAffiliate != nil {
 											rC.logger.Debugf("Could not parse affiliate zenon address: %s for tx: %s and logIndex: %d, with error: %s",
-												addresses[1], param.TransactionHash.String(), param.LogIndex, errParse.Error())
+												addresses[1], param.TransactionHash.String(), param.LogIndex, errParseAffiliate.Error())
+										} else {
+											// If affiliate is embedded address, we want to check for usual amounts, without affiliate amount added and also skip the affiliate address
+											parseOk = !types.IsEmbeddedAddress(parsedAffiliate.(types.Address))
 										}
 									}
 
@@ -368,10 +371,10 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 									isAffiliateProgramActive = isAffiliateProgramActive && (log.BlockNumber >= affiliateStartingHeight.Uint64())
 
 									// Here we check the zts because the checks on evm only might not be active
-									if len(addresses) == 1 || errParse != nil || !isAffiliateProgramActive {
+									if len(addresses) == 1 || !parseOk || !isAffiliateProgramActive {
 										if param.LogIndex >= common.AffiliateLogIndexAddition {
-											rC.logger.Debugf("Found affiliate logIndex but this is a non affiliate unwrap - len(addresses): %d, errParse != nil: %t,"+
-												"!isAffiliateProgramActive: %t", len(addresses), errParse != nil, !isAffiliateProgramActive)
+											rC.logger.Debugf("Found affiliate logIndex but this is a non affiliate unwrap - len(addresses): %d, !parseOk: %t,"+
+												"!isAffiliateProgramActive: %t", len(addresses), !parseOk, !isAffiliateProgramActive)
 										} else if addresses[0] != rpcZnnEvent.ToAddress.String() {
 											rC.logger.Debugf("Normal unwrap event address %s different than znn unwrap toAddress %s", addresses[0], rpcZnnEvent.ToAddress.String())
 										} else if unwrapRequest.Amount.Cmp(rpcZnnEvent.Amount) != 0 {
