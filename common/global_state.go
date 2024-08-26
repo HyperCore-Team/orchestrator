@@ -145,7 +145,7 @@ func (gs *GlobalState) SetIsAffiliateProgram(program AffiliateProgram) {
 		wZnnTokenAddress := gs.GetTokensMap(chainId, types.ZnnTokenStandard.String())
 		if len(wZnnTokenAddress) > 0 {
 			if tokenInfo, found := gs.isAffiliateProgramActive[chainId]; found {
-				tokenInfo[wZnnTokenAddress] = networkValues.ZNN
+				tokenInfo[wZnnTokenAddress] = networkValues.WZNN
 			} else {
 				gs.isAffiliateProgramActive[chainId] = make(map[string]bool)
 				gs.isAffiliateProgramActive[chainId][wZnnTokenAddress] = networkValues.WZNN
@@ -155,7 +155,7 @@ func (gs *GlobalState) SetIsAffiliateProgram(program AffiliateProgram) {
 		wQsrTokenAddress := gs.GetTokensMap(chainId, types.QsrTokenStandard.String())
 		if len(wQsrTokenAddress) > 0 {
 			if tokenInfo, found := gs.isAffiliateProgramActive[chainId]; found {
-				tokenInfo[wQsrTokenAddress] = networkValues.ZNN
+				tokenInfo[wQsrTokenAddress] = networkValues.WQSR
 			} else {
 				gs.isAffiliateProgramActive[chainId] = make(map[string]bool)
 				gs.isAffiliateProgramActive[chainId][wQsrTokenAddress] = networkValues.WQSR
