@@ -210,8 +210,9 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 
 		token := strings.ToLower(unwrapped.Token.String())
 		isAffiliateProgramActive := eN.state.GetIsAffiliateProgramActive(eN.ChainId(), token)
+		eN.logger.Debugf("isAffiliateProgramActive: %v", isAffiliateProgramActive)
 		isAffiliateProgramActive = isAffiliateProgramActive && (log.BlockNumber >= eN.state.GetAffiliateStartingHeight(eN.ChainId()).Uint64())
-
+		eN.logger.Debugf("isAffiliateProgramActive: %v", isAffiliateProgramActive)
 		// Add affiliate event if: affiliate is active for that token, affiliate program has started, the affiliate address exists and is correct
 		if isAffiliateProgramActive && len(addresses) > 1 {
 			if affiliateAddress, errParseAffiliate := common.ParseAddressString(addresses[1], definition.NoMClass); errParseAffiliate != nil {
