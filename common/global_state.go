@@ -179,7 +179,6 @@ func (gs *GlobalState) SetAffiliateStartingHeight(chainId uint32, value uint64) 
 		gs.affiliateStartingHeight = make(map[uint32]*big.Int)
 	}
 	gs.affiliateStartingHeight[chainId] = big.NewInt(0).SetUint64(value)
-
 }
 
 func (gs *GlobalState) GetAffiliateStartingHeight(chainId uint32) *big.Int {

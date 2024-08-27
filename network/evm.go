@@ -209,10 +209,10 @@ func (eN *evmNetwork) InterpretLog(log etypes.Log, live bool) error {
 		eventsToProcess = append(eventsToProcess, event)
 
 		token := strings.ToLower(unwrapped.Token.String())
+		affiliateStartingHeight := eN.state.GetAffiliateStartingHeight(eN.ChainId()).Uint64()
 		isAffiliateProgramActive := eN.state.GetIsAffiliateProgramActive(eN.ChainId(), token)
-		//eN.logger.Debugf("isAffiliateProgramActive: %v for token: %s", isAffiliateProgramActive, token)
-		isAffiliateProgramActive = isAffiliateProgramActive && (log.BlockNumber >= eN.state.GetAffiliateStartingHeight(eN.ChainId()).Uint64())
-		//eN.logger.Debugf("isAffiliateProgramActive: %v for token: %s", isAffiliateProgramActive, token)
+		isAffiliateProgramActive = isAffiliateProgramActive && (log.BlockNumber >= affiliateStartingHeight)
+		isAffiliateProgramActive = isAffiliateProgramActive && (affiliateStartingHeight > 0)
 
 		// Add affiliate event if: affiliate is active for that token, affiliate program has started, the affiliate address exists and is correct
 		if isAffiliateProgramActive && len(addresses) > 1 {
