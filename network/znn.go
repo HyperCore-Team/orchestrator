@@ -244,11 +244,14 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 				}
 			}
 			if param.Signature == request.Signature {
+				if err = rC.SetResignStatus(request.Id, false); err != nil {
+					return err
+				}
 				if err = rC.eventsStore().SetWrapRequestSentSignature(request.Id, true); err != nil {
 					return err
 				}
-				if err = rC.SetResignStatus(request.Id, false); err != nil {
-					rC.logger.Debug(err)
+				if err = rC.SetWrapRequestSignature(request.Id, param.Signature); err != nil {
+					return err
 				}
 			}
 		}
