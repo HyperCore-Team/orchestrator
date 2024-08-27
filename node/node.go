@@ -904,6 +904,7 @@ func (node *Node) processSignatures() {
 
 			resignNetworkClass, resignChainId := node.state.GetResignNetwork()
 			// Gather all wraps that need to be resigned
+			node.logger.Debug("Parsing all the wraps")
 			for {
 				wrapRequests, err := node.networksManager.Znn().GetAllWrapTokenRequests(pageIndex, pageSize)
 				if err != nil {
@@ -913,6 +914,7 @@ func (node *Node) processSignatures() {
 				} else if wrapRequests == nil || len(wrapRequests.List) == 0 {
 					break
 				} else {
+					node.logger.Debugf("len(wrapRequests.List): %d, pageIndex: %d", len(wrapRequests.List), pageIndex)
 					for _, wrap := range wrapRequests.List {
 						if wrap.NetworkClass != resignNetworkClass || wrap.ChainId != resignChainId {
 							continue

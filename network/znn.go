@@ -247,6 +247,9 @@ func (rC *znnNetwork) InterpretSendBlockData(sendBlock *api.AccountBlock, live b
 				if err = rC.eventsStore().SetWrapRequestSentSignature(request.Id, true); err != nil {
 					return err
 				}
+				if err = rC.SetResignStatus(request.Id, false); err != nil {
+					rC.logger.Debug(err)
+				}
 			}
 		}
 	case base64.StdEncoding.EncodeToString(definition.ABIBridge.Methods[definition.RedeemUnwrapMethodName].Id()):
