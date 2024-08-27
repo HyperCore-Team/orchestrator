@@ -904,7 +904,7 @@ func (node *Node) processSignatures() {
 
 			resignNetworkClass, resignChainId := node.state.GetResignNetwork()
 			// Gather all wraps that need to be resigned
-			node.logger.Debug("Parsing all the wraps")
+			node.logger.Debug("Parsing all the wraps in resign state")
 			for {
 				wrapRequests, err := node.networksManager.Znn().GetAllWrapTokenRequests(pageIndex, pageSize)
 				if err != nil {
@@ -939,7 +939,7 @@ func (node *Node) processSignatures() {
 						if event.RedeemStatus != common.UnredeemedStatus {
 							continue
 						}
-
+						time.Sleep(50 * time.Millisecond)
 						redeemStatus, err := node.networksManager.Evm(wrap.ChainId).RedeemsInfo(wrap.Id)
 						if err != nil {
 							node.logger.Debug(err.Error())
@@ -967,7 +967,7 @@ func (node *Node) processSignatures() {
 				}
 				pageIndex++
 			}
-
+			node.logger.Debug("Finished parsing all the wraps in resign state")
 			if err := node.state.SetState(common.LiveState); err != nil {
 				node.logger.Debug(err.Error())
 			}
