@@ -16,17 +16,19 @@ const (
 )
 
 type GlobalState struct {
-	state                    *uint8
-	stateSemaphore           *semaphore.Weighted
-	frontierMomentumHeight   uint64
-	frontierMomSemaphore     *semaphore.Weighted
-	lastCeremony             uint64
-	isAdministratorActive    bool
-	tokensMap                map[uint32]map[string]string
-	isAffiliateProgramActive map[string]bool
-	affiliateStartingHeight  *big.Int
-	resignNetworkClass       uint32
-	resignNetworkChainId     uint32
+	state                  *uint8
+	stateSemaphore         *semaphore.Weighted
+	frontierMomentumHeight uint64
+	frontierMomSemaphore   *semaphore.Weighted
+	lastCeremony           uint64
+	isAdministratorActive  bool
+	tokensMap              map[uint32]map[string]string
+	// [chainId][token] -> bool
+	isAffiliateProgramActive map[uint32]map[string]bool
+	// [chainId] -> height
+	affiliateStartingHeight map[uint32]*big.Int
+	resignNetworkClass      uint32
+	resignNetworkChainId    uint32
 }
 
 func NewGlobalState(state *uint8) *GlobalState {
@@ -38,7 +40,7 @@ func NewGlobalState(state *uint8) *GlobalState {
 		frontierMomSemaphore:     semaphore.NewWeighted(1),
 		isAdministratorActive:    false,
 		tokensMap:                make(map[uint32]map[string]string),
-		isAffiliateProgramActive: make(map[string]bool),
+		isAffiliateProgramActive: make(map[uint32]map[string]bool),
 	}
 }
 
@@ -117,44 +119,73 @@ func (gs *GlobalState) GetIsAdministratorActive() bool {
 func (gs *GlobalState) SetIsAffiliateProgram(program AffiliateProgram) {
 	for chainId, networkValues := range program.Networks {
 		GlobalLogger.Infof("Set affiliate program values for network: %d", chainId)
+		if _, foundNetwork := gs.isAffiliateProgramActive[chainId]; !foundNetwork {
+			gs.isAffiliateProgramActive = make(map[uint32]map[string]bool)
+		}
 
-		gs.SetAffiliateStartingHeight(networkValues.StartingHeight)
-		GlobalLogger.Infof("SetAffiliateStartingHeight to : %d", networkValues.StartingHeight)
+		gs.SetAffiliateStartingHeight(chainId, networkValues.StartingHeight)
+		GlobalLogger.Infof("SetAffiliateStartingHeight: %d", networkValues.StartingHeight)
 
-		gs.isAffiliateProgramActive[types.ZnnTokenStandard.String()] = networkValues.ZNN
+		if tokenInfo, found := gs.isAffiliateProgramActive[chainId]; found {
+			tokenInfo[types.ZnnTokenStandard.String()] = networkValues.ZNN
+		} else {
+			gs.isAffiliateProgramActive[chainId] = make(map[string]bool)
+			gs.isAffiliateProgramActive[chainId][types.ZnnTokenStandard.String()] = networkValues.ZNN
+		}
 		GlobalLogger.Infof("SetIsAffiliateProgramActive for %s to : %t", types.ZnnTokenStandard.String(), networkValues.ZNN)
-		gs.isAffiliateProgramActive[types.QsrTokenStandard.String()] = networkValues.QSR
+
+		if tokenInfo, found := gs.isAffiliateProgramActive[chainId]; found {
+			tokenInfo[types.QsrTokenStandard.String()] = networkValues.QSR
+		} else {
+			gs.isAffiliateProgramActive[chainId] = make(map[string]bool)
+			gs.isAffiliateProgramActive[chainId][types.QsrTokenStandard.String()] = networkValues.QSR
+		}
 		GlobalLogger.Infof("SetIsAffiliateProgramActive for %s to : %t", types.QsrTokenStandard.String(), networkValues.QSR)
 
 		wZnnTokenAddress := gs.GetTokensMap(chainId, types.ZnnTokenStandard.String())
 		if len(wZnnTokenAddress) > 0 {
-			gs.isAffiliateProgramActive[wZnnTokenAddress] = networkValues.WZNN
+			if tokenInfo, found := gs.isAffiliateProgramActive[chainId]; found {
+				tokenInfo[wZnnTokenAddress] = networkValues.WZNN
+			} else {
+				gs.isAffiliateProgramActive[chainId] = make(map[string]bool)
+				gs.isAffiliateProgramActive[chainId][wZnnTokenAddress] = networkValues.WZNN
+			}
 			GlobalLogger.Infof("SetIsAffiliateProgramActive for %s (wZNN) to : %t", wZnnTokenAddress, networkValues.WZNN)
 		}
 		wQsrTokenAddress := gs.GetTokensMap(chainId, types.QsrTokenStandard.String())
 		if len(wQsrTokenAddress) > 0 {
-			gs.isAffiliateProgramActive[wQsrTokenAddress] = networkValues.WQSR
+			if tokenInfo, found := gs.isAffiliateProgramActive[chainId]; found {
+				tokenInfo[wQsrTokenAddress] = networkValues.WQSR
+			} else {
+				gs.isAffiliateProgramActive[chainId] = make(map[string]bool)
+				gs.isAffiliateProgramActive[chainId][wQsrTokenAddress] = networkValues.WQSR
+			}
 			GlobalLogger.Infof("SetIsAffiliateProgramActive for %s (wQSR) to : %t", wQsrTokenAddress, networkValues.WQSR)
 		}
 	}
 }
 
-func (gs *GlobalState) GetIsAffiliateProgramActive(token string) bool {
-	if value, found := gs.isAffiliateProgramActive[token]; found {
-		return value
+func (gs *GlobalState) GetIsAffiliateProgramActive(chainId uint32, token string) bool {
+	if networkInfo, foundNetwork := gs.isAffiliateProgramActive[chainId]; foundNetwork {
+		if value, foundToken := networkInfo[token]; foundToken {
+			return value
+		}
 	}
 	return false
 }
 
-func (gs *GlobalState) SetAffiliateStartingHeight(value uint64) {
-	gs.affiliateStartingHeight = big.NewInt(0).SetUint64(value)
+func (gs *GlobalState) SetAffiliateStartingHeight(chainId uint32, value uint64) {
+	if _, foundNetwork := gs.isAffiliateProgramActive[chainId]; !foundNetwork {
+		gs.affiliateStartingHeight = make(map[uint32]*big.Int)
+	}
+	gs.affiliateStartingHeight[chainId] = big.NewInt(0).SetUint64(value)
 }
 
-func (gs *GlobalState) GetAffiliateStartingHeight() *big.Int {
-	if gs.affiliateStartingHeight == nil {
-		gs.affiliateStartingHeight = big.NewInt(0)
+func (gs *GlobalState) GetAffiliateStartingHeight(chainId uint32) *big.Int {
+	if value, found := gs.affiliateStartingHeight[chainId]; found {
+		return value
 	}
-	return gs.affiliateStartingHeight
+	return big.NewInt(0)
 }
 
 func (gs *GlobalState) GetResignNetwork() (uint32, uint32) {

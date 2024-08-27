@@ -904,6 +904,7 @@ func (node *Node) processSignatures() {
 
 			resignNetworkClass, resignChainId := node.state.GetResignNetwork()
 			// Gather all wraps that need to be resigned
+			node.logger.Debug("Parsing all the wraps in resign state")
 			for {
 				wrapRequests, err := node.networksManager.Znn().GetAllWrapTokenRequests(pageIndex, pageSize)
 				if err != nil {
@@ -913,6 +914,7 @@ func (node *Node) processSignatures() {
 				} else if wrapRequests == nil || len(wrapRequests.List) == 0 {
 					break
 				} else {
+					node.logger.Debugf("len(wrapRequests.List): %d, pageIndex: %d", len(wrapRequests.List), pageIndex)
 					for _, wrap := range wrapRequests.List {
 						if wrap.NetworkClass != resignNetworkClass || wrap.ChainId != resignChainId {
 							continue
@@ -937,10 +939,11 @@ func (node *Node) processSignatures() {
 						if event.RedeemStatus != common.UnredeemedStatus {
 							continue
 						}
-
+						time.Sleep(50 * time.Millisecond)
 						redeemStatus, err := node.networksManager.Evm(wrap.ChainId).RedeemsInfo(wrap.Id)
 						if err != nil {
 							node.logger.Debug(err.Error())
+							continue
 						}
 						// The wrap is not redeemed or in pendingRedeem so we resign it
 						if redeemStatus.BlockNumber.Cmp(big.NewInt(0)) == 0 {
@@ -965,7 +968,7 @@ func (node *Node) processSignatures() {
 				}
 				pageIndex++
 			}
-
+			node.logger.Debug("Finished parsing all the wraps in resign state")
 			if err := node.state.SetState(common.LiveState); err != nil {
 				node.logger.Debug(err.Error())
 			}
@@ -1445,8 +1448,13 @@ func (node *Node) SetBridgeMetadata(metadata *common.BridgeMetadata) {
 			node.logger.Infof("ResignState ChainId - old: %d, new: %d", resignChainId, metadata.ResignState.ChainId)
 			node.state.SetResignNetwork(metadata.ResignState.NetworkClass, metadata.ResignState.ChainId)
 		} else {
-			if err := node.state.SetState(common.LiveState); err != nil {
-				node.logger.Debug(err)
+			state, errState := node.state.GetState()
+			if errState != nil {
+				node.logger.Debug(errState)
+			} else if state == common.ReSignState {
+				if err := node.state.SetState(common.LiveState); err != nil {
+					node.logger.Debug(err)
+				}
 			}
 		}
 
