@@ -943,6 +943,7 @@ func (node *Node) processSignatures() {
 						redeemStatus, err := node.networksManager.Evm(wrap.ChainId).RedeemsInfo(wrap.Id)
 						if err != nil {
 							node.logger.Debug(err.Error())
+							continue
 						}
 						// The wrap is not redeemed or in pendingRedeem so we resign it
 						if redeemStatus.BlockNumber.Cmp(big.NewInt(0)) == 0 {
